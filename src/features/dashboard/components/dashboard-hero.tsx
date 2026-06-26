@@ -1,0 +1,36 @@
+import { Button } from "@/components/ui/button";
+import { heroContent } from "@/features/dashboard/data/home-data";
+import { heroBackgroundImage } from "@/lib/images";
+
+export function DashboardHero() {
+  return (
+    <section className="relative mb-3.5 flex h-[158px] overflow-hidden rounded-md bg-[var(--olive)] shadow-sh3">
+      <div className="z-[1] flex flex-1 flex-col justify-center px-7 py-6">
+        <h1 className="font-display text-[40px] font-bold leading-none tracking-[0.12em] text-[var(--cream)]">
+          {heroContent.title}
+        </h1>
+        <p className="mt-1.5 text-[10px] uppercase tracking-[0.06em] text-[var(--sage-light)]">
+          {heroContent.subtitle}
+        </p>
+        <div className="mt-[18px]">
+          <Button
+            className="h-[30px] rounded-[5px] border-0 bg-[var(--cream)] px-4 font-display text-[11px] font-bold normal-case tracking-normal text-[var(--olive-dark)] shadow-sh2 hover:bg-white"
+            size="sm"
+          >
+            {heroContent.cta}
+          </Button>
+        </div>
+      </div>
+
+      <div className="relative w-[320px] shrink-0 overflow-hidden" aria-hidden>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={heroBackgroundImage()}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--olive)] via-[var(--olive)]/50 to-transparent" />
+      </div>
+    </section>
+  );
+}

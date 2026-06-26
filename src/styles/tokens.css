@@ -1,0 +1,154 @@
+:root {
+  /* ── Palette ── */
+  --sage: #a8b5a2;
+  --sage-light: #c2cbbe;
+  --sage-faint: #dce3da;
+  --olive: #5e6b55;
+  --olive-dark: #4a5443;
+  --olive-deep: #38402f;
+  --cream: #f2efea;
+  --cream-dark: #e8e4de;
+  --cream-deeper: #dbd6cf;
+
+  /* ── Elevation surfaces ── */
+  --e0: #edeae4;
+  --e1: #f2efea;
+  --e2: #ffffff;
+  --e3: #f7f5f1;
+  --e4: #ede9e3;
+  --e5: #dbd7d0;
+
+  /* ── Type ── */
+  --t0: rgba(58, 67, 49, 0.3);
+  --t1: rgba(58, 67, 49, 0.48);
+  --t2: rgba(58, 67, 49, 0.64);
+  --t3: rgba(58, 67, 49, 0.82);
+  --t4: #2b3224;
+
+  /* ── Accents ── */
+  --accent: #5e6b55;
+  --accent-h: #4a5443;
+  --green: #3d7a5a;
+  --red: #9b4040;
+
+  /* ── Borders ── */
+  --bd0: rgba(58, 67, 49, 0.06);
+  --bd1: rgba(58, 67, 49, 0.1);
+  --bd2: rgba(58, 67, 49, 0.16);
+
+  /* ── Shadows ── */
+  --sh1: 0 1px 3px rgba(60, 70, 50, 0.07), 0 1px 2px rgba(60, 70, 50, 0.05);
+  --sh2: 0 4px 14px rgba(60, 70, 50, 0.09), 0 2px 5px rgba(60, 70, 50, 0.06);
+  --sh3: 0 10px 28px rgba(60, 70, 50, 0.12), 0 3px 8px rgba(60, 70, 50, 0.07);
+  --sh4: 0 18px 48px rgba(60, 70, 50, 0.15), 0 5px 12px rgba(60, 70, 50, 0.08);
+  --glow: inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+
+  /* ── Typography & radius ── */
+  --fn: var(--font-inter), sans-serif;
+  --fd: var(--font-space-grotesk), sans-serif;
+  --fm: var(--font-space-mono), monospace;
+  --r: 8px;
+
+  /* ── shadcn/ui semantic bridge ── */
+  --background: var(--e0);
+  --foreground: var(--t4);
+  --card: var(--e2);
+  --card-foreground: var(--t4);
+  --popover: var(--e2);
+  --popover-foreground: var(--t4);
+  --primary: var(--t4);
+  --primary-foreground: var(--e2);
+  --secondary: var(--e4);
+  --secondary-foreground: var(--t4);
+  --muted: var(--e3);
+  --muted-foreground: var(--t2);
+  --accent-ui: var(--accent);
+  --accent-ui-foreground: var(--e2);
+  --destructive: var(--red);
+  --destructive-foreground: var(--e2);
+  --border: var(--bd1);
+  --input: var(--bd2);
+  --ring: var(--accent);
+  --radius: var(--r);
+
+  /* ── Sidebar ── */
+  --sidebar-bg: var(--olive);
+  --sidebar-text: rgba(242, 239, 234, 0.55);
+  --sidebar-text-active: var(--cream);
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.1);
+  --sidebar-active-bg: rgba(255, 255, 255, 0.15);
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --slider-rail-bg: var(--sage-faint);
+}
+
+.dark {
+  --sage: #a8b5a2;
+  --sage-dim: #7a8f74;
+  --sage-deep: #4a5e45;
+  --olive: #5e6b55;
+  --olive-dark: #4a5443;
+
+  --beige: #c8b99a;
+  --beige-dim: #9e8f78;
+  --beige-faint: rgba(200, 185, 154, 0.12);
+  --cream: #f2efea;
+  --cream-dim: rgba(242, 239, 234, 0.55);
+
+  --e0: #0d0f0c;
+  --e1: #0a0c09;
+  --e2: #181c16;
+  --e3: #1e2319;
+  --e4: #252a22;
+  --e5: #2d332a;
+
+  --bd0: rgba(200, 185, 154, 0.05);
+  --bd1: rgba(200, 185, 154, 0.09);
+  --bd2: rgba(200, 185, 154, 0.15);
+
+  --t0: rgba(200, 185, 154, 0.28);
+  --t1: rgba(200, 185, 154, 0.48);
+  --t2: rgba(200, 185, 154, 0.65);
+  --t3: rgba(242, 239, 234, 0.8);
+  --t4: #f2efea;
+
+  --accent: #a8b5a2;
+  --accent-h: #c2cbbe;
+  --green: #6ab892;
+  --red: #c47070;
+
+  --sh1: 0 2px 6px rgba(0, 0, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sh2: 0 6px 20px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.45);
+  --sh3: 0 12px 36px rgba(0, 0, 0, 0.75), 0 4px 10px rgba(0, 0, 0, 0.5);
+  --sh4: 0 20px 56px rgba(0, 0, 0, 0.85), 0 6px 16px rgba(0, 0, 0, 0.55);
+  --glow: inset 0 1px 0 rgba(168, 181, 162, 0.07),
+    inset 0 0 0 1px rgba(168, 181, 162, 0.03);
+
+  --background: var(--e0);
+  --foreground: var(--t4);
+  --card: var(--e2);
+  --card-foreground: var(--t4);
+  --popover: var(--e2);
+  --popover-foreground: var(--t4);
+  --primary: var(--cream);
+  --primary-foreground: var(--e0);
+  --secondary: var(--e4);
+  --secondary-foreground: var(--t4);
+  --muted: var(--e3);
+  --muted-foreground: var(--t2);
+  --accent-ui: var(--accent);
+  --accent-ui-foreground: var(--e0);
+  --destructive: var(--red);
+  --destructive-foreground: var(--e2);
+  --border: var(--bd1);
+  --input: var(--bd2);
+  --ring: var(--accent);
+
+  --sidebar-bg: var(--e1);
+  --sidebar-text: var(--t1);
+  --sidebar-text-active: var(--t4);
+  --sidebar-hover-bg: var(--e4);
+  --sidebar-active-bg: var(--e3);
+  --sidebar-border: var(--bd1);
+  --slider-rail-bg: var(--e3);
+}
