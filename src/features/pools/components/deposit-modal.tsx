@@ -43,7 +43,7 @@ export function PoolDepositButton({ pool, className }: PoolDepositButtonProps) {
   const [amount, setAmount] = React.useState("0.00");
   const [submittedAmount, setSubmittedAmount] = React.useState("0.00");
 
-  const { availableBalanceEth, membership, explorerTxUrl } = depositDefaults;
+  const { availableBalanceEth, explorerTxUrl } = depositDefaults;
   const numericAmount = parseEthAmount(amount);
   const usdEstimate = ethToUsd(numericAmount);
 

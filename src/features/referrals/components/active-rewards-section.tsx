@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { SectionHeader } from "@/features/dashboard/components/section-header";
 import { activeRewards } from "@/features/referrals/data/referrals-data";
 import { RewardGridCard } from "./reward-grid-card";

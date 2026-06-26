@@ -107,7 +107,7 @@ export function UserInfoStep({ onContinue }: UserInfoStepProps) {
       </Button>
 
       <p className="mt-3 border-t border-border pt-3 text-center font-mono text-[7px] uppercase tracking-[0.04em] text-t0">
-        Encrypted Session ID: {signupSessionId} // End-to-End Security Active
+        Encrypted Session ID: {signupSessionId} — End-to-End Security Active
       </p>
     </div>
   );
