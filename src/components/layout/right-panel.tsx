@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { rightPanelData } from "@/features/dashboard/data/home-data";
 import { cn } from "@/lib/utils";
 
@@ -44,8 +43,92 @@ function PoolIcon() {
 
 function RailDivider({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-[13px] border-b border-[var(--cream-dark)] pb-[13px]">
+    <div className="mb-[13px] shrink-0 border-b border-bd0 pb-[13px]">
       {children}
+    </div>
+  );
+}
+
+function StatBox({
+  label,
+  value,
+  valueClassName,
+  footer,
+  footerClassName,
+}: {
+  label: string;
+  value: string;
+  valueClassName?: string;
+  footer?: string;
+  footerClassName?: string;
+}) {
+  return (
+    <div className="rounded-md bg-e3 p-[9px] shadow-sh1">
+      <p className="mb-[3px] text-[8px] uppercase tracking-[0.05em] text-t0">
+        {label}
+      </p>
+      <p
+        className={cn(
+          "font-mono text-[13px] font-bold text-t4",
+          valueClassName,
+        )}
+      >
+        {value}
+      </p>
+      {footer && (
+        <p className={cn("mt-0.5 font-mono text-[8px]", footerClassName)}>
+          {footer}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function RewardTierCard({
+  tier,
+  withDivider,
+}: {
+  tier: (typeof rightPanelData.rewardTiers)[number];
+  withDivider?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative shrink-0 overflow-hidden rounded-md bg-e2 p-[10px] shadow-[var(--sh2),var(--glow)]",
+        withDivider
+          ? "mb-[13px] border-b border-bd0 pb-[13px]"
+          : "mb-2",
+      )}
+    >
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-[var(--sage-faint)] via-[var(--sage)] to-[var(--sage-faint)] opacity-60"
+        aria-hidden
+      />
+      <div className="mb-[3px] flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-[5px]">
+          <span className="shrink-0">
+            {tier.icon === "referral" ? <ReferralIcon /> : <PoolIcon />}
+          </span>
+          <span className="truncate text-[10px] font-semibold text-t3">
+            {tier.title}
+          </span>
+        </div>
+        <span className="shrink-0 rounded-[2px] bg-[var(--sage-faint)] px-[5px] py-0.5 font-mono text-[7px] tracking-[0.06em] text-t4">
+          {tier.tag}
+        </span>
+      </div>
+      <p className="mb-2 text-[8px] leading-[1.4] text-t0">{tier.description}</p>
+      <div className="flex items-center justify-between gap-2">
+        <span className="min-w-0 font-mono text-[13px] font-bold text-t4">
+          {tier.amount}
+        </span>
+        <button
+          type="button"
+          className="h-[22px] shrink-0 rounded-[3px] bg-[var(--inverse-surface)] px-[9px] font-mono text-[8px] font-bold tracking-[0.06em] text-[var(--inverse-foreground)] transition-colors hover:brightness-110 dark:bg-[var(--inverse-btn-bg)] dark:text-[var(--inverse-btn-text)] dark:hover:brightness-95"
+        >
+          CLAIM
+        </button>
+      </div>
     </div>
   );
 }
@@ -59,7 +142,7 @@ export function RightPanel({ className }: { className?: string }) {
   return (
     <aside
       className={cn(
-        "flex w-full shrink-0 flex-col bg-e1 p-4 shadow-[-2px_0_10px_rgba(60,70,50,0.07)] xl:w-64",
+        "block h-full min-h-0 w-64 shrink-0 overflow-x-hidden overflow-y-auto rounded-t-[10px] bg-e1 p-4 shadow-sh2 scrollbar-thin",
         className,
       )}
       aria-label="Account overview"
@@ -77,7 +160,7 @@ export function RightPanel({ className }: { className?: string }) {
               <span className="font-display text-xs font-bold text-t4">
                 {data.username}
               </span>
-              <span className="ml-[5px] inline-flex h-[14px] items-center rounded-[2px] bg-accent px-[5px] font-mono text-[7px] font-bold tracking-[0.08em] text-[var(--cream)]">
+              <span className="ml-[5px] inline-flex h-[14px] items-center rounded-[2px] bg-[var(--inverse-surface)] px-[5px] font-mono text-[7px] font-bold tracking-[0.08em] text-[var(--inverse-foreground)]">
                 {data.badge}
               </span>
             </div>
@@ -102,7 +185,7 @@ export function RightPanel({ className }: { className?: string }) {
             aria-valuemax={100}
           >
             <div
-              className="h-full rounded-[2px] bg-accent"
+              className="rail-progress-fill h-full rounded-[2px] bg-[var(--inverse-surface)] dark:bg-[var(--inverse-foreground)]"
               style={{ width: `${data.progress}%` }}
             />
           </div>
@@ -115,104 +198,57 @@ export function RightPanel({ className }: { className?: string }) {
 
       <RailDivider>
         <div className="grid grid-cols-2 gap-[7px]">
-          <div className="rounded-md bg-e3 p-[9px] shadow-sh1">
-            <p className="mb-[3px] text-[8px] uppercase tracking-[0.05em] text-t0">
-              Total Rewarded
-            </p>
-            <p className="font-mono text-[13px] font-bold text-t4">
-              {data.totalRewarded.value}
-            </p>
-            <p className="mt-[2px] font-mono text-[8px] text-green">
-              {data.totalRewarded.delta}
-            </p>
-          </div>
-          <div className="rounded-md bg-e3 p-[9px] shadow-sh1">
-            <p className="mb-[3px] text-[8px] uppercase tracking-[0.05em] text-t0">
-              HNTR Points
-            </p>
-            <p className="font-mono text-[13px] font-bold text-t4">
-              {data.hntrPoints.value}
-            </p>
-            <p className="mt-[2px] font-mono text-[8px] text-t0">
-              {data.hntrPoints.subtitle}
-            </p>
-          </div>
+          <StatBox
+            label="Total Rewarded"
+            value={data.totalRewarded.value}
+            footer={data.totalRewarded.delta}
+            footerClassName="text-green"
+          />
+          <StatBox
+            label="HNTR Points"
+            value={data.hntrPoints.value}
+            footer={data.hntrPoints.subtitle}
+            footerClassName="text-t0"
+          />
         </div>
       </RailDivider>
 
       <RailDivider>
         <div className="grid grid-cols-2 gap-[7px]">
-          <div className="rounded-md bg-e3 p-[9px] shadow-sh1">
-            <p className="mb-[3px] text-[8px] uppercase tracking-[0.05em] text-t0">
-              Membership
-            </p>
-            <p className="font-display text-[13px] font-bold text-t4">
-              {data.membership.tier}
-            </p>
-          </div>
-          <div className="rounded-md bg-e3 p-[9px] shadow-sh1">
-            <p className="mb-[3px] text-[8px] uppercase tracking-[0.05em] text-t0">
-              Total Network Users
-            </p>
-            <p className="font-mono text-[13px] font-bold text-t4">
-              {data.membership.networkUsers}
-            </p>
-            <p className="mt-[2px] font-mono text-[8px] text-green">
-              {data.membership.growth}
-            </p>
-          </div>
+          <StatBox
+            label="Membership"
+            value={data.membership.tier}
+            valueClassName="font-display text-[15px]"
+            footer={data.membership.tierSubtitle}
+            footerClassName="text-t0"
+          />
+          <StatBox
+            label="Total Network Users"
+            value={data.membership.networkUsers}
+            footer={data.membership.growth}
+            footerClassName="text-green"
+          />
         </div>
       </RailDivider>
 
-      <p className="mb-[9px] font-mono text-[8px] uppercase tracking-[0.08em] text-t0">
+      <p className="mb-[9px] shrink-0 font-mono text-[8px] uppercase tracking-[0.08em] text-t0">
         Active Rewards Tiers
       </p>
 
       {data.rewardTiers.map((tier, index) => (
-        <div
+        <RewardTierCard
           key={tier.id}
-          className={cn(
-            "relative mb-2 overflow-hidden rounded-md bg-e2 p-[10px] shadow-sh2 [box-shadow:var(--sh2),var(--glow)]",
-            index === data.rewardTiers.length - 1 &&
-              "mb-[13px] border-b border-[var(--cream-dark)] pb-[13px]",
-          )}
-        >
-          <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-[var(--sage-faint)] via-[var(--sage)] to-[var(--sage-faint)] opacity-60"
-            aria-hidden
-          />
-          <div className="mb-[3px] flex items-center justify-between">
-            <div className="flex items-center gap-[5px]">
-              {tier.icon === "referral" ? <ReferralIcon /> : <PoolIcon />}
-              <span className="text-[10px] font-semibold text-t3">
-                {tier.title}
-              </span>
-            </div>
-            <span className="rounded-[2px] bg-[var(--sage-faint)] px-[5px] py-0.5 font-mono text-[7px] tracking-[0.06em] text-[var(--olive-dark)] dark:bg-e5 dark:text-t2">
-              {tier.tag}
-            </span>
-          </div>
-          <p className="mb-2 text-[8px] leading-snug text-t0">{tier.description}</p>
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[13px] font-bold text-t4">
-              {tier.amount}
-            </span>
-            <button
-              type="button"
-              className="h-[22px] rounded-[3px] bg-accent-ui px-2.5 font-mono text-[8px] font-bold tracking-[0.06em] text-accent-ui-foreground shadow-sh1 transition-colors hover:bg-accent-h"
-            >
-              CLAIM
-            </button>
-          </div>
-        </div>
+          tier={tier}
+          withDivider={index === data.rewardTiers.length - 1}
+        />
       ))}
 
-      <p className="mb-[9px] mt-1 font-mono text-[8px] uppercase tracking-[0.08em] text-t0">
+      <p className="mb-[9px] mt-1 shrink-0 font-mono text-[8px] uppercase tracking-[0.08em] text-t0">
         Platform Activity
       </p>
 
       <div
-        className="mb-2 flex border-b border-[var(--cream-dark)]"
+        className="mb-2 shrink-0 flex border-b border-bd0"
         role="tablist"
         aria-label="Activity filters"
       >
@@ -226,7 +262,7 @@ export function RightPanel({ className }: { className?: string }) {
             className={cn(
               "-mb-px border-b px-[7px] py-[3px] font-mono text-[8px] tracking-[0.05em] transition-colors",
               activeTab === tab
-                ? "border-accent text-accent"
+                ? "border-t4 text-t4"
                 : "border-transparent text-t0",
             )}
           >
@@ -235,11 +271,14 @@ export function RightPanel({ className }: { className?: string }) {
         ))}
       </div>
 
-      <ul className="mb-0">
-        {data.activity.map((item) => (
-          <li
+      <div id="activityFeed" className="shrink-0">
+        {data.activity.map((item, index) => (
+          <div
             key={item.id}
-            className="flex items-center gap-[7px] border-b border-[var(--cream-dark)] py-[5px] last:border-b-0"
+            className={cn(
+              "flex items-center gap-[7px] border-b border-bd0 py-[5px] last:border-b-0",
+              index === 0 && "rail-activity-new",
+            )}
           >
             <span
               className="flex size-[18px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--sage-faint)] text-[8px]"
@@ -250,10 +289,8 @@ export function RightPanel({ className }: { className?: string }) {
             <div className="min-w-0 flex-1">
               <p className="truncate text-[9px] text-t3">{item.name}</p>
               <p
-                className={cn(
-                  "font-mono text-[8px]",
-                  item.positive ? "text-green" : "text-red",
-                )}
+                className="font-mono text-[8px]"
+                style={{ color: item.positive ? "var(--green)" : "var(--red)" }}
               >
                 {item.action} · {item.value}
               </p>
@@ -261,16 +298,16 @@ export function RightPanel({ className }: { className?: string }) {
             <span className="shrink-0 font-mono text-[8px] text-t0">
               {item.timeAgo}
             </span>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
 
-      <Link
-        href="/activity"
-        className="block pt-2.5 text-center font-mono text-[9px] text-accent underline"
+      <button
+        type="button"
+        className="block w-full pt-[9px] text-center font-mono text-[9px] text-t4 underline"
       >
         View Activity
-      </Link>
+      </button>
     </aside>
   );
 }

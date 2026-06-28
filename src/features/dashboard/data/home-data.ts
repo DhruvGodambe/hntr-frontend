@@ -399,6 +399,7 @@ export const rightPanelData = {
   },
   membership: {
     tier: "RANGER",
+    tierSubtitle: "Current Tier",
     networkUsers: "12,482",
     growth: "↑+1.6% Growth",
   },
@@ -461,9 +462,9 @@ export const rightPanelData = {
     {
       id: "a5",
       icon: "🦧",
-      name: "BAYC #3362",
-      action: "DEPOSIT",
-      value: "1.8 Ξ",
+      name: "BAYC #5678",
+      action: "RENEWED",
+      value: "+14% APY",
       positive: true,
       timeAgo: "34m",
     },

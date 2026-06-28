@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Bell, Check, ExternalLink, X } from "lucide-react";
+import { Check, ExternalLink, X } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,9 +41,28 @@ export function NotificationsPanel() {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="ghost" size="icon" aria-label="Notifications">
-          <Bell className="size-4" />
-        </Button>
+        <button
+          type="button"
+          aria-label="Notifications"
+          className="nav-btn relative"
+        >
+          {items.length > 0 && (
+            <span className="notif-badge" aria-hidden />
+          )}
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
+            <path
+              d="M8 2a3.5 3.5 0 0 1 3.5 3.5c0 3.5 1.5 4.5 1.5 4.5H3s1.5-1 1.5-4.5A3.5 3.5 0 0 1 8 2z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M6.5 12.5a1.5 1.5 0 0 0 3 0"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent

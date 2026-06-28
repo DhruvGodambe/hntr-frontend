@@ -43,7 +43,7 @@ function RankedListItem({
   variant: "change" | "volume";
 }) {
   return (
-    <li className="flex items-center gap-[7px] border-b border-[var(--cream-dark)] py-[5px] last:border-b-0">
+    <li className="flex items-center gap-[7px] border-b border-bd1 py-[5px] last:border-b-0">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={nftPlaceholder(item.imageSeed, 40)}
@@ -71,7 +71,7 @@ function RankedListItem({
 
 export function RankedList({ title, icon, items, variant }: RankedListProps) {
   return (
-    <div className="rounded-md border border-[var(--cream-dark)] bg-e2 p-3">
+    <div className="rounded-md border border-bd1 bg-e2 p-3">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="font-mono text-[8px] uppercase tracking-[0.08em] text-t0">
           {title}

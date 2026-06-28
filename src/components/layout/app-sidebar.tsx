@@ -1,28 +1,23 @@
 "use client";
 
+import { HelpCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { Settings } from "lucide-react";
+import { SidebarThemeToggle } from "@/components/theme";
 import { mainNavItems } from "@/lib/navigation";
 import {
   SidebarRail,
+  SidebarRailAction,
   SidebarRailContent,
   SidebarRailFooter,
-  SidebarRailHeader,
-  SidebarRailProvider,
   SidebarRailSeparator,
   SidebarNavItem,
 } from "@/components/layout/sidebar-rail";
 
-function AppSidebarNav({
-  onNavigate,
-}: {
-  onNavigate?: () => void;
-}) {
+export function AppSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
     <>
-      <SidebarRailHeader />
       <SidebarRailContent>
         {mainNavItems.map((item) => {
           const Icon = item.icon;
@@ -33,7 +28,7 @@ function AppSidebarNav({
 
           return (
             <SidebarNavItem
-              key={item.href}
+              key={item.label}
               href={item.href}
               label={item.label}
               icon={<Icon />}
@@ -46,13 +41,11 @@ function AppSidebarNav({
       </SidebarRailContent>
       <SidebarRailSeparator />
       <SidebarRailFooter>
-        <SidebarNavItem
-          href="/info"
-          label="Settings"
-          icon={<Settings />}
-          active={pathname === "/info"}
-          variant="rail"
-          onNavigate={onNavigate}
+        <SidebarThemeToggle />
+        <SidebarRailAction
+          label="Support"
+          href="mailto:support@hntr.art"
+          icon={<HelpCircle strokeWidth={1.4} />}
         />
       </SidebarRailFooter>
     </>
@@ -72,5 +65,5 @@ export function AppSidebarProvider({
 }: {
   children: React.ReactNode;
 }) {
-  return <SidebarRailProvider defaultExpanded>{children}</SidebarRailProvider>;
+  return <>{children}</>;
 }

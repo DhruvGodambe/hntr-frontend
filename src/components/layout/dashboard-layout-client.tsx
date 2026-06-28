@@ -12,6 +12,8 @@ export function DashboardLayoutClient({ children }: DashboardLayoutClientProps) 
   const showRightPanel = !pathname.startsWith("/referrals");
 
   return (
-    <DashboardShell showRightPanel={showRightPanel}>{children}</DashboardShell>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <DashboardShell showRightPanel={showRightPanel}>{children}</DashboardShell>
+    </div>
   );
 }

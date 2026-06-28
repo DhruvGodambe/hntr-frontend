@@ -34,7 +34,7 @@ export function CollectionFilters({
                     type="checkbox"
                     checked={checked}
                     onChange={() => onToggle(collection.id)}
-                    className="size-3 rounded-sm border-border accent-[var(--olive)]"
+                    className="size-3 rounded-sm border-border accent-accent"
                   />
                   <span className="min-w-0 flex-1 truncate text-[9px] text-t3">
                     {collection.name}

@@ -1,18 +1,19 @@
 import { PoolsMetricsRow } from "./pools-metrics-row";
+import { PoolsPageActions } from "./pools-page-actions";
 import { PoolsPageHero } from "./pools-page-hero";
 import { RealtimeActivityTable } from "./realtime-activity-table";
 import { RunningPoolsGrid } from "./running-pools-grid";
 
 export function PoolsHome() {
   return (
-    <>
+    <div className="-mx-4 -mt-4 flex flex-col pb-10">
       <PoolsPageHero />
-      <PoolsMetricsRow />
-      <RunningPoolsGrid />
-      <RealtimeActivityTable />
-      <footer className="border-t border-border pt-4 font-mono text-[8px] uppercase tracking-[0.06em] text-t0">
-        © 2024 HNTR INSTITUTIONAL | TERMINAL STATUS: OPTIMAL
-      </footer>
-    </>
+      <div className="px-5 pt-[18px]">
+        <PoolsPageActions />
+        <PoolsMetricsRow />
+        <RunningPoolsGrid />
+        <RealtimeActivityTable />
+      </div>
+    </div>
   );
 }

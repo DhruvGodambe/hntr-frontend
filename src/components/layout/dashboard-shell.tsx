@@ -1,28 +1,19 @@
 "use client";
 
 import * as React from "react";
+import { AppFooter } from "@/components/layout/app-footer";
 import { AppNavbar } from "@/components/layout/app-navbar";
-import { AppSidebar, AppSidebarProvider } from "@/components/layout/app-sidebar";
+import { AppSidebar, AppSidebarNav } from "@/components/layout/app-sidebar";
 import { MainContent } from "@/components/layout/main-content";
+import { PageLoader } from "@/components/layout/page-loader";
 import { RightPanel } from "@/components/layout/right-panel";
+import { SidebarRail } from "@/components/layout/sidebar-rail";
+import { ToastProvider } from "@/components/toast/toast-provider";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarHeader,
-  SidebarNavItem,
-  SidebarProvider,
-} from "@/components/ui/sidebar";
-import { mainNavItems } from "@/lib/navigation";
-import { Settings } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 
 type DashboardShellProps = {
   children: React.ReactNode;
@@ -36,48 +27,16 @@ function MobileSidebar({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const pathname = usePathname();
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="left-0 top-0 flex h-dvh max-h-dvh w-[min(100%,280px)] max-w-[280px] translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-r p-0 sm:rounded-none">
+      <DialogContent className="left-0 top-0 flex h-dvh max-h-dvh w-[min(100%,280px)] max-w-[280px] translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-r border-bd1 bg-[var(--sidebar-bg)] p-0 sm:rounded-none">
         <DialogTitle className="sr-only">Navigation menu</DialogTitle>
-        <SidebarProvider defaultExpanded>
-          <Sidebar forceVisible className="h-full w-full border-0">
-            <SidebarHeader />
-            <SidebarContent>
-              <SidebarGroup>
-                {mainNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const active =
-                    item.href === "/"
-                      ? pathname === "/"
-                      : pathname.startsWith(item.href);
-
-                  return (
-                    <SidebarNavItem
-                      key={item.href}
-                      href={item.href}
-                      label={item.label}
-                      icon={<Icon />}
-                      active={active}
-                      onNavigate={() => onOpenChange(false)}
-                    />
-                  );
-                })}
-              </SidebarGroup>
-            </SidebarContent>
-            <SidebarFooter>
-              <SidebarNavItem
-                href="/info"
-                label="Settings"
-                icon={<Settings />}
-                active={pathname === "/info"}
-                onNavigate={() => onOpenChange(false)}
-              />
-            </SidebarFooter>
-          </Sidebar>
-        </SidebarProvider>
+        <SidebarRail
+          data-mobile-nav
+          className="mt-0 ml-0 !flex h-full w-full min-w-0 rounded-none hover:w-full"
+        >
+          <AppSidebarNav onNavigate={() => onOpenChange(false)} />
+        </SidebarRail>
       </DialogContent>
     </Dialog>
   );
@@ -92,9 +51,9 @@ function MobileRightPanel({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="left-auto right-0 top-0 flex h-dvh max-h-dvh w-[min(100%,320px)] max-w-[320px] translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-l p-0 sm:rounded-none">
+      <DialogContent className="left-auto right-0 top-0 flex h-dvh max-h-dvh w-[min(100%,320px)] max-w-[320px] translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-l border-bd1 p-0 sm:rounded-none">
         <DialogTitle className="sr-only">Account overview</DialogTitle>
-        <RightPanel className="h-full w-full overflow-y-auto border-0 shadow-none" />
+        <RightPanel className="h-full min-h-0 w-full max-w-none border-0 shadow-none" />
       </DialogContent>
     </Dialog>
   );
@@ -108,39 +67,41 @@ export function DashboardShell({
   const [rightPanelOpen, setRightPanelOpen] = React.useState(false);
 
   return (
-    <AppSidebarProvider>
-      <div className="flex h-dvh overflow-hidden bg-e0">
-        <AppSidebar />
-        <MobileSidebar open={mobileOpen} onOpenChange={setMobileOpen} />
-
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+    <>
+      <PageLoader />
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-e0">
         <AppNavbar
           onMobileMenuOpen={() => setMobileOpen(true)}
           onRightPanelOpen={() => setRightPanelOpen(true)}
           showRightPanelToggle={showRightPanel}
         />
 
-        <div className="flex min-h-0 flex-1 overflow-hidden">
-          <MainContent className="min-w-0 flex-1">
-            <div className="overflow-x-hidden px-[18px] pb-10 pt-[18px]">{children}</div>
-          </MainContent>
+        <div className="shell">
+          <AppSidebar />
+          <MobileSidebar open={mobileOpen} onOpenChange={setMobileOpen} />
 
-          {showRightPanel && (
-            <>
-              <MobileRightPanel
-                open={rightPanelOpen}
-                onOpenChange={setRightPanelOpen}
-              />
-              <RightPanel
-                className={cn(
-                  "hidden h-full shrink-0 overflow-y-auto border-t border-border xl:flex xl:border-t-0 xl:border-l",
-                )}
-              />
-            </>
-          )}
+          <div className="content">
+            <div className="page-panel">
+              <MainContent className="feed min-w-0 flex-1 bg-e0 px-4 pb-10 pt-4">
+                {children}
+              </MainContent>
+
+              {showRightPanel && (
+                <>
+                  <MobileRightPanel
+                    open={rightPanelOpen}
+                    onOpenChange={setRightPanelOpen}
+                  />
+                  <RightPanel className="hidden h-full min-h-0 shrink-0 xl:block" />
+                </>
+              )}
+            </div>
+          </div>
         </div>
+
+        <AppFooter />
       </div>
-      </div>
-    </AppSidebarProvider>
+      <ToastProvider />
+    </>
   );
 }

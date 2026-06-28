@@ -11,8 +11,10 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider>
       <ConnectWizardProvider>
-        {children}
-        <SignupWizard />
+        <div className="flex min-h-0 flex-1 flex-col">
+          {children}
+          <SignupWizard />
+        </div>
       </ConnectWizardProvider>
     </ThemeProvider>
   );

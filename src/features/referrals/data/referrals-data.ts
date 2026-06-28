@@ -11,6 +11,8 @@ export type ReferralStat = {
   value: string;
   subtext?: string;
   delta?: string;
+  positive?: boolean;
+  displayFont?: boolean;
 };
 
 export type ActiveReward = {
@@ -20,6 +22,7 @@ export type ActiveReward = {
   description: string;
   amount: string;
   icon: "referral" | "leadership" | "rank" | "nft" | "otc" | "liquidity";
+  delay: string;
 };
 
 export type ReferralTransaction = {
@@ -31,9 +34,14 @@ export type ReferralTransaction = {
   status: "completed";
 };
 
+export const networkHero = {
+  title: "Network",
+  subtitle: "Institutional rewards dashboard & network commissions",
+};
+
 export const referralProfile: ReferralProfile = {
-  username: "username",
-  rank: "ELITE HUNTER",
+  username: "masteraccount",
+  rank: "Elite Hunter",
   progress: 74,
   progressStart: "Hunter Elite",
   progressEnd: "Hunter Legend",
@@ -43,7 +51,8 @@ export const referralStats: ReferralStat[] = [
   {
     label: "Total Rewarded",
     value: "$119,551.44",
-    delta: "+4.2% This Month",
+    delta: "↗ +4.2% This Month",
+    positive: true,
   },
   {
     label: "HNTR Points",
@@ -53,11 +62,14 @@ export const referralStats: ReferralStat[] = [
   {
     label: "Membership",
     value: "RANGER",
+    subtext: "Current Tier",
+    displayFont: true,
   },
   {
     label: "Total Network Users",
     value: "12,482",
-    delta: "+1.8% Growth",
+    delta: "↗ +1.8% Growth",
+    positive: true,
   },
 ];
 
@@ -66,49 +78,61 @@ export const activeRewards: ActiveReward[] = [
     id: "referral",
     title: "Referral Commissions",
     tag: "REAL-TIME",
-    description: "Collect rewards earned through your referrals.",
+    description:
+      "Cumulative earnings from direct network institutional volume.",
     amount: "$42,301.12",
     icon: "referral",
+    delay: ".05s",
   },
   {
     id: "leadership",
     title: "Leadership Bonus",
     tag: "DAILY",
-    description: "Leadership rewards are ready to claim.",
+    description:
+      "Daily proportional distribution from global liquidity pools.",
     amount: "$18,442.80",
     icon: "leadership",
+    delay: ".10s",
   },
   {
     id: "rank",
     title: "Rank Bonus",
     tag: "WEEKLY",
-    description: "Bonus earned for reaching a new rank.",
+    description:
+      "Bonus calculated based on organization performance metrics.",
     amount: "$31,005.00",
     icon: "rank",
+    delay: ".15s",
   },
   {
     id: "nft",
     title: "NFT Strategy Rewards",
     tag: "EVENT",
-    description: "Claim profits from your NFT Strategy participation.",
+    description:
+      "One-time milestone incentives for achieving new Hunter tiers.",
     amount: "$25,000.00",
     icon: "nft",
+    delay: ".20s",
   },
   {
     id: "otc",
     title: "OTC Desk",
     tag: "MONTHLY",
-    description: "Claim earnings from OTC Desk operations.",
+    description:
+      "Recurring monthly stipend for active Hunter Elite status holders.",
     amount: "$2,500.00",
     icon: "otc",
+    delay: ".25s",
   },
   {
     id: "liquidity",
     title: "Liquidity Provider",
     tag: "SPECIAL",
-    description: "Claim earnings from Providing Liquidity operations.",
+    description:
+      "Variable rewards for beta testing and governance participation.",
     amount: "$302.52",
     icon: "liquidity",
+    delay: ".30s",
   },
 ];
 

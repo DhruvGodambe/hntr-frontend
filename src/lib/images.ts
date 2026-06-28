@@ -22,6 +22,61 @@ export const appImages = {
   nftPlaceholder: nftPlaceholderImage,
 } as const;
 
+/* ── HTML-extracted images (from HNTR Platform.html) ── */
+export const htmlImages = {
+  /* Listing cards – marketplace NFT images */
+  listingCard: [
+    "/images/html-assets/lcimg-0.png",
+    "/images/html-assets/lcimg-1.png",
+    "/images/html-assets/lcimg-2.png",
+    "/images/html-assets/lcimg-3.png",
+    "/images/html-assets/lcimg-4.png",
+  ],
+  /* Sale cards */
+  saleCard: [
+    "/images/html-assets/scimg-0.png",
+    "/images/html-assets/scimg-1.png",
+    "/images/html-assets/scimg-2.png",
+    "/images/html-assets/scimg-3.png",
+    "/images/html-assets/scimg-4.png",
+  ],
+  /* Featured pool cards */
+  poolCard: [
+    "/images/html-assets/pcimg-0.png",
+    "/images/html-assets/pcimg-1.png",
+  ],
+  /* Vault / marketplace detail images */
+  vaultCard: [
+    "/images/html-assets/vc-img-0.png",
+    "/images/html-assets/vc-img-1.png",
+    "/images/html-assets/vc-img-2.png",
+    "/images/html-assets/vc-img-3.png",
+    "/images/html-assets/vc-img-4.png",
+    "/images/html-assets/vc-img-5.png",
+    "/images/html-assets/vc-img-6.png",
+    "/images/html-assets/vc-img-7.png",
+  ],
+  /* Pool images */
+  pool: [
+    "/images/html-assets/pool-img-0.png",
+    "/images/html-assets/pool-img-1.png",
+    "/images/html-assets/pool-img-2.png",
+  ],
+  /* Pool detail banner */
+  poolDetail: "/images/html-assets/pool-detail-img-0.png",
+  /* Network / referral card images */
+  networkCard: [
+    "/images/html-assets/nc-img-0.png",
+    "/images/html-assets/nc-img-1.png",
+    "/images/html-assets/nc-img-2.png",
+    "/images/html-assets/nc-img-3.png",
+    "/images/html-assets/nc-img-4.png",
+    "/images/html-assets/nc-img-5.png",
+    "/images/html-assets/nc-img-6.png",
+    "/images/html-assets/nc-img-7.png",
+  ],
+} as const;
+
 const nftImagePool: StaticImageData[] = [
   bayc7159,
   bayc3202,
@@ -49,16 +104,22 @@ function hashSeed(seed: string): number {
 export function resolveNftImage(seed: string): string {
   const normalized = seed.toLowerCase();
 
+  const allNftImages = [
+    ...htmlImages.listingCard,
+    ...htmlImages.saleCard,
+    ...htmlImages.vaultCard,
+  ];
+
   if (normalized.includes("bayc") || normalized.includes("yuga")) {
-    return imageSrc(bayc7159);
+    return allNftImages[0] ?? imageSrc(bayc7159);
   }
 
   if (normalized.includes("punk") || normalized.includes("larva")) {
-    return imageSrc(image1);
+    return allNftImages[1] ?? imageSrc(image1);
   }
 
   if (normalized.includes("pudgy")) {
-    return imageSrc(channelsProfile);
+    return allNftImages[2] ?? imageSrc(channelsProfile);
   }
 
   if (
@@ -66,38 +127,25 @@ export function resolveNftImage(seed: string): string {
     normalized.includes("chromie") ||
     normalized.includes("art")
   ) {
-    return imageSrc(guyOsearyApe);
+    return allNftImages[3] ?? imageSrc(guyOsearyApe);
   }
 
   if (normalized.includes("azuki")) {
-    return imageSrc(bayc3202);
+    return allNftImages[4] ?? imageSrc(bayc3202);
   }
 
-  const index = hashSeed(seed) % nftImagePool.length;
-  return imageSrc(nftImagePool[index] ?? nftPlaceholderImage);
+  const index = hashSeed(seed) % allNftImages.length;
+  return allNftImages[index] ?? imageSrc(nftImagePool[0] ?? nftPlaceholderImage);
 }
 
-const poolCardImages: Record<string, StaticImageData> = {
-  "bayc-0291": baycLogo,
-  "bayc-pool": baycLogo,
-  "punk-4521": image1,
-  "punk-pool": image1,
-  "pudgy-1180": channelsProfile,
-  "pudgy-pool": channelsProfile,
-};
-
 export function resolvePoolCardImage(poolId: string, seed: string): string {
-  const mapped = poolCardImages[poolId] ?? poolCardImages[seed];
-
-  if (mapped) {
-    return imageSrc(mapped);
-  }
-
-  return resolveNftImage(seed);
+  const allPool = [...htmlImages.pool, ...htmlImages.poolCard];
+  const h = hashSeed(poolId || seed);
+  return allPool[h % allPool.length] ?? imageSrc(baycLogo);
 }
 
 export function defaultNftImage(): string {
-  return imageSrc(nftPlaceholderImage);
+  return htmlImages.listingCard[0] ?? imageSrc(nftPlaceholderImage);
 }
 
 export function heroBackgroundImage(): string {

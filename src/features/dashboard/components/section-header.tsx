@@ -34,7 +34,7 @@ export function SectionHeader({
       {actionLabel && (
         <Link
           href={actionHref}
-          className="border-b border-[var(--sage-faint)] pb-px font-mono text-[9px] tracking-[0.04em] text-accent transition-colors hover:text-[var(--olive-dark)]"
+          className="border-b border-e4 pb-px font-mono text-[9px] tracking-[0.04em] text-accent transition-colors hover:text-accent-h"
         >
           {actionLabel}
         </Link>

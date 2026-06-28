@@ -16,8 +16,8 @@ export function NFTSaleCard({ sale }: NFTSaleCardProps) {
         className={cn(
           "absolute left-1.5 top-1.5 z-[1] flex h-4 items-center rounded-[3px] px-1.5 font-mono text-[7px] font-bold tracking-[0.06em] backdrop-blur-sm",
           sale.status === "SOLD"
-            ? "bg-[var(--olive)] text-[var(--cream)]"
-            : "bg-[rgba(242,239,234,0.9)] text-accent shadow-sh1",
+            ? "bg-accent text-accent-ui-foreground"
+            : "bg-e5 text-t3 shadow-sh1",
         )}
       >
         {sale.status}

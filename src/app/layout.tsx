@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={fontVariables}>
-      <body>
+      <body className="h-full">
         <Providers>{children}</Providers>
       </body>
     </html>

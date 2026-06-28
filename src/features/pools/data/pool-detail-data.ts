@@ -261,12 +261,12 @@ function buildDetailFromRunningPool(
 
   return {
     id: pool.id,
-    itemId: pool.poolId.replace("ID: ", ""),
+    itemId: pool.poolId.replace(/^ID:#?/, ""),
     name: pool.name,
     tokenName: pool.name,
     creator: "INSTITUTIONAL",
     series: "SERIES 1/10000",
-    imageSeed: pool.imageSeed,
+    imageSeed: pool.id,
     targetPriceEth: pool.target,
     targetPriceUsd: "—",
     communityRaisedEth: pool.raised,

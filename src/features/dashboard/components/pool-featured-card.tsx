@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { BarChart3, ChevronDown } from "lucide-react";
 import type { PoolItem } from "@/features/dashboard/data/home-data";
+import { PoolDepositButton } from "@/features/pools/components/deposit-modal";
+import { getPoolDetail } from "@/features/pools/data/pool-detail-data";
 import { nftPlaceholder } from "@/lib/placeholders";
 import { cn } from "@/lib/utils";
 
@@ -24,17 +28,17 @@ function EthValue({ value }: { value: string }) {
 }
 
 export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
+  const poolDetail = getPoolDetail(pool.id);
+  const href = `/pools/${pool.id}`;
+
   return (
-    <Link
-      href={`/pools/${pool.id}`}
-      className="group block w-full"
-    >
     <article
       data-pool-slide
-      className="overflow-hidden rounded-md border border-border bg-e2 transition-opacity group-hover:opacity-95"
+      className="overflow-hidden rounded-md border border-border bg-e2 transition-opacity hover:opacity-95"
     >
       <div className="flex">
-        <div
+        <Link
+          href={href}
           className={cn(
             "relative w-[42%] shrink-0 self-stretch sm:w-[40%]",
             pool.imageBgClass,
@@ -46,21 +50,27 @@ export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
             alt=""
             className="absolute inset-0 h-full w-full object-cover"
           />
-        </div>
+        </Link>
 
         <div className="flex min-h-[210px] min-w-0 flex-1 flex-col p-2.5 sm:p-3">
           <div className="relative mb-2.5">
-            <span className="absolute right-0 top-0 inline-flex items-center gap-1 font-mono text-[7px] tracking-[0.06em] text-t2">
+            <Link
+              href={href}
+              className="absolute right-0 top-0 inline-flex items-center gap-1 font-mono text-[7px] tracking-[0.06em] text-t2 transition-colors hover:text-t4"
+            >
               <BarChart3 className="size-2.5" strokeWidth={1.75} />
               View Insights
-            </span>
+            </Link>
 
-            <h3 className="pr-20 font-display text-[11px] font-bold leading-tight text-t4">
-              {pool.name}
-            </h3>
-            <p className="font-display text-[11px] font-bold leading-tight text-t4">
-              {pool.tokenId}
-            </p>
+            <Link href={href} className="block pr-20 transition-opacity hover:opacity-90">
+              <h3 className="font-display text-[11px] font-bold leading-tight text-t4">
+                {pool.name}
+              </h3>
+              <p className="font-display text-[11px] font-bold leading-tight text-t4">
+                {pool.tokenId}
+              </p>
+            </Link>
+
             <div className="mt-1.5 flex flex-wrap gap-1">
               <span className="inline-flex h-3.5 items-center rounded-[2px] bg-e4 px-1.5 font-mono text-[7px] tracking-[0.06em] text-t2">
                 {pool.creator}
@@ -100,16 +110,19 @@ export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
           </div>
 
           <div className="mt-auto flex items-center gap-2">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1 font-mono text-[8px] uppercase tracking-[0.04em] text-t2"
+            <Link
+              href={href}
+              className="inline-flex items-center gap-1 font-mono text-[8px] uppercase tracking-[0.04em] text-t2 transition-colors hover:text-t4"
             >
               Pool Details
               <ChevronDown className="size-3" strokeWidth={1.75} />
-            </button>
-            <span className="ml-auto inline-flex h-[27px] min-w-0 flex-[1.4] items-center justify-center rounded-[5px] bg-primary px-2 font-mono text-[8px] font-bold uppercase tracking-[0.04em] text-primary-foreground">
-              Make a Deposit Now
-            </span>
+            </Link>
+            {poolDetail ? (
+              <PoolDepositButton
+                pool={poolDetail}
+                className="ml-auto h-[27px] min-w-0 w-auto flex-[1.4] shrink px-2 font-mono text-[8px] font-bold uppercase tracking-[0.04em]"
+              />
+            ) : null}
           </div>
         </div>
       </div>
@@ -138,6 +151,5 @@ export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
         ))}
       </div>
     </article>
-    </Link>
   );
 }

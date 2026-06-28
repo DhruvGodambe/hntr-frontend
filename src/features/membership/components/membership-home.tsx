@@ -5,14 +5,13 @@ import { MembershipPackages } from "./membership-packages";
 
 export function MembershipHome() {
   return (
-    <>
-      <MembershipHero />
-      <MembershipPackages />
-      <MembershipComparison />
-      <MembershipInfoCards />
-      <footer className="border-t border-border pt-4 font-mono text-[8px] uppercase tracking-[0.06em] text-t0">
-        © 2024 HNTR INSTITUTIONAL | TERMINAL STATUS: OPTIMAL
-      </footer>
-    </>
+    <div className="-mx-4 -mt-4 flex flex-col pb-10">
+      <div className="px-5 pt-[18px]">
+        <MembershipHero />
+        <MembershipPackages />
+        <MembershipComparison />
+        <MembershipInfoCards />
+      </div>
+    </div>
   );
 }

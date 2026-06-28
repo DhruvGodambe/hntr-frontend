@@ -1,7 +1,7 @@
 import {
+  CreditCard,
   Home,
-  Info,
-  ShoppingCart,
+  LayoutGrid,
   Store,
   UserPlus,
   Waves,
@@ -17,8 +17,8 @@ export type NavItem = {
 export const mainNavItems: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/marketplace", label: "Marketplace", icon: Store },
-  { href: "/pools", label: "NFT Pools", icon: Waves },
-  { href: "/membership", label: "Memberships", icon: ShoppingCart },
-  { href: "/referrals", label: "Referrals", icon: UserPlus },
-  { href: "/info", label: "Info", icon: Info },
+  { href: "/pools", label: "NFT Strategies", icon: Waves },
+  { href: "/marketplace", label: "MY NFTs", icon: LayoutGrid },
+  { href: "/membership", label: "Membership", icon: CreditCard },
+  { href: "/referrals", label: "Network", icon: UserPlus },
 ];

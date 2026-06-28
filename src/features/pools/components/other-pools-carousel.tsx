@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Carousel } from "@/components/ui/carousel";
 import type { PoolDetail } from "@/features/pools/data/pool-detail-data";
 import { nftPlaceholder } from "@/lib/placeholders";
 
@@ -7,49 +6,62 @@ type OtherPoolsCarouselProps = {
   pool: PoolDetail;
 };
 
-export function OtherPoolsCarousel({ pool }: OtherPoolsCarouselProps) {
+function PoolThumbCard({
+  item,
+}: {
+  item: PoolDetail["otherPools"][number];
+}) {
+  const percent = Math.round(
+    (item.activityCurrent / item.activityTarget) * 100,
+  );
+
   return (
-    <section className="mb-6">
-      <h2 className="mb-3 font-display text-[11px] font-bold uppercase tracking-[0.1em] text-t4">
-        Other Available Pools
-      </h2>
+    <Link
+      href={`/pools/${item.id}`}
+      className="pool-thumb flex w-[200px] shrink-0 cursor-pointer items-center overflow-hidden rounded-md bg-e2 shadow-[var(--sh1),var(--glow)] transition-[transform,box-shadow] duration-200 hover:relative hover:z-[1] hover:scale-[1.04] hover:shadow-sh3"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={nftPlaceholder(item.imageSeed, 104)}
+        alt=""
+        className="size-[52px] shrink-0 object-cover"
+      />
+      <div className="min-w-0 flex-1 px-2.5 py-2">
+        <p className="mb-[3px] truncate font-display text-[10px] font-bold text-t4">
+          {item.name}
+        </p>
+        <p className="font-mono text-[8px] text-t1">
+          Activity: {item.activityCurrent}/{item.activityTarget} ETH ({percent}%)
+        </p>
+        <p className="mt-[3px] font-mono text-[8px] text-t4">View →</p>
+      </div>
+    </Link>
+  );
+}
 
-      <Carousel spaceBetween={12}>
-        {pool.otherPools.map((item) => {
-          const percent = Math.round(
-            (item.activityCurrent / item.activityTarget) * 100,
-          );
+export function OtherPoolsCarousel({ pool }: OtherPoolsCarouselProps) {
+  const items = pool.otherPools;
+  const trackItems = [...items, ...items];
 
-          return (
-            <article
-              key={item.id}
-              className="flex w-[168px] flex-col overflow-hidden rounded-md border border-border bg-e2 shadow-sh1 sm:w-[200px]"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={nftPlaceholder(item.imageSeed, 200)}
-                alt=""
-                className="h-[72px] w-full object-cover"
-              />
-              <div className="flex flex-1 flex-col p-2.5">
-                <h3 className="mb-1 font-display text-[10px] font-bold leading-tight text-t4">
-                  {item.name}
-                </h3>
-                <p className="mb-2 font-mono text-[8px] text-t2">
-                  Activity: {item.activityCurrent} / {item.activityTarget} ETH (
-                  {percent}%)
-                </p>
-                <Link
-                  href={`/pools/${item.id}`}
-                  className="mt-auto font-mono text-[8px] uppercase tracking-[0.06em] text-t3 transition-colors hover:text-t4"
-                >
-                  View
-                </Link>
-              </div>
-            </article>
-          );
-        })}
-      </Carousel>
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="mb-6 mt-4">
+      <div className="mb-2.5 flex items-center justify-between">
+        <h2 className="font-mono text-[9px] uppercase tracking-[0.1em] text-t1">
+          Other Available Pools
+        </h2>
+      </div>
+
+      <div className="carousel-outer group relative mb-2.5 overflow-hidden">
+        <div className="carousel-track flex w-max gap-2.5">
+          {trackItems.map((item, index) => (
+            <PoolThumbCard key={`${item.id}-${index}`} item={item} />
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

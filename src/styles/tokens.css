@@ -1,48 +1,49 @@
 :root {
-  /* ── Palette ── */
-  --sage: #a8b5a2;
-  --sage-light: #c2cbbe;
-  --sage-faint: #dce3da;
-  --olive: #5e6b55;
-  --olive-dark: #4a5443;
-  --olive-deep: #38402f;
-  --cream: #f2efea;
-  --cream-dark: #e8e4de;
-  --cream-deeper: #dbd6cf;
+  /* ── Palette (monochrome light) ── */
+  --sage: #0f0f10;
+  --sage-light: #8a8a8c;
+  --sage-faint: #ececed;
+  --olive: #0f0f10;
+  --olive-dark: #2a2a2c;
+  --olive-deep: #000000;
+  --cream: #ffffff;
+  --cream-dark: #e7e7e9;
+  --cream-deeper: #dadadc;
+  --beige: #9e8f78;
+  --beige-dim: #7a6f5e;
 
   /* ── Elevation surfaces ── */
-  --e0: #edeae4;
-  --e1: #f2efea;
+  --e0: #f5f5f6;
+  --e1: #ffffff;
   --e2: #ffffff;
-  --e3: #f7f5f1;
-  --e4: #ede9e3;
-  --e5: #dbd7d0;
+  --e3: #f4f4f5;
+  --e4: #eeeeef;
+  --e5: #e3e3e5;
 
   /* ── Type ── */
-  --t0: rgba(58, 67, 49, 0.3);
-  --t1: rgba(58, 67, 49, 0.48);
-  --t2: rgba(58, 67, 49, 0.64);
-  --t3: rgba(58, 67, 49, 0.82);
-  --t4: #2b3224;
+  --t0: rgba(18, 18, 20, 0.34);
+  --t1: rgba(18, 18, 20, 0.52);
+  --t2: rgba(18, 18, 20, 0.68);
+  --t3: rgba(18, 18, 20, 0.84);
+  --t4: #111113;
 
   /* ── Accents ── */
-  --accent: #5e6b55;
-  --accent-h: #4a5443;
-  --green: #3d7a5a;
-  --red: #9b4040;
+  --accent: #0f0f10;
+  --accent-h: #333335;
+  --green: #1a9d5f;
+  --red: #d8453f;
 
   /* ── Borders ── */
-  --bd0: rgba(58, 67, 49, 0.06);
-  --bd1: rgba(58, 67, 49, 0.1);
-  --bd2: rgba(58, 67, 49, 0.16);
+  --bd0: rgba(0, 0, 0, 0.05);
+  --bd1: rgba(0, 0, 0, 0.09);
+  --bd2: rgba(0, 0, 0, 0.14);
 
   /* ── Shadows ── */
-  --sh1: 0 1px 3px rgba(60, 70, 50, 0.07), 0 1px 2px rgba(60, 70, 50, 0.05);
-  --sh2: 0 4px 14px rgba(60, 70, 50, 0.09), 0 2px 5px rgba(60, 70, 50, 0.06);
-  --sh3: 0 10px 28px rgba(60, 70, 50, 0.12), 0 3px 8px rgba(60, 70, 50, 0.07);
-  --sh4: 0 18px 48px rgba(60, 70, 50, 0.15), 0 5px 12px rgba(60, 70, 50, 0.08);
-  --glow: inset 0 1px 0 rgba(255, 255, 255, 0.75),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  --sh1: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --sh2: 0 4px 14px rgba(0, 0, 0, 0.07), 0 2px 5px rgba(0, 0, 0, 0.04);
+  --sh3: 0 10px 28px rgba(0, 0, 0, 0.09), 0 3px 8px rgba(0, 0, 0, 0.05);
+  --sh4: 0 18px 44px rgba(0, 0, 0, 0.12), 0 5px 12px rgba(0, 0, 0, 0.06);
+  --glow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 
   /* ── Typography & radius ── */
   --fn: var(--font-inter), sans-serif;
@@ -58,72 +59,113 @@
   --popover: var(--e2);
   --popover-foreground: var(--t4);
   --primary: var(--t4);
-  --primary-foreground: var(--e2);
+  --primary-foreground: var(--cream);
   --secondary: var(--e4);
   --secondary-foreground: var(--t4);
   --muted: var(--e3);
   --muted-foreground: var(--t2);
   --accent-ui: var(--accent);
-  --accent-ui-foreground: var(--e2);
+  --accent-ui-foreground: var(--cream);
   --destructive: var(--red);
-  --destructive-foreground: var(--e2);
+  --destructive-foreground: var(--cream);
   --border: var(--bd1);
   --input: var(--bd2);
   --ring: var(--accent);
   --radius: var(--r);
 
-  /* ── Sidebar ── */
-  --sidebar-bg: var(--olive);
-  --sidebar-text: rgba(242, 239, 234, 0.55);
-  --sidebar-text-active: var(--cream);
-  --sidebar-hover-bg: rgba(255, 255, 255, 0.1);
-  --sidebar-active-bg: rgba(255, 255, 255, 0.15);
-  --sidebar-border: rgba(255, 255, 255, 0.12);
-  --slider-rail-bg: var(--sage-faint);
+  /* ── Sidebar (orange in light mode) ── */
+  --sidebar-bg: #f25623;
+  --sidebar-text: rgba(255, 255, 255, 0.78);
+  --sidebar-text-active: #ffffff;
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.18);
+  --sidebar-active-bg: rgba(255, 255, 255, 0.26);
+  --sidebar-border: rgba(255, 255, 255, 0.28);
+  --sidebar-shadow: 1px 0 0 rgba(0, 0, 0, 0.06);
+  --slider-rail-bg: var(--e3);
+
+  /* ── Navbar (white chrome in light mode) ── */
+  --navbar-bg: #ffffff;
+  --navbar-text: #111113;
+  --navbar-text-muted: #3a3a3c;
+  --navbar-btn-bg: #f2f2f3;
+  --navbar-btn-hover: #e9e9ea;
+  --navbar-border: rgba(0, 0, 0, 0.06);
+  --navbar-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+
+  /* ── Wallet pill ── */
+  --conn-pill-bg: #0f0f10;
+  --conn-pill-text: #ffffff;
+  --conn-pill-hover: #000000;
+  --conn-pill-disconnected-bg: #e3e3e5;
+  --conn-pill-disconnected-text: #111113;
+  --conn-dot: #22c55e;
+  --conn-dot-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+
+  /* ── Loader ── */
+  --loader-letter: #5e6b55;
+  --loader-suffix: #a8b5a2;
+  --loader-cursor: #5e6b55;
+
+  /* ── Inverse surfaces (hero banners, featured tiers — stay dark in both modes) ── */
+  --inverse-surface: #0f0f10;
+  --inverse-foreground: #ffffff;
+  --inverse-foreground-muted: rgba(242, 239, 234, 0.55);
+  --inverse-foreground-subtle: rgba(242, 239, 234, 0.6);
+  --inverse-foreground-faint: rgba(242, 239, 234, 0.7);
+  --inverse-divider: rgba(255, 255, 255, 0.12);
+  --inverse-btn-bg: #ffffff;
+  --inverse-btn-text: #0f0f10;
+  --inverse-mosaic: rgba(242, 239, 234, 0.4);
 }
 
 .dark {
-  --sage: #a8b5a2;
-  --sage-dim: #7a8f74;
-  --sage-deep: #4a5e45;
-  --olive: #5e6b55;
-  --olive-dark: #4a5443;
+  /* ── Palette (monochrome dark) ── */
+  --sage: #ffffff;
+  --sage-light: #ffffff;
+  --sage-faint: rgba(255, 255, 255, 0.12);
+  --olive: #ffffff;
+  --olive-dark: #e4e4e6;
+  --olive-deep: #2a2a2e;
+  --cream: #f4f4f5;
+  --cream-dark: #1d1d20;
+  --cream-deeper: #26262a;
+  --beige: #6b5c44;
+  --beige-dim: #3d342c;
 
-  --beige: #c8b99a;
-  --beige-dim: #9e8f78;
-  --beige-faint: rgba(200, 185, 154, 0.12);
-  --cream: #f2efea;
-  --cream-dim: rgba(242, 239, 234, 0.55);
+  /* ── Elevation surfaces ── */
+  --e0: #000000;
+  --e1: #0c0c0e;
+  --e2: #161618;
+  --e3: #1c1c1f;
+  --e4: #232327;
+  --e5: #2c2c31;
 
-  --e0: #0d0f0c;
-  --e1: #0a0c09;
-  --e2: #181c16;
-  --e3: #1e2319;
-  --e4: #252a22;
-  --e5: #2d332a;
+  /* ── Borders ── */
+  --bd0: rgba(255, 255, 255, 0.05);
+  --bd1: rgba(255, 255, 255, 0.09);
+  --bd2: rgba(255, 255, 255, 0.14);
 
-  --bd0: rgba(200, 185, 154, 0.05);
-  --bd1: rgba(200, 185, 154, 0.09);
-  --bd2: rgba(200, 185, 154, 0.15);
+  /* ── Type ── */
+  --t0: rgba(255, 255, 255, 0.3);
+  --t1: rgba(255, 255, 255, 0.48);
+  --t2: rgba(255, 255, 255, 0.66);
+  --t3: rgba(255, 255, 255, 0.85);
+  --t4: #ffffff;
 
-  --t0: rgba(200, 185, 154, 0.28);
-  --t1: rgba(200, 185, 154, 0.48);
-  --t2: rgba(200, 185, 154, 0.65);
-  --t3: rgba(242, 239, 234, 0.8);
-  --t4: #f2efea;
+  /* ── Accents ── */
+  --accent: #ffffff;
+  --accent-h: #d6d6d8;
+  --green: #34d399;
+  --red: #f0706f;
 
-  --accent: #a8b5a2;
-  --accent-h: #c2cbbe;
-  --green: #6ab892;
-  --red: #c47070;
+  /* ── Shadows ── */
+  --sh1: 0 1px 4px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.5);
+  --sh2: 0 4px 16px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.5);
+  --sh3: 0 10px 32px rgba(0, 0, 0, 0.8), 0 4px 8px rgba(0, 0, 0, 0.55);
+  --sh4: 0 20px 52px rgba(0, 0, 0, 0.9), 0 6px 14px rgba(0, 0, 0, 0.6);
+  --glow: inset 0 1px 0 rgba(168, 181, 162, 0.06);
 
-  --sh1: 0 2px 6px rgba(0, 0, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.4);
-  --sh2: 0 6px 20px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.45);
-  --sh3: 0 12px 36px rgba(0, 0, 0, 0.75), 0 4px 10px rgba(0, 0, 0, 0.5);
-  --sh4: 0 20px 56px rgba(0, 0, 0, 0.85), 0 6px 16px rgba(0, 0, 0, 0.55);
-  --glow: inset 0 1px 0 rgba(168, 181, 162, 0.07),
-    inset 0 0 0 1px rgba(168, 181, 162, 0.03);
-
+  /* ── shadcn/ui semantic bridge ── */
   --background: var(--e0);
   --foreground: var(--t4);
   --card: var(--e2);
@@ -144,11 +186,47 @@
   --input: var(--bd2);
   --ring: var(--accent);
 
-  --sidebar-bg: var(--e1);
-  --sidebar-text: var(--t1);
-  --sidebar-text-active: var(--t4);
-  --sidebar-hover-bg: var(--e4);
-  --sidebar-active-bg: var(--e3);
-  --sidebar-border: var(--bd1);
+  /* ── Sidebar (orange in dark mode) ── */
+  --sidebar-bg: #f25623;
+  --sidebar-text: rgba(255, 255, 255, 0.74);
+  --sidebar-text-active: #ffffff;
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.16);
+  --sidebar-active-bg: rgba(255, 255, 255, 0.22);
+  --sidebar-border: rgba(255, 255, 255, 0.24);
+  --sidebar-shadow: 2px 0 16px rgba(0, 0, 0, 0.5);
   --slider-rail-bg: var(--e3);
+
+  /* ── Navbar (near-black in dark mode) ── */
+  --navbar-bg: #0c0c0e;
+  --navbar-text: var(--t4);
+  --navbar-text-muted: rgba(242, 239, 234, 0.55);
+  --navbar-btn-bg: rgba(168, 181, 162, 0.07);
+  --navbar-btn-hover: rgba(168, 181, 162, 0.12);
+  --navbar-border: rgba(255, 255, 255, 0.05);
+  --navbar-shadow: 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 12px rgba(0, 0, 0, 0.7);
+
+  /* ── Wallet pill ── */
+  --conn-pill-bg: rgba(168, 181, 162, 0.08);
+  --conn-pill-text: rgba(242, 239, 234, 0.7);
+  --conn-pill-hover: rgba(168, 181, 162, 0.12);
+  --conn-pill-disconnected-bg: rgba(168, 181, 162, 0.08);
+  --conn-pill-disconnected-text: rgba(242, 239, 234, 0.7);
+  --conn-dot: #34d399;
+  --conn-dot-shadow: 0 0 6px rgba(52, 211, 153, 0.7);
+
+  /* ── Loader ── */
+  --loader-letter: #ffffff;
+  --loader-suffix: rgba(255, 255, 255, 0.55);
+  --loader-cursor: #ffffff;
+
+  /* ── Inverse surfaces ── */
+  --inverse-surface: #2c2c31;
+  --inverse-foreground: #ffffff;
+  --inverse-foreground-muted: rgba(255, 255, 255, 0.55);
+  --inverse-foreground-subtle: rgba(255, 255, 255, 0.6);
+  --inverse-foreground-faint: rgba(255, 255, 255, 0.7);
+  --inverse-divider: rgba(255, 255, 255, 0.12);
+  --inverse-btn-bg: #ffffff;
+  --inverse-btn-text: #0c0c0e;
+  --inverse-mosaic: rgba(255, 255, 255, 0.14);
 }

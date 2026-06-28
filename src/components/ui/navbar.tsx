@@ -7,9 +7,13 @@ export function Navbar({ className, children, ...props }: NavbarProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-e1 px-4 shadow-sh1 sm:px-6",
+        "z-20 flex h-11 shrink-0 items-center justify-between gap-4 px-5",
         className,
       )}
+      style={{
+        background: "var(--navbar-bg)",
+        boxShadow: "var(--navbar-shadow)",
+      }}
       {...props}
     >
       {children}
@@ -36,9 +40,10 @@ export function NavbarLogo({
   return (
     <span
       className={cn(
-        "font-display text-lg font-semibold tracking-tight text-t4",
+        "font-display text-[13px] font-bold tracking-[0.2em]",
         className,
       )}
+      style={{ color: "var(--navbar-text)" }}
       {...props}
     >
       HNTR
@@ -52,7 +57,7 @@ export function NavbarActions({
 }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("flex shrink-0 items-center gap-2 sm:gap-3", className)}
+      className={cn("flex shrink-0 items-center gap-2", className)}
       {...props}
     />
   );

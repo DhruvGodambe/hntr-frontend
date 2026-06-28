@@ -1,46 +1,60 @@
-import { FileText, Shield } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { membershipInfoCards } from "@/features/membership/data/membership-data";
-import { cn } from "@/lib/utils";
+
+function InfoShieldIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+      <path
+        d="M6 1.5L2 3v3.5c0 2.2 1.7 4.3 4 4.5 2.3-.2 4-2.3 4-4.5V3L6 1.5z"
+        stroke="currentColor"
+        className="text-t4"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function InfoStarIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+      <path
+        d="M6 1l1.5 3h3l-2.5 2 1 3L6 7.5 3 9l1-3L1.5 4h3L6 1z"
+        stroke="currentColor"
+        className="text-t4"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 const iconMap = {
-  shield: Shield,
-  file: FileText,
+  shield: InfoShieldIcon,
+  star: InfoStarIcon,
 } as const;
 
 export function MembershipInfoCards() {
   return (
-    <section
-      className="mb-6 grid gap-3 sm:grid-cols-2"
-      aria-labelledby="membership-info-heading"
-    >
-      <h2 id="membership-info-heading" className="sr-only">
-        Membership information
-      </h2>
+    <section className="mb-5 grid gap-3 sm:grid-cols-2">
       {membershipInfoCards.map((card) => {
         const Icon = iconMap[card.icon];
         return (
-          <Card key={card.id} className="shadow-sh1">
-            <CardContent className="flex gap-3 p-4">
-              <div
-                className={cn(
-                  "flex size-8 shrink-0 items-center justify-center rounded-md",
-                  "border border-border bg-e3 text-accent",
-                )}
-                aria-hidden
-              >
-                <Icon className="size-4" strokeWidth={1.75} />
+          <article
+            key={card.id}
+            className="rounded-md bg-e2 p-4 shadow-[var(--sh1),var(--glow)]"
+          >
+            <div className="mb-2 flex items-center gap-[7px]">
+              <div className="flex size-[22px] shrink-0 items-center justify-center rounded-[5px] bg-[var(--sage-faint)]">
+                <Icon />
               </div>
-              <div className="min-w-0">
-                <h3 className="mb-1 font-display text-[11px] font-bold text-t4">
-                  {card.title}
-                </h3>
-                <p className="text-[9px] leading-relaxed text-t2">
-                  {card.description}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+              <h3 className="font-display text-xs font-bold text-t4">
+                {card.title}
+              </h3>
+            </div>
+            <p className="text-[10px] leading-[1.6] text-t1">
+              {card.description}
+            </p>
+          </article>
         );
       })}
     </section>

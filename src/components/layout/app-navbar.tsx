@@ -1,18 +1,16 @@
 "use client";
 
-import { Menu, PanelRight, Search } from "lucide-react";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/theme";
-import { Button } from "@/components/ui/button";
+import { Menu, PanelRight } from "lucide-react";
 import {
   Navbar,
   NavbarActions,
   NavbarBrand,
-  NavbarItem,
   NavbarLogo,
 } from "@/components/ui/navbar";
 import { useConnectWizard } from "@/features/auth";
 import { NotificationsPanel } from "@/features/notifications";
+import { cn } from "@/lib/utils";
 
 type AppNavbarProps = {
   onMobileMenuOpen?: () => void;
@@ -20,6 +18,49 @@ type AppNavbarProps = {
   showRightPanelToggle?: boolean;
   className?: string;
 };
+
+function SearchIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <circle
+        cx="7"
+        cy="7"
+        r="4.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M10.5 10.5L13.5 13.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function NavbarIconBtn({
+  onClick,
+  "aria-label": ariaLabel,
+  className,
+  children,
+}: {
+  onClick?: () => void;
+  "aria-label": string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={cn("nav-btn", className)}
+    >
+      {children}
+    </button>
+  );
+}
 
 export function AppNavbar({
   onMobileMenuOpen,
@@ -32,44 +73,40 @@ export function AppNavbar({
   return (
     <Navbar className={className}>
       <NavbarBrand>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={onMobileMenuOpen}
+        <NavbarIconBtn
           aria-label="Open navigation menu"
+          onClick={onMobileMenuOpen}
+          className="lg:hidden"
         >
-          <Menu className="size-5" />
-        </Button>
-        <NavbarItem className="flex">
-          <Link href="/" aria-label="HNTR home">
-            <NavbarLogo />
-          </Link>
-        </NavbarItem>
+          <Menu className="size-[13px]" />
+        </NavbarIconBtn>
+        <Link href="/" aria-label="HNTR home" className="nav-brand">
+          <NavbarLogo />
+        </Link>
       </NavbarBrand>
 
       <NavbarActions>
-        <Button type="button" variant="ghost" size="icon" aria-label="Search">
-          <Search className="size-4" />
-        </Button>
+        <NavbarIconBtn aria-label="Search">
+          <SearchIcon />
+        </NavbarIconBtn>
         <NotificationsPanel />
-        <ThemeToggle />
         {showRightPanelToggle && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="xl:hidden"
-            onClick={onRightPanelOpen}
+          <NavbarIconBtn
             aria-label="Open account panel"
+            onClick={onRightPanelOpen}
+            className="xl:hidden"
           >
-            <PanelRight className="size-4" />
-          </Button>
+            <PanelRight className="size-[13px]" />
+          </NavbarIconBtn>
         )}
-        <Button size="sm" onClick={openWizard}>
-          {isConnected ? "Connected" : "Connect Wallet"}
-        </Button>
+        <button
+          type="button"
+          onClick={openWizard}
+          className={cn("conn-pill", !isConnected && "disconnected")}
+        >
+          <span className="conn-dot" aria-hidden />
+          {isConnected ? "0x71C...492" : "0x71C...4"}
+        </button>
       </NavbarActions>
     </Navbar>
   );

@@ -43,7 +43,7 @@ export function MarketOverviewSection() {
               onChange={(event) =>
                 setTimeframe(event.target.value as (typeof timeframes)[number])
               }
-              className="h-5 appearance-none rounded border border-[var(--cream-dark)] bg-e2 py-0 pl-2 pr-6 font-mono text-[9px] text-t2 shadow-sh1"
+              className="h-5 appearance-none rounded border border-bd1 bg-e2 py-0 pl-2 pr-6 font-mono text-[9px] text-t2 shadow-sh1"
             >
               {timeframes.map((option) => (
                 <option key={option} value={option}>
@@ -58,7 +58,7 @@ export function MarketOverviewSection() {
           </div>
         </div>
 
-        <div className="mb-[15px] grid grid-cols-2 gap-px overflow-hidden rounded-md bg-[var(--cream-dark)] shadow-sh1 lg:grid-cols-4">
+        <div className="mb-[15px] grid grid-cols-2 gap-px overflow-hidden rounded-md bg-bd1 shadow-sh1 lg:grid-cols-4">
           {marketMetrics.map((metric) => (
             <div key={metric.label} className="bg-e3 px-3 py-2.5">
               <p className="mb-[3px] text-[8px] uppercase tracking-[0.06em] text-t1">

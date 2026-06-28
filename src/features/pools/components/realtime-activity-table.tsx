@@ -1,86 +1,103 @@
+"use client";
+
 import Link from "next/link";
-import { Progress } from "@/components/ui/progress";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useEffect, useState } from "react";
 import { poolActivity } from "@/features/pools/data/pools-data";
-import { nftPlaceholder } from "@/lib/placeholders";
 
 export function RealtimeActivityTable() {
+  const [animated, setAnimated] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setAnimated(true), 200);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   return (
-    <section className="mb-6">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="font-display text-[11px] font-bold uppercase tracking-[0.1em] text-t4">
+    <section className="mb-4 overflow-hidden rounded-[var(--r)] bg-e2 shadow-[var(--sh1),var(--glow)]">
+      <div className="flex items-center justify-between border-b border-bd0 px-4 py-3">
+        <h2 className="font-mono text-[9px] uppercase tracking-[0.1em] text-t1">
           Real-Time Activity
         </h2>
-        <span className="inline-flex items-center gap-1.5 font-mono text-[8px] uppercase tracking-[0.04em] text-green">
-          <span className="size-1.5 rounded-full bg-green" aria-hidden />
+        <span className="flex items-center gap-1.5 font-mono text-[9px] text-green">
+          <span className="size-[5px] animate-pulse rounded-full bg-green" aria-hidden />
           Real-Time
         </span>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-border bg-e2 shadow-sh1">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-e3 hover:bg-e3">
-              <TableHead className="h-8 px-3">Wallet</TableHead>
-              <TableHead className="h-8 px-3">Bid Amount</TableHead>
-              <TableHead className="h-8 px-3">Collection</TableHead>
-              <TableHead className="h-8 min-w-[120px] px-3">Completion</TableHead>
-              <TableHead className="h-8 px-3 text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {poolActivity.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell className="px-3 py-2 font-mono text-[9px] text-t3">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-e3">
+              <th className="border-b border-bd0 px-4 py-2 text-left font-mono text-[8px] font-medium uppercase tracking-[0.08em] text-t0">
+                Wallet
+              </th>
+              <th className="border-b border-bd0 px-4 py-2 text-left font-mono text-[8px] font-medium uppercase tracking-[0.08em] text-t0">
+                Bid Amount
+              </th>
+              <th className="border-b border-bd0 px-4 py-2 text-left font-mono text-[8px] font-medium uppercase tracking-[0.08em] text-t0">
+                Collection
+              </th>
+              <th className="border-b border-bd0 px-4 py-2 text-left font-mono text-[8px] font-medium uppercase tracking-[0.08em] text-t0">
+                Completion
+              </th>
+              <th className="border-b border-bd0 px-4 py-2 text-left font-mono text-[8px] font-medium uppercase tracking-[0.08em] text-t0">
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {poolActivity.map((row, index) => (
+              <tr
+                key={row.id}
+                className="transition-colors hover:bg-e3"
+              >
+                <td className="border-b border-bd0 px-4 py-2.5 font-mono text-[10px] font-medium text-t3 last:border-b-0">
                   {row.wallet}
-                </TableCell>
-                <TableCell className="px-3 py-2 font-mono text-[9px] font-bold text-t4">
+                </td>
+                <td className="border-b border-bd0 px-4 py-2.5 font-mono text-[11px] font-bold text-t4 last:border-b-0">
                   {row.bidAmount}
-                </TableCell>
-                <TableCell className="px-3 py-2">
-                  <span className="inline-flex items-center gap-1.5">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={nftPlaceholder(row.collectionSeed, 48)}
-                      alt=""
-                      className="size-5 rounded-sm object-cover"
+                </td>
+                <td className="border-b border-bd0 px-4 py-2.5 last:border-b-0">
+                  <span className="flex items-center gap-1.5">
+                    <span
+                      className="size-2 shrink-0 rounded-[2px]"
+                      style={{ background: row.collectionColor }}
+                      aria-hidden
                     />
-                    <span className="text-[9px] text-t3">{row.collection}</span>
+                    <span className="text-[10px] text-t2">{row.collection}</span>
                   </span>
-                </TableCell>
-                <TableCell className="px-3 py-2">
+                </td>
+                <td className="border-b border-bd0 px-4 py-2.5 last:border-b-0">
                   <div className="flex items-center gap-2">
-                    <Progress
-                      value={row.completion}
-                      className="h-1 flex-1 rounded-[2px]"
-                      indicatorClassName="bg-t4 rounded-[2px]"
-                    />
-                    <span className="w-7 shrink-0 text-right font-mono text-[8px] text-t0">
+                    <div className="h-1 max-w-[120px] flex-1 overflow-hidden rounded-[2px] bg-[var(--cream-dark)]">
+                      <div
+                        className="h-full rounded-[2px] transition-[width] duration-700 ease-out"
+                        style={{
+                          width: animated ? `${row.completion}%` : "0%",
+                          background: "var(--olive)",
+                          transitionDelay: `${index * 100}ms`,
+                        }}
+                      />
+                    </div>
+                    <span className="whitespace-nowrap font-mono text-[9px] text-t1">
                       {row.completion}%
                     </span>
                   </div>
-                </TableCell>
-                <TableCell className="px-3 py-2 text-right">
+                </td>
+                <td className="border-b border-bd0 px-4 py-2.5 last:border-b-0">
                   <Link
                     href={`https://etherscan.io/tx/${row.txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-[8px] uppercase tracking-[0.04em] text-accent transition-colors hover:text-t4"
+                    className="border-b border-[var(--sage-faint)] font-mono text-[9px] tracking-[0.05em] text-[var(--olive)]"
                   >
-                    View Tx
+                    VIEW TX
                   </Link>
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
     </section>
   );

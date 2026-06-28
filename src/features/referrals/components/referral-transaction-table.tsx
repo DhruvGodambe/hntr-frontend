@@ -1,119 +1,110 @@
-import { Check, Filter, Search } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   referralTransactions,
   transactionPagination,
 } from "@/features/referrals/data/referrals-data";
+import { cn } from "@/lib/utils";
 
 export function ReferralTransactionTable() {
   return (
-    <section id="transactions" className="mb-6 scroll-mt-4">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-[11px] font-bold uppercase tracking-[0.1em] text-t4">
+    <section
+      id="transactions"
+      className="mb-5 scroll-mt-4 overflow-hidden rounded-md bg-e2 shadow-[var(--sh1),var(--glow)]"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b-[0.5px] border-bd0 px-[18px] py-3.5">
+        <h2 className="font-display text-[13px] font-semibold text-t4">
           Transaction History
         </h2>
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 size-3 -translate-y-1/2 text-t0" />
-            <Input
-              placeholder="Search..."
-              className="h-7 w-[140px] pl-7 font-mono text-[9px] sm:w-[180px]"
+          <div className="flex h-[30px] items-center gap-1.5 rounded-[5px] bg-e3 px-2.5 shadow-sh1">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M10.5 10.5L13.5 13.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Filter..."
+              className="w-[100px] border-none bg-transparent font-mono text-[9px] text-t2 outline-none placeholder:text-t0 sm:w-[120px]"
             />
           </div>
           <button
             type="button"
-            className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-e2 px-2 font-mono text-[8px] uppercase tracking-[0.04em] text-t2 transition-colors hover:bg-e3"
+            className="flex h-[30px] items-center gap-1 rounded-[5px] bg-e3 px-3 font-mono text-[9px] text-t2 shadow-sh1 transition-colors hover:text-t4"
           >
-            <Filter className="size-3" />
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden>
+              <path d="M1 3h10M3 6h6M5 9h2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
             Filter
           </button>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-border bg-e2 shadow-sh1">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-e3 hover:bg-e3">
-              <TableHead className="h-8 px-3">Date / Time</TableHead>
-              <TableHead className="h-8 px-3">Type</TableHead>
-              <TableHead className="h-8 px-3">Source</TableHead>
-              <TableHead className="h-8 px-3">Amount</TableHead>
-              <TableHead className="h-8 px-3 text-right">Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              {["Date / Time", "Type", "Source", "Amount", "Status"].map(
+                (heading, index) => (
+                  <th
+                    key={heading}
+                    className={cn(
+                      "border-b-[0.5px] border-bd0 bg-e3 px-3.5 py-2.5 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-t1",
+                      index === 3 && "text-right",
+                      index === 4 && "text-center",
+                      index === 0 && "text-left",
+                      index > 0 && index < 3 && "text-left",
+                    )}
+                  >
+                    {heading}
+                  </th>
+                ),
+              )}
+            </tr>
+          </thead>
+          <tbody>
             {referralTransactions.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell className="px-3 py-2 font-mono text-[8px] text-t2">
+              <tr key={row.id} className="hover:bg-e3">
+                <td className="border-b-[0.5px] border-bd0 px-3.5 py-2.5 font-mono text-[9px] text-t2">
                   {row.dateTime}
-                </TableCell>
-                <TableCell className="px-3 py-2">
-                  <Badge variant="outline" className="text-[7px]">
-                    {row.type}
-                  </Badge>
-                </TableCell>
-                <TableCell className="px-3 py-2 text-[9px] text-t3">
+                </td>
+                <td className="border-b-[0.5px] border-bd0 px-3.5 py-2.5 font-mono text-[9px] text-t3">
+                  {row.type}
+                </td>
+                <td className="border-b-[0.5px] border-bd0 px-3.5 py-2.5 text-[10px] text-t2">
                   {row.source}
-                </TableCell>
-                <TableCell className="px-3 py-2 font-mono text-[9px] font-bold text-t4">
+                </td>
+                <td className="border-b-[0.5px] border-bd0 px-3.5 py-2.5 text-right font-mono text-[10px] font-bold text-t4">
                   {row.amount}
-                </TableCell>
-                <TableCell className="px-3 py-2 text-right">
-                  <Check
-                    className="ml-auto size-3.5 text-green"
-                    strokeWidth={2.5}
-                    aria-label="Completed"
-                  />
-                </TableCell>
-              </TableRow>
+                </td>
+                <td className="border-b-[0.5px] border-bd0 px-3.5 py-2.5 text-center text-[13px] text-green">
+                  ✓
+                </td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <p className="font-mono text-[8px] text-t0">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t-[0.5px] border-bd0 bg-e3 px-[18px] py-2.5">
+        <p className="font-mono text-[9px] text-t1">
           Showing {transactionPagination.from}-{transactionPagination.to} of{" "}
           {transactionPagination.total.toLocaleString()} entries
         </p>
-        <Pagination className="mx-0 w-auto justify-end">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious href="#" className="h-7 text-[8px]" />
-            </PaginationItem>
-            {[1, 2, 3].map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  href="#"
-                  isActive={page === 1}
-                  className="size-7 text-[8px]"
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext href="#" className="h-7 text-[8px]" />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        <div className="flex items-center gap-1">
+          {["‹", "1", "2", "3", "›"].map((page, index) => (
+            <button
+              key={`${page}-${index}`}
+              type="button"
+              className={cn(
+                "flex size-7 items-center justify-center rounded font-mono text-[9px] shadow-sh1 transition-colors",
+                page === "1"
+                  ? "bg-[var(--inverse-surface)] text-[var(--inverse-foreground)] dark:bg-[var(--inverse-btn-bg)] dark:text-[var(--inverse-btn-text)]"
+                  : "bg-e2 text-t2 hover:text-t4",
+              )}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );

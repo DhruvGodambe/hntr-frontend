@@ -1,11 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Check, Copy } from "lucide-react";
 import QRCode from "react-qr-code";
-import { Input } from "@/components/ui/input";
 import { referralLink } from "@/features/referrals/data/referrals-data";
-import { cn } from "@/lib/utils";
 
 export function ReferralLinkCard() {
   const [copied, setCopied] = React.useState(false);
@@ -21,38 +18,38 @@ export function ReferralLinkCard() {
   };
 
   return (
-    <div className="flex h-full min-h-[280px] flex-col rounded-md border border-border bg-e2 p-4 shadow-sh1">
-      <h2 className="mb-3 font-display text-[10px] font-bold uppercase tracking-[0.08em] text-t4">
+    <div className="flex flex-col gap-2.5 rounded-md bg-e2 p-4 shadow-[var(--sh1),var(--glow)]">
+      <h2 className="font-mono text-[9px] uppercase tracking-[0.12em] text-t1">
         Referral Link
       </h2>
 
-      <div className="relative mb-4">
-        <Input
-          readOnly
-          value={referralLink.display}
-          className="h-8 pr-9 font-mono text-[9px] text-t3"
-        />
+      <div className="flex items-center gap-2">
+        <div className="flex h-[30px] flex-1 items-center rounded-[5px] bg-e3 px-2.5 font-mono text-[9px] text-t2 shadow-sh1">
+          {referralLink.display}
+        </div>
         <button
           type="button"
           onClick={handleCopy}
-          className={cn(
-            "absolute right-2 top-1/2 -translate-y-1/2 text-t2 transition-colors hover:text-t4",
-          )}
+          className="flex size-[30px] shrink-0 items-center justify-center rounded-[5px] bg-e3 text-t1 shadow-sh1 transition-colors hover:text-t4"
           aria-label={copied ? "Copied" : "Copy referral link"}
         >
-          {copied ? (
-            <Check className="size-3.5 text-green" />
-          ) : (
-            <Copy className="size-3.5" />
-          )}
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
+            <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+            <path
+              d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+            />
+          </svg>
         </button>
       </div>
 
-      <div className="flex flex-1 items-center justify-center rounded-md border border-border bg-e3 p-4">
+      <div className="flex min-h-[200px] flex-1 items-center justify-center rounded-md bg-e3 p-4">
         <div className="rounded-sm bg-white p-2">
           <QRCode
             value={referralLink.url}
-            size={120}
+            size={140}
             bgColor="#ffffff"
             fgColor="#2b3224"
             aria-label="Referral link QR code"

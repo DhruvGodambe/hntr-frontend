@@ -1,80 +1,86 @@
-import { Check, X } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { SectionHeader } from "@/features/dashboard/components/section-header";
 import {
   comparisonRows,
   membershipTiers,
 } from "@/features/membership/data/membership-data";
+import { cn } from "@/lib/utils";
+
+const CURRENT_TIER_INDEX = 2;
 
 export function MembershipComparison() {
   return (
-    <section className="mb-6">
-      <SectionHeader
-        title="Membership Comparison"
-        subtitle="Detailed feature breakdown across all institutional tiers."
-        className="mb-4"
-      />
+    <section className="mb-5 overflow-hidden rounded-md bg-e2 shadow-[var(--sh1),var(--glow)]">
+      <div className="border-b-[0.5px] border-bd0 px-[18px] py-3.5">
+        <h2 className="font-display text-[13px] font-bold text-t4">
+          Membership Comparison
+        </h2>
+        <p className="text-[10px] text-t1">
+          Detailed feature breakdown across all institutional tiers.
+        </p>
+      </div>
 
-      <div className="overflow-hidden rounded-md border border-border bg-e2 shadow-sh1">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-e3 hover:bg-e3">
-              <TableHead className="h-9 min-w-[140px] px-3">Feature</TableHead>
-              {membershipTiers.map((tier) => (
-                <TableHead
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="w-[28%] border-b-[0.5px] border-bd0 bg-e3 px-3.5 py-2.5 text-left font-mono text-[9px] font-semibold uppercase tracking-[0.06em] text-t0">
+                Feature
+              </th>
+              {membershipTiers.map((tier, index) => (
+                <th
                   key={tier.id}
-                  className="h-9 min-w-[88px] px-2 text-center"
+                  className={cn(
+                    "relative border-b-[0.5px] border-bd0 bg-e3 px-3.5 py-2.5 text-center font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-t1",
+                    index === membershipTiers.length - 1 &&
+                      "font-bold text-t4",
+                    index === CURRENT_TIER_INDEX && "cmp-current-col",
+                  )}
                 >
                   {tier.name}
-                </TableHead>
+                </th>
               ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+            </tr>
+          </thead>
+          <tbody>
             {comparisonRows.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell className="px-3 py-2.5 text-[9px] text-t3">
+              <tr
+                key={row.id}
+                className={cn(
+                  "group hover:[&>td]:bg-e3",
+                  row.highlight &&
+                    "[&>td]:bg-[rgba(94,107,85,0.04)] dark:[&>td]:bg-white/[0.03]",
+                )}
+              >
+                <td className="border-b-[0.5px] border-bd0 px-3.5 py-2.5 text-[10px] font-semibold text-t4">
                   {row.label}
-                </TableCell>
+                </td>
                 {row.values.map((value, index) => (
-                  <TableCell
+                  <td
                     key={`${row.id}-${index}`}
-                    className="px-2 py-2.5 text-center"
+                    className={cn(
+                      "border-b-[0.5px] border-bd0 px-3.5 py-2.5 text-center text-[10px] text-t2",
+                      index === membershipTiers.length - 1 &&
+                        row.type === "text" &&
+                        "font-bold text-t4",
+                    )}
                   >
                     {row.type === "boolean" ? (
-                      <span className="inline-flex justify-center">
-                        {value ? (
-                          <Check
-                            className="size-3.5 text-green"
-                            strokeWidth={2.5}
-                            aria-label="Included"
-                          />
-                        ) : (
-                          <X
-                            className="size-3.5 text-t0"
-                            strokeWidth={2.5}
-                            aria-label="Not included"
-                          />
+                      <span
+                        className={cn(
+                          "text-[13px]",
+                          value ? "text-green" : "text-t0 opacity-40",
                         )}
+                      >
+                        {value ? "✓" : "✕"}
                       </span>
                     ) : (
-                      <span className="font-mono text-[8px] text-t3">
-                        {value}
-                      </span>
+                      value
                     )}
-                  </TableCell>
+                  </td>
                 ))}
-              </TableRow>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
     </section>
   );
