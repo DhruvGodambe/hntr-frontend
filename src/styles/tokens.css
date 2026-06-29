@@ -45,6 +45,72 @@
   --sh4: 0 18px 44px rgba(0, 0, 0, 0.12), 0 5px 12px rgba(0, 0, 0, 0.06);
   --glow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 
+  /* ── Layout ── */
+  --content-max-width: 1280px;
+  --right-panel-width: 280px;
+  --layout-edge-gap: 16px;
+
+  /* ── Pool deposit CTA (consistent contrast in both themes) ── */
+  --pool-deposit-bg: #0f0f10;
+  --pool-deposit-text: #ffffff;
+  --pool-deposit-bg-hover: #000000;
+
+  /* ── Featured badge ── */
+  --featured-badge-bg: #ec7a2c;
+  --featured-badge-text: #ffffff;
+
+  /* ── Portfolio distribution bar ── */
+  --dist-punks: #5e6b55;
+  --dist-bayc: #a8b5a2;
+  --dist-art: #c8b9a9;
+
+  /* ── Pools page hero ── */
+  --pools-hero-bg: #5e6b55;
+  --pools-hero-mosaic-a: rgba(242, 239, 234, 0.4);
+  --pools-hero-mosaic-b: rgba(242, 239, 234, 0.2);
+  --pools-hero-mosaic-c: rgba(242, 239, 234, 0.65);
+  --pools-hero-mosaic-d: rgba(242, 239, 234, 0.1);
+
+  /* ── Membership recommended tier ── */
+  --tier-recommended-bg: #0f0f10;
+  --tier-recommended-fg: #ffffff;
+  --tier-recommended-fg-muted: rgba(255, 255, 255, 0.55);
+  --tier-recommended-fg-faint: rgba(255, 255, 255, 0.7);
+  --tier-recommended-icon: rgba(255, 255, 255, 0.85);
+  --tier-recommended-divider: rgba(255, 255, 255, 0.12);
+  --tier-recommended-btn-bg: #ffffff;
+  --tier-recommended-btn-fg: #0f0f10;
+  --tier-recommended-badge-bg: #ffffff;
+  --tier-recommended-badge-fg: #0f0f10;
+
+  /* ── Network / referrals page ── */
+  --net-claim-bg: #0f0f10;
+  --net-claim-text: #ffffff;
+  --net-claim-bg-hover: #000000;
+  --net-pg-active-bg: #0f0f10;
+  --net-pg-active-text: #ffffff;
+  --net-topo-active-bg: #0f0f10;
+  --net-topo-active-text: #ffffff;
+  --topo-node: #0f0f10;
+  --topo-node-sub: rgba(18, 18, 20, 0.68);
+  --topo-node-ring: rgba(15, 15, 16, 0.28);
+  --topo-node-fill-faint: rgba(15, 15, 16, 0.1);
+  --topo-leaf: #ececed;
+  --topo-edge-l1: #ececed;
+  --topo-edge-l2: rgba(168, 181, 162, 0.28);
+  --topo-edge-l3: rgba(168, 181, 162, 0.18);
+
+  /* ── Typography scale (1rem = 14px via html font-size) ── */
+  --fs-micro: 0.714rem;
+  --fs-caption: 0.786rem;
+  --fs-label: 0.857rem;
+  --fs-body-sm: 0.929rem;
+  --fs-body: 1rem;
+  --fs-stat: 1.143rem;
+  --fs-heading-sm: 1.286rem;
+  --fs-heading: 1.571rem;
+  --fs-display: clamp(1.75rem, 3.5vw, 2.5rem);
+
   /* ── Typography & radius ── */
   --fn: var(--font-inter), sans-serif;
   --fd: var(--font-space-grotesk), sans-serif;
@@ -229,4 +295,54 @@
   --inverse-btn-bg: #ffffff;
   --inverse-btn-text: #0c0c0e;
   --inverse-mosaic: rgba(255, 255, 255, 0.14);
+
+  /* ── Pool deposit CTA ── */
+  --pool-deposit-bg: #ffffff;
+  --pool-deposit-text: #0c0c0e;
+  --pool-deposit-bg-hover: #e4e4e6;
+
+  /* ── Featured badge ── */
+  --featured-badge-bg: #f25623;
+  --featured-badge-text: #ffffff;
+
+  /* ── Portfolio distribution bar ── */
+  --dist-punks: #8a9a82;
+  --dist-bayc: #a8b5a2;
+  --dist-art: #b8a890;
+
+  /* ── Pools page hero ── */
+  --pools-hero-bg: #38402f;
+  --pools-hero-mosaic-a: rgba(255, 255, 255, 0.14);
+  --pools-hero-mosaic-b: rgba(255, 255, 255, 0.08);
+  --pools-hero-mosaic-c: rgba(255, 255, 255, 0.22);
+  --pools-hero-mosaic-d: rgba(255, 255, 255, 0.05);
+
+  /* ── Membership recommended tier ── */
+  --tier-recommended-bg: #2a2a2e;
+  --tier-recommended-fg: #ffffff;
+  --tier-recommended-fg-muted: rgba(255, 255, 255, 0.48);
+  --tier-recommended-fg-faint: rgba(255, 255, 255, 0.66);
+  --tier-recommended-icon: rgba(255, 255, 255, 0.75);
+  --tier-recommended-divider: rgba(255, 255, 255, 0.12);
+  --tier-recommended-btn-bg: #f4f4f5;
+  --tier-recommended-btn-fg: #0a0a0b;
+  --tier-recommended-badge-bg: #ffffff;
+  --tier-recommended-badge-fg: #0c0c0e;
+
+  /* ── Network / referrals page ── */
+  --net-claim-bg: #ffffff;
+  --net-claim-text: #0a0a0b;
+  --net-claim-bg-hover: #e4e4e6;
+  --net-pg-active-bg: #ffffff;
+  --net-pg-active-text: #0a0a0b;
+  --net-topo-active-bg: #ffffff;
+  --net-topo-active-text: #0a0a0b;
+  --topo-node: #ffffff;
+  --topo-node-sub: rgba(255, 255, 255, 0.66);
+  --topo-node-ring: rgba(255, 255, 255, 0.28);
+  --topo-node-fill-faint: rgba(255, 255, 255, 0.1);
+  --topo-leaf: rgba(255, 255, 255, 0.12);
+  --topo-edge-l1: rgba(255, 255, 255, 0.12);
+  --topo-edge-l2: rgba(255, 255, 255, 0.18);
+  --topo-edge-l3: rgba(255, 255, 255, 0.1);
 }

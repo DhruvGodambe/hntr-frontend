@@ -1,73 +1,137 @@
+"use client";
+
 import Link from "next/link";
-import type { RunningPool } from "@/features/pools/data/pools-data";
-import { PoolStakeRing } from "./pool-stake-ring";
+import { PoolDepositButton } from "@/features/pools/components/deposit-modal";
+import { getPoolDetail } from "@/features/pools/data/pool-detail-data";
+import { nftPlaceholder } from "@/lib/placeholders";
 
 type PoolCollectionCardProps = {
-  pool: RunningPool;
+  poolId: string;
 };
 
-const stats = (pool: RunningPool) =>
-  [
-    { label: "Target", value: pool.target, accent: false },
-    { label: "Raised", value: pool.raised, accent: false },
-    { label: "Premium", value: pool.premium, accent: true },
-    { label: "User", value: pool.userStake, accent: false },
-  ] as const;
+function ethAmount(value: string): string {
+  return value.replace(/\s*ETH$/i, "").trim();
+}
 
-export function PoolCollectionCard({ pool }: PoolCollectionCardProps) {
+function EthStat({ value }: { value: string }) {
   return (
-    <article className="overflow-hidden rounded-[var(--r)] bg-e2 shadow-[var(--sh2),var(--glow)] transition-[transform,box-shadow] duration-[220ms] hover:-translate-y-[3px] hover:scale-[1.01] hover:shadow-sh3">
-      <div
-        className="relative h-[180px] overflow-hidden"
-        style={{ background: "var(--olive)" }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={pool.imageSrc}
-          alt={pool.name}
-          className="block h-full w-full object-cover transition-transform duration-300"
-        />
-        <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-b from-black/15 to-[rgba(15,20,12,0.72)] p-3.5">
-          <h3 className="font-display text-sm font-bold tracking-[0.02em] text-white">
-            {pool.name}
-          </h3>
-          <p className="mb-2.5 font-mono text-[9px] text-white/55">
-            {pool.poolId}
-          </p>
-          <button
-            type="button"
-            className="inline-flex h-6 w-fit items-center rounded border border-white/30 bg-white/15 px-2.5 font-mono text-[8px] tracking-[0.06em] text-white backdrop-blur-sm transition-colors hover:bg-white/25"
-          >
-            VIEW LISTED TARGET
-          </button>
-        </div>
-        <div className="absolute right-3 top-3">
-          <PoolStakeRing value={pool.stakePercent} />
+    <p className="flex items-baseline gap-1 font-mono text-[23px] font-bold leading-none text-t4">
+      {ethAmount(value)}
+      <small className="text-body-sm font-bold text-t2">Ξ</small>
+    </p>
+  );
+}
+
+export function PoolCollectionCard({ poolId }: PoolCollectionCardProps) {
+  const pool = getPoolDetail(poolId);
+  const href = `/pools/${poolId}`;
+
+  if (!pool) {
+    return null;
+  }
+
+  const tokenId = pool.itemId.replace("#", "");
+  const footerStats = pool.footerStats;
+
+  return (
+    <article className="flex w-full flex-col overflow-hidden rounded-[10px] bg-e2">
+      <div className="flex min-h-[200px]">
+        <Link
+          href={href}
+          className="relative w-[188px] shrink-0 self-stretch overflow-hidden"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={nftPlaceholder(pool.imageSeed)}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <span className="absolute bottom-2 left-2 inline-flex h-[17px] items-center rounded-[3px] bg-[rgba(43,50,36,0.78)] px-[7px] font-mono text-micro tracking-[0.06em] text-[var(--cream)] backdrop-blur-[3px]">
+            POOL #{tokenId}
+          </span>
+        </Link>
+
+        <div className="flex min-w-0 flex-1 flex-col px-4 pb-3.5 pt-[15px]">
+          <div className="mb-3 flex items-start justify-between gap-2.5">
+            <div className="min-w-0">
+              <Link href={href} className="block transition-opacity hover:opacity-90">
+                <h3 className="font-display text-[17px] font-bold leading-[1.12] text-t4">
+                  {pool.name}{" "}
+                  <span className="text-t2">#{tokenId}</span>
+                </h3>
+              </Link>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                <span className="inline-flex h-4 items-center rounded-[3px] bg-e4 px-[7px] font-mono text-[7.5px] tracking-[0.05em] text-t2">
+                  {pool.creator}
+                </span>
+                <span className="inline-flex h-4 items-center rounded-[3px] bg-e4 px-[7px] font-mono text-[7.5px] tracking-[0.05em] text-t2">
+                  {pool.series}
+                </span>
+              </div>
+            </div>
+            <Link
+              href={href}
+              className="inline-flex h-6 shrink-0 items-center gap-1 rounded-[5px] border border-bd1 px-2.5 font-mono text-micro uppercase tracking-[0.07em] text-t2 transition-colors hover:border-[var(--sage)] hover:text-[var(--olive)]"
+            >
+              <span className="size-[5px] rounded-full bg-green shadow-[0_0_0_2px_rgba(61,122,90,0.18)]" />
+              View Insights
+            </Link>
+          </div>
+
+          <div className="mb-3 grid grid-cols-2 gap-2.5">
+            <div>
+              <p className="mb-1 font-mono text-caption uppercase tracking-[0.09em] text-t1">
+                Pool Target
+              </p>
+              <EthStat value={pool.targetPriceEth} />
+              <p className="mt-1 font-mono text-caption text-t1">
+                {pool.targetPriceUsd}
+              </p>
+            </div>
+            <div>
+              <p className="mb-1 font-mono text-caption uppercase tracking-[0.09em] text-t1">
+                Community Raised
+              </p>
+              <EthStat value={pool.communityRaisedEth} />
+              <p className="mt-1 font-mono text-caption text-t1">
+                {pool.communityRaisedUsd}
+              </p>
+            </div>
+          </div>
+
+          <div className="mb-3.5">
+            <div className="mb-1 flex justify-between font-mono text-caption text-t1">
+              <span className="tracking-[0.06em]">POOL PROGRESS</span>
+              <span className="font-bold text-t4">{pool.progress}%</span>
+            </div>
+            <div className="h-1 overflow-hidden rounded-[2px] bg-e4">
+              <div
+                className="h-full rounded-[2px] bg-t4"
+                style={{ width: `${pool.progress}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="mt-auto">
+            <PoolDepositButton pool={pool} className="pool-deposit-btn w-full text-micro" />
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-1 border-b border-bd0 px-3 py-2">
-        {stats(pool).map((stat) => (
-          <div key={stat.label}>
-            <p className="mb-px font-mono text-[7px] uppercase tracking-[0.05em] text-t0">
+      <div className="grid grid-cols-4 gap-1 border-t border-bd0 bg-e3 px-2.5 py-2">
+        {footerStats.map((stat) => (
+          <div
+            key={stat.label}
+            className="flex min-h-[34px] flex-col justify-between rounded-[3px] border border-bd0 bg-e2 px-1.5 py-1"
+          >
+            <p className="text-micro uppercase leading-tight tracking-[0.04em] text-t0">
               {stat.label}
             </p>
-            <p
-              className={`font-mono text-[10px] font-semibold ${stat.accent ? "text-green" : "text-t3"}`}
-            >
+            <p className="font-mono text-caption font-bold leading-tight text-t4">
               {stat.value}
             </p>
           </div>
         ))}
-      </div>
-
-      <div className="p-2 px-3">
-        <Link
-          href={`/pools/${pool.id}`}
-          className="flex h-[26px] w-full items-center justify-center rounded border border-[var(--cream-dark)] bg-transparent font-mono text-[8px] uppercase tracking-[0.08em] text-t2 transition-colors hover:border-[var(--sage-faint)] hover:bg-[var(--sage-faint)] hover:text-t4"
-        >
-          View Details
-        </Link>
       </div>
     </article>
   );

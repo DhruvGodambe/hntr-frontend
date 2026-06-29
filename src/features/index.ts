@@ -4,3 +4,4 @@ export { MembershipHome } from "./membership";
 export { PoolsHome } from "./pools";
 export { ReferralsHome } from "./referrals";
 export { InfoHome } from "./info";
+export { MyNFTsHome } from "./my-nfts";

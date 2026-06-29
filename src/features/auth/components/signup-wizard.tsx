@@ -25,21 +25,23 @@ export function SignupWizard() {
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeWizard()}>
       <DialogContent
         className={cn(
-          "gap-0 p-5 sm:rounded-md",
-          step === 3 ? "max-w-[min(96vw,920px)]" : "max-w-md",
+          "signup-wizard-dialog gap-0 border-bd0 bg-e2 p-0 sm:rounded-[var(--r)]",
+          step === 3 ? "max-w-[min(96vw,1040px)]" : "max-w-[min(96vw,440px)]",
         )}
       >
         <DialogTitle className="sr-only">
           Sign up step {step} of 3
         </DialogTitle>
-        {step === 1 && <ConnectWalletStep onConnect={connectWallet} />}
-        {step === 2 && <UserInfoStep onContinue={() => setStep(3)} />}
-        {step === 3 && (
-          <MembershipSelectStep
-            onSelect={completeOnboarding}
-            onPrevious={() => setStep(2)}
-          />
-        )}
+        <div className="signup-wizard-body">
+          {step === 1 && <ConnectWalletStep onConnect={connectWallet} />}
+          {step === 2 && <UserInfoStep onContinue={() => setStep(3)} />}
+          {step === 3 && (
+            <MembershipSelectStep
+              onSelect={completeOnboarding}
+              onPrevious={() => setStep(2)}
+            />
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { PoolDetail } from "@/features/pools/data/pool-detail-data";
-import { nftPlaceholder } from "@/lib/placeholders";
+import { resolvePoolCardImage } from "@/lib/images";
 
 type OtherPoolsCarouselProps = {
   pool: PoolDetail;
@@ -16,24 +16,21 @@ function PoolThumbCard({
   );
 
   return (
-    <Link
-      href={`/pools/${item.id}`}
-      className="pool-thumb flex w-[200px] shrink-0 cursor-pointer items-center overflow-hidden rounded-md bg-e2 shadow-[var(--sh1),var(--glow)] transition-[transform,box-shadow] duration-200 hover:relative hover:z-[1] hover:scale-[1.04] hover:shadow-sh3"
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={nftPlaceholder(item.imageSeed, 104)}
-        alt=""
-        className="size-[52px] shrink-0 object-cover"
-      />
-      <div className="min-w-0 flex-1 px-2.5 py-2">
-        <p className="mb-[3px] truncate font-display text-[10px] font-bold text-t4">
-          {item.name}
-        </p>
-        <p className="font-mono text-[8px] text-t1">
+    <Link href={`/pools/${item.id}`} className="pool-thumb">
+      <div className="pool-thumb-media">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={resolvePoolCardImage(item.id, item.imageSeed)}
+          alt=""
+          className="pool-thumb-img"
+        />
+      </div>
+      <div className="pool-thumb-info">
+        <p className="pt-name">{item.name}</p>
+        <p className="pt-activity">
           Activity: {item.activityCurrent}/{item.activityTarget} ETH ({percent}%)
         </p>
-        <p className="mt-[3px] font-mono text-[8px] text-t4">View →</p>
+        <p className="pt-view">View →</p>
       </div>
     </Link>
   );
@@ -50,7 +47,7 @@ export function OtherPoolsCarousel({ pool }: OtherPoolsCarouselProps) {
   return (
     <section className="mb-6 mt-4">
       <div className="mb-2.5 flex items-center justify-between">
-        <h2 className="font-mono text-[9px] uppercase tracking-[0.1em] text-t1">
+        <h2 className="font-display text-body-sm font-bold uppercase tracking-[0.1em] text-t4">
           Other Available Pools
         </h2>
       </div>

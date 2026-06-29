@@ -14,7 +14,7 @@ function ChangeIndicator({ change }: { change: number }) {
 
   if (change > 0) {
     return (
-      <span className="shrink-0 font-mono text-[9px] font-bold text-green">
+      <span className="shrink-0 font-mono text-label font-bold text-green">
         ↑ {formatted} %
       </span>
     );
@@ -22,14 +22,14 @@ function ChangeIndicator({ change }: { change: number }) {
 
   if (change < 0) {
     return (
-      <span className="shrink-0 font-mono text-[9px] font-bold text-red">
+      <span className="shrink-0 font-mono text-label font-bold text-red">
         ↓ {formatted} %
       </span>
     );
   }
 
   return (
-    <span className="shrink-0 font-mono text-[9px] font-bold text-t1">
+    <span className="shrink-0 font-mono text-label font-bold text-t1">
       - 0.00 %
     </span>
   );
@@ -43,16 +43,16 @@ function RankedListItem({
   variant: "change" | "volume";
 }) {
   return (
-    <li className="flex items-center gap-[7px] border-b border-bd1 py-[5px] last:border-b-0">
+    <li className="flex items-center gap-2 border-b-[0.5px] border-[var(--cream-dark)] py-1.5 last:border-b-0">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={nftPlaceholder(item.imageSeed, 40)}
         alt=""
-        className="size-5 shrink-0 rounded-[3px] bg-[var(--sage-faint)] object-cover"
+        className="size-6 shrink-0 rounded-[3px] bg-[var(--sage-faint)] object-cover"
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[9px] font-medium text-t3">{item.name}</p>
-        <p className="font-mono text-[8px] text-t0">
+        <p className="truncate text-label font-medium text-t3">{item.name}</p>
+        <p className="font-mono text-caption text-t1">
           {variant === "volume" ? (
             <>
               Floor: {item.floorPrice} Ξ - Vol: {item.volume24h}
@@ -71,12 +71,12 @@ function RankedListItem({
 
 export function RankedList({ title, icon, items, variant }: RankedListProps) {
   return (
-    <div className="rounded-md border border-bd1 bg-e2 p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="font-mono text-[8px] uppercase tracking-[0.08em] text-t0">
+    <div className="min-w-0">
+      <div className="mb-2.5 flex items-center justify-between">
+        <h3 className="font-mono text-caption font-semibold uppercase tracking-[0.08em] text-t1">
           {title}
         </h3>
-        <span className="text-t1 [&_svg]:size-3">{icon}</span>
+        <span className="text-t1 [&_svg]:size-3.5">{icon}</span>
       </div>
       <ul>
         {items.map((item) => (

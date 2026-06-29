@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import * as React from "react";
 import { BarChart3, ChevronDown } from "lucide-react";
 import type { PoolItem } from "@/features/dashboard/data/home-data";
 import { PoolDepositButton } from "@/features/pools/components/deposit-modal";
@@ -18,9 +19,9 @@ function ethAmount(value: string): string {
 
 function EthValue({ value }: { value: string }) {
   return (
-    <p className="font-mono text-[13px] font-bold leading-tight text-t4">
+    <p className="font-mono text-stat font-bold leading-tight text-t4">
       {ethAmount(value)}{" "}
-      <span className="text-[11px] font-bold" aria-hidden>
+      <span className="text-body-sm font-bold" aria-hidden>
         Ξ
       </span>
     </p>
@@ -28,13 +29,17 @@ function EthValue({ value }: { value: string }) {
 }
 
 export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
+  const [detailsOpen, setDetailsOpen] = React.useState(false);
   const poolDetail = getPoolDetail(pool.id);
   const href = `/pools/${pool.id}`;
 
   return (
     <article
       data-pool-slide
-      className="overflow-hidden rounded-md border border-border bg-e2 transition-opacity hover:opacity-95"
+      className={cn(
+        "@container overflow-hidden rounded-md border border-border bg-e2 transition-opacity hover:opacity-95",
+        detailsOpen && "open",
+      )}
     >
       <div className="flex">
         <Link
@@ -56,26 +61,26 @@ export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
           <div className="relative mb-2.5">
             <Link
               href={href}
-              className="absolute right-0 top-0 inline-flex items-center gap-1 font-mono text-[7px] tracking-[0.06em] text-t2 transition-colors hover:text-t4"
+              className="absolute right-0 top-0 inline-flex items-center gap-1 font-mono text-micro tracking-[0.06em] text-t2 transition-colors hover:text-t4"
             >
               <BarChart3 className="size-2.5" strokeWidth={1.75} />
               View Insights
             </Link>
 
             <Link href={href} className="block pr-20 transition-opacity hover:opacity-90">
-              <h3 className="font-display text-[11px] font-bold leading-tight text-t4">
+              <h3 className="font-display text-body-sm font-bold leading-tight text-t4">
                 {pool.name}
               </h3>
-              <p className="font-display text-[11px] font-bold leading-tight text-t4">
+              <p className="font-display text-body-sm font-bold leading-tight text-t4">
                 {pool.tokenId}
               </p>
             </Link>
 
             <div className="mt-1.5 flex flex-wrap gap-1">
-              <span className="inline-flex h-3.5 items-center rounded-[2px] bg-e4 px-1.5 font-mono text-[7px] tracking-[0.06em] text-t2">
+              <span className="inline-flex h-3.5 items-center rounded-[2px] bg-e4 px-1.5 font-mono text-micro tracking-[0.06em] text-t2">
                 {pool.creator}
               </span>
-              <span className="inline-flex h-3.5 items-center rounded-[2px] bg-e4 px-1.5 font-mono text-[7px] tracking-[0.06em] text-t2">
+              <span className="inline-flex h-3.5 items-center rounded-[2px] bg-e4 px-1.5 font-mono text-micro tracking-[0.06em] text-t2">
                 {pool.series}
               </span>
             </div>
@@ -83,20 +88,20 @@ export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
 
           <div className="mb-2.5 grid grid-cols-2 gap-3">
             <div>
-              <p className="mb-1 text-[8px] uppercase tracking-[0.05em] text-t1">
+              <p className="mb-1 text-caption uppercase tracking-[0.05em] text-t1">
                 Pool Target
               </p>
               <EthValue value={pool.poolTargetEth} />
-              <p className="mt-0.5 font-mono text-[8px] text-t0">
+              <p className="mt-0.5 font-mono text-caption text-t0">
                 {pool.poolTargetUsd}
               </p>
             </div>
             <div>
-              <p className="mb-1 text-[8px] uppercase tracking-[0.05em] text-t1">
+              <p className="mb-1 text-caption uppercase tracking-[0.05em] text-t1">
                 Community Raised
               </p>
               <EthValue value={pool.communityRaisedEth} />
-              <p className="mt-0.5 font-mono text-[8px] text-t0">
+              <p className="mt-0.5 font-mono text-caption text-t0">
                 {pool.communityRaisedUsd}
               </p>
             </div>
@@ -109,46 +114,58 @@ export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
             />
           </div>
 
-          <div className="mt-auto flex items-center gap-2">
-            <Link
-              href={href}
-              className="inline-flex items-center gap-1 font-mono text-[8px] uppercase tracking-[0.04em] text-t2 transition-colors hover:text-t4"
+          <div className="pool-card-actions mt-auto">
+            <button
+              type="button"
+              aria-expanded={detailsOpen}
+              onClick={() => setDetailsOpen((open) => !open)}
+              className="pool-details-btn"
             >
-              Pool Details
-              <ChevronDown className="size-3" strokeWidth={1.75} />
-            </Link>
+              <span className="truncate">Pool Details</span>
+              <ChevronDown
+                className="pool-details-chevron size-3 shrink-0"
+                strokeWidth={1.75}
+              />
+            </button>
             {poolDetail ? (
               <PoolDepositButton
                 pool={poolDetail}
-                className="ml-auto h-[27px] min-w-0 w-auto flex-[1.4] shrink px-2 font-mono text-[8px] font-bold uppercase tracking-[0.04em]"
+                className="pool-deposit-btn font-mono text-micro font-bold uppercase tracking-[0.04em]"
               />
             ) : null}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-1 border-t border-border px-2.5 py-2">
-        {[
-          { label: "GP Profit", value: pool.gpProfit },
-          {
-            label: "ETH Profit",
-            value: `${ethAmount(pool.ethProfit)} Ξ`,
-          },
-          { label: "USDT Profit", value: pool.usdtProfit },
-          { label: "Users", value: pool.users },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className="flex min-h-[34px] flex-col justify-between rounded-[3px] border border-border bg-e2 px-1.5 py-1"
-          >
-            <p className="text-[7px] uppercase leading-tight tracking-[0.04em] text-t0">
-              {stat.label}
-            </p>
-            <p className="font-mono text-[8px] font-bold leading-tight text-t4">
-              {stat.value}
-            </p>
-          </div>
-        ))}
+      <div
+        className={cn(
+          "overflow-hidden transition-[max-height] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          detailsOpen ? "max-h-32" : "max-h-0",
+        )}
+      >
+        <div className="grid grid-cols-4 gap-1 border-t border-border bg-e3 px-2.5 py-2">
+          {[
+            { label: "GP Profit", value: pool.gpProfit },
+            {
+              label: "ETH Profit",
+              value: `${ethAmount(pool.ethProfit)} Ξ`,
+            },
+            { label: "USDT Profit", value: pool.usdtProfit },
+            { label: "Users", value: pool.users },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="flex min-h-[34px] flex-col justify-between rounded-[3px] border border-border bg-e2 px-1.5 py-1"
+            >
+              <p className="text-micro uppercase leading-tight tracking-[0.04em] text-t0">
+                {stat.label}
+              </p>
+              <p className="font-mono text-caption font-bold leading-tight text-t4">
+                {stat.value}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </article>
   );

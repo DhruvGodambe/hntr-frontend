@@ -15,6 +15,7 @@ export function DashboardHome() {
       <ListingsSection
         headingId="listings-heading"
         title="HNTR's Listings"
+        subtitle="All NFTs currently for sell"
         actionLabel="View All Listings"
         actionHref="/marketplace"
         items={listings}

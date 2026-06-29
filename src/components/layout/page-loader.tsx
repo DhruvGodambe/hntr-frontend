@@ -8,12 +8,19 @@ export function PageLoader() {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    let hideTimer: number | undefined;
+
+    const fadeTimer = window.setTimeout(() => {
       setFadeOut(true);
-      window.setTimeout(() => setVisible(false), 400);
+      hideTimer = window.setTimeout(() => setVisible(false), 400);
     }, 1050);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(fadeTimer);
+      if (hideTimer !== undefined) {
+        window.clearTimeout(hideTimer);
+      }
+    };
   }, []);
 
   if (!visible) return null;
@@ -30,7 +37,7 @@ export function PageLoader() {
         {["H", "N", "T", "R"].map((letter, i) => (
           <span
             key={letter}
-            className="ll font-display text-[52px] font-bold leading-none tracking-[0.04em]"
+            className="ll font-display text-display font-bold leading-none tracking-[0.04em]"
             style={{
               color: "var(--loader-letter)",
               animationDelay: `${0.1 + i * 0.18}s`,
@@ -40,7 +47,7 @@ export function PageLoader() {
           </span>
         ))}
         <span
-          className="ls ml-px font-display text-[26px] font-normal leading-none tracking-[0.02em]"
+          className="ls ml-px font-display text-heading font-normal leading-none tracking-[0.02em]"
           style={{ color: "var(--loader-suffix)", animationDelay: "0.82s" }}
         >
           .art

@@ -3,14 +3,15 @@ import { cn } from "@/lib/utils";
 
 type PricingTierCardProps = {
   tier: MembershipTier;
+  index?: number;
 };
 
 function TierFeatureCheck({ recommended }: { recommended?: boolean }) {
   return (
     <svg
       className={cn(
-        "mt-px size-3 shrink-0",
-        recommended ? "text-[var(--inverse-foreground-faint)]" : "text-green",
+        "tier-card-icon mt-px size-3 shrink-0",
+        !recommended && "text-green",
       )}
       width="12"
       height="12"
@@ -18,14 +19,7 @@ function TierFeatureCheck({ recommended }: { recommended?: boolean }) {
       fill="none"
       aria-hidden
     >
-      <circle
-        cx="6"
-        cy="6"
-        r="4.5"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        opacity={recommended ? 0.85 : 1}
-      />
+      <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.2" />
       <path
         d="M3.5 6l1.5 1.5L8.5 4"
         stroke="currentColor"
@@ -37,30 +31,29 @@ function TierFeatureCheck({ recommended }: { recommended?: boolean }) {
   );
 }
 
-export function PricingTierCard({ tier }: PricingTierCardProps) {
+export function PricingTierCard({ tier, index = 0 }: PricingTierCardProps) {
   const isRecommended = tier.recommended;
 
   return (
     <article
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-md p-4 shadow-[var(--sh1),var(--glow)] transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-sh2",
+        "card-reveal relative flex flex-col overflow-hidden rounded-[var(--r)] p-4 shadow-[var(--sh1),var(--glow)] transition-[transform,box-shadow] duration-200 hover:z-[2] hover:-translate-y-1 hover:scale-[1.02] hover:shadow-sh4",
         isRecommended
-          ? "bg-[var(--inverse-surface)] shadow-sh3"
+          ? "tier-card-recommended hover:scale-[1.025]"
           : "bg-e2",
       )}
+      style={{ animationDelay: `${0.05 + index * 0.05}s` }}
     >
       {isRecommended && (
-        <div className="absolute left-1/2 top-0 -translate-x-1/2 rounded-b bg-beige px-2.5 py-[3px] font-mono text-[7px] font-bold uppercase tracking-[0.1em] text-[var(--inverse-btn-text)]">
+        <div className="tier-card-badge absolute left-1/2 top-0 -translate-x-1/2 rounded-b px-2.5 py-[3px] font-mono text-caption font-bold uppercase tracking-[0.1em]">
           RECOMMENDED
         </div>
       )}
 
       <div
         className={cn(
-          "mb-1 mt-2 font-mono text-[8px] uppercase tracking-[0.1em]",
-          isRecommended
-            ? "text-[var(--inverse-foreground-subtle)]"
-            : "text-t0",
+          "tier-card-label mb-1 mt-2 font-mono text-caption uppercase tracking-[0.1em]",
+          !isRecommended && "text-t0",
         )}
       >
         {tier.tierLabel}
@@ -68,8 +61,8 @@ export function PricingTierCard({ tier }: PricingTierCardProps) {
 
       <h3
         className={cn(
-          "mb-2.5 font-display text-base font-bold",
-          isRecommended ? "text-[var(--inverse-foreground)]" : "text-t4",
+          "tier-card-title mb-2.5 font-display text-body-sm font-bold",
+          !isRecommended && "text-t4",
         )}
       >
         {tier.name}
@@ -77,17 +70,15 @@ export function PricingTierCard({ tier }: PricingTierCardProps) {
 
       <div
         className={cn(
-          "mb-2.5 flex items-baseline gap-0.5 font-mono text-[22px] font-bold leading-none",
-          isRecommended ? "text-[var(--inverse-foreground)]" : "text-t4",
+          "tier-card-price mb-2.5 flex items-baseline gap-0.5 font-mono text-[1.571rem] font-bold leading-none",
+          !isRecommended && "text-t4",
         )}
       >
         ${tier.price.toLocaleString()}
         <span
           className={cn(
-            "text-[10px] font-normal",
-            isRecommended
-              ? "text-[var(--inverse-foreground-faint)]"
-              : "text-t2",
+            "tier-card-price-unit text-label font-normal",
+            !isRecommended && "text-t2",
           )}
         >
           USD
@@ -96,8 +87,8 @@ export function PricingTierCard({ tier }: PricingTierCardProps) {
 
       <div
         className={cn(
-          "mb-3.5 h-px",
-          isRecommended ? "bg-[var(--inverse-divider)]" : "bg-bd0",
+          "tier-card-divider mb-3 h-px",
+          !isRecommended && "bg-bd0",
         )}
       />
 
@@ -107,10 +98,8 @@ export function PricingTierCard({ tier }: PricingTierCardProps) {
             <TierFeatureCheck recommended={isRecommended} />
             <span
               className={cn(
-                "text-[10px] leading-[1.3]",
-                isRecommended
-                  ? "text-[var(--inverse-foreground)]"
-                  : "text-t2",
+                "tier-card-feature text-caption leading-[1.3]",
+                !isRecommended && "text-t2",
               )}
             >
               {feature}
@@ -122,10 +111,10 @@ export function PricingTierCard({ tier }: PricingTierCardProps) {
       <button
         type="button"
         className={cn(
-          "h-[30px] w-full rounded-[5px] border font-mono text-[9px] uppercase tracking-[0.08em] transition-colors",
+          "h-[30px] w-full rounded-[5px] border-[1.5px] font-mono text-caption uppercase tracking-[0.08em] transition-colors",
           isRecommended
-            ? "border-transparent bg-[var(--inverse-btn-bg)] font-bold text-[var(--inverse-btn-text)] hover:brightness-95 dark:hover:brightness-90"
-            : "border-bd1 bg-transparent text-t2 hover:border-bd2 hover:bg-e3 hover:text-t4",
+            ? "tier-card-cta"
+            : "border-[var(--cream-dark)] bg-transparent text-t2 hover:border-[var(--sage-faint)] hover:bg-[var(--sage-faint)] hover:text-t4 dark:border-[rgba(168,181,162,0.15)]",
         )}
       >
         {isRecommended ? "PURCHASE" : "SELECT"}

@@ -23,6 +23,7 @@ export type ListingItem = {
   boughtPrice: string;
   sellPrice: string;
   imageSeed: string;
+  source: "OpenSea" | "Blur";
 };
 
 export type SaleItem = {
@@ -147,6 +148,7 @@ export const listings: ListingItem[] = [
     boughtPrice: "17.40 ETH",
     sellPrice: "18.75 ETH",
     imageSeed: "bayc-9172",
+    source: "OpenSea",
   },
   {
     id: "pudgy-2210",
@@ -154,6 +156,7 @@ export const listings: ListingItem[] = [
     boughtPrice: "11.80 ETH",
     sellPrice: "12.40 ETH",
     imageSeed: "pudgy-2210",
+    source: "Blur",
   },
   {
     id: "fidenza-565",
@@ -161,6 +164,7 @@ export const listings: ListingItem[] = [
     boughtPrice: "13.90 ETH",
     sellPrice: "14.50 ETH",
     imageSeed: "fidenza-565",
+    source: "OpenSea",
   },
   {
     id: "chromie-935",
@@ -168,6 +172,7 @@ export const listings: ListingItem[] = [
     boughtPrice: "7.80 ETH",
     sellPrice: "8.20 ETH",
     imageSeed: "chromie-935",
+    source: "Blur",
   },
   {
     id: "bayc-1044",
@@ -175,6 +180,7 @@ export const listings: ListingItem[] = [
     boughtPrice: "17.20 ETH",
     sellPrice: "17.90 ETH",
     imageSeed: "bayc-1044",
+    source: "OpenSea",
   },
   {
     id: "punk-8822",
@@ -182,6 +188,7 @@ export const listings: ListingItem[] = [
     boughtPrice: "88.00 ETH",
     sellPrice: "95.00 ETH",
     imageSeed: "punk-8822",
+    source: "Blur",
   },
 ];
 

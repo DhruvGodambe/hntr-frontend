@@ -10,11 +10,13 @@ type PoolDetailHomeProps = {
 
 export function PoolDetailHome({ pool }: PoolDetailHomeProps) {
   return (
-    <>
-      <PoolDetailHero pool={pool} />
-      <PoolDetailMetricsRow pool={pool} />
-      <TransactionActivityTable pool={pool} />
-      <OtherPoolsCarousel pool={pool} />
-    </>
+    <div className="-mx-3 -mt-4 flex flex-col pb-10 sm:-mx-4">
+      <div className="px-3 pt-[18px] sm:px-5">
+        <PoolDetailHero pool={pool} />
+        <PoolDetailMetricsRow pool={pool} />
+        <TransactionActivityTable pool={pool} />
+        <OtherPoolsCarousel pool={pool} />
+      </div>
+    </div>
   );
 }

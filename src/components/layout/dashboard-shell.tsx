@@ -51,7 +51,7 @@ function MobileRightPanel({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="left-auto right-0 top-0 flex h-dvh max-h-dvh w-[min(100%,320px)] max-w-[320px] translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-l border-bd1 p-0 sm:rounded-none">
+      <DialogContent className="left-auto right-0 top-0 flex h-dvh max-h-dvh w-[min(100%,360px)] max-w-[360px] translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-l border-bd1 p-0 sm:rounded-none">
         <DialogTitle className="sr-only">Account overview</DialogTitle>
         <RightPanel className="h-full min-h-0 w-full max-w-none border-0 shadow-none" />
       </DialogContent>
@@ -69,7 +69,7 @@ export function DashboardShell({
   return (
     <>
       <PageLoader />
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-e0">
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-e0">
         <AppNavbar
           onMobileMenuOpen={() => setMobileOpen(true)}
           onRightPanelOpen={() => setRightPanelOpen(true)}
@@ -82,7 +82,7 @@ export function DashboardShell({
 
           <div className="content">
             <div className="page-panel">
-              <MainContent className="feed min-w-0 flex-1 bg-e0 px-4 pb-10 pt-4">
+              <MainContent className="feed bg-e0">
                 {children}
               </MainContent>
 
@@ -92,7 +92,7 @@ export function DashboardShell({
                     open={rightPanelOpen}
                     onOpenChange={setRightPanelOpen}
                   />
-                  <RightPanel className="hidden h-full min-h-0 shrink-0 xl:block" />
+                  <RightPanel className="hidden h-full min-h-0 shrink-0 lg:block" />
                 </>
               )}
             </div>

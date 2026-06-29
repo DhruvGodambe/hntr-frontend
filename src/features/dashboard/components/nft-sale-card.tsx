@@ -14,7 +14,7 @@ export function NFTSaleCard({ sale }: NFTSaleCardProps) {
     >
       <span
         className={cn(
-          "absolute left-1.5 top-1.5 z-[1] flex h-4 items-center rounded-[3px] px-1.5 font-mono text-[7px] font-bold tracking-[0.06em] backdrop-blur-sm",
+          "absolute left-2 top-2 z-[1] flex h-5 items-center rounded-[3px] px-2 font-mono text-micro font-bold tracking-[0.06em] backdrop-blur-sm",
           sale.status === "SOLD"
             ? "bg-accent text-accent-ui-foreground"
             : "bg-e5 text-t3 shadow-sh1",
@@ -30,21 +30,23 @@ export function NFTSaleCard({ sale }: NFTSaleCardProps) {
         className="aspect-square w-full object-cover"
       />
 
-      <div className="p-2 pb-2.5">
-        <h3 className="mb-1 font-mono text-[9px] font-bold text-t4">
+      <div className="p-2.5 sm:p-3">
+        <h3 className="mb-1.5 font-mono text-label font-bold text-t4">
           {sale.name}
         </h3>
-        <div className="mb-0.5 flex justify-between">
-          <span className="text-[8px] uppercase text-t0">Bought</span>
-          <span className="font-mono text-[8px] text-t2">{sale.boughtPrice}</span>
+        <div className="mb-1 flex justify-between gap-2">
+          <span className="text-caption uppercase text-t1">Bought</span>
+          <span className="font-mono text-caption text-t3">{sale.boughtPrice}</span>
         </div>
-        <div className="mb-0.5 flex justify-between">
-          <span className="text-[8px] uppercase text-t0">Sale</span>
-          <span className="font-mono text-[8px] text-t2">{sale.soldPrice}</span>
+        <div className="mb-1 flex justify-between gap-2">
+          <span className="text-caption uppercase text-t1">Sale</span>
+          <span className="font-mono text-caption text-t3">{sale.soldPrice}</span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-[8px] uppercase text-t0">Profit</span>
-          <span className="font-mono text-[8px] text-green">{sale.profit}</span>
+        <div className="flex justify-between gap-2">
+          <span className="text-caption uppercase text-t1">Profit</span>
+          <span className="font-mono text-caption font-semibold text-green">
+            {sale.profit}
+          </span>
         </div>
       </div>
     </article>

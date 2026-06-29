@@ -35,7 +35,7 @@ function SidebarRailNavItem({
       <span className="si-icon flex size-9 min-w-9 shrink-0 items-center justify-center [&_svg]:size-3.5">
         {icon}
       </span>
-      <span className="sidebar-label whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.07em]">
+      <span className="sidebar-label whitespace-nowrap font-mono text-label uppercase tracking-[0.07em]">
         {label}
       </span>
     </Link>
@@ -98,7 +98,7 @@ export function SidebarRailAction({
       <span className="si-icon flex size-9 min-w-9 shrink-0 items-center justify-center [&_svg]:size-3.5">
         {icon}
       </span>
-      <span className="sidebar-label whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.07em]">
+      <span className="sidebar-label whitespace-nowrap font-mono text-label uppercase tracking-[0.07em]">
         {label}
       </span>
     </>

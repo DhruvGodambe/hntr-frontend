@@ -26,6 +26,11 @@ export type OtherPoolCard = {
   activityTarget: number;
 };
 
+export type PoolFooterStat = {
+  label: string;
+  value: string;
+};
+
 export type PoolDetail = {
   id: string;
   itemId: string;
@@ -42,6 +47,7 @@ export type PoolDetail = {
   progressSummary: string;
   lockMessage: string;
   metrics: PoolDetailMetric[];
+  footerStats: PoolFooterStat[];
   transactions: PoolTransaction[];
   otherPools: OtherPoolCard[];
 };
@@ -112,23 +118,30 @@ const defaultOtherPools: OtherPoolCard[] = [
   },
 ];
 
+const defaultFooterStats: PoolFooterStat[] = [
+  { label: "GP Profit", value: "10.00%" },
+  { label: "ETH Profit", value: "1.75 Ξ" },
+  { label: "USDT Profit", value: "$4,198" },
+  { label: "Users", value: "132" },
+];
+
 const defaultMetrics: PoolDetailMetric[] = [
   {
     label: "AP (Gross Profit)",
     value: "10.00%",
-    delta: "-0.2% vs avg",
+    delta: "↓ -0.2% wk avg",
     deltaVariant: "danger",
   },
   {
     label: "ETH Profit",
     value: "1.75",
-    delta: "+0.05 week",
+    delta: "↑ +0.05 week",
     deltaVariant: "success",
   },
   {
     label: "USDT Profit",
     value: "$4,198.00",
-    subtext: "Unrealized PnL",
+    subtext: "Unrealised P&L",
   },
   {
     label: "Participants",
@@ -154,6 +167,7 @@ const poolDetails: Record<string, PoolDetail> = {
     progressSummary: "11.2 / 14.5 ETH (77.2%)",
     lockMessage: "Liquidity locked until pool target or timeout (7d remaining)",
     metrics: defaultMetrics,
+    footerStats: defaultFooterStats,
     transactions: defaultTransactions,
     otherPools: defaultOtherPools,
   },
@@ -166,13 +180,19 @@ const poolDetails: Record<string, PoolDetail> = {
     series: "SERIES 1/10000",
     imageSeed: "bayc-pool",
     targetPriceEth: "50.00 ETH",
-    targetPriceUsd: "$110,000.00",
+    targetPriceUsd: "$109,876.00",
     communityRaisedEth: "37.50 ETH",
-    communityRaisedUsd: "$82,500.00",
+    communityRaisedUsd: "$82,407.00",
     progress: 75,
     progressSummary: "37.5 / 50 ETH (75%)",
     lockMessage: "Liquidity locked until pool target or timeout (5d remaining)",
     metrics: defaultMetrics,
+    footerStats: [
+      { label: "GP Profit", value: "2.40%" },
+      { label: "ETH Profit", value: "1.20 Ξ" },
+      { label: "USDT Profit", value: "$2,640" },
+      { label: "Users", value: "168" },
+    ],
     transactions: defaultTransactions,
     otherPools: defaultOtherPools.filter((p) => p.id !== "bayc-0291"),
   },
@@ -192,6 +212,12 @@ const poolDetails: Record<string, PoolDetail> = {
     progressSummary: "49.6 / 80 ETH (62%)",
     lockMessage: "Liquidity locked until pool target or timeout (12d remaining)",
     metrics: defaultMetrics,
+    footerStats: [
+      { label: "GP Profit", value: "2.40%" },
+      { label: "ETH Profit", value: "0.74 Ξ" },
+      { label: "USDT Profit", value: "$1,628" },
+      { label: "Users", value: "142" },
+    ],
     transactions: defaultTransactions,
     otherPools: defaultOtherPools.filter((p) => p.id !== "punk-4521"),
   },
@@ -211,6 +237,12 @@ const poolDetails: Record<string, PoolDetail> = {
     progressSummary: "21.1 / 24 ETH (88%)",
     lockMessage: "Liquidity locked until pool target or timeout (2d remaining)",
     metrics: defaultMetrics,
+    footerStats: [
+      { label: "GP Profit", value: "2.40%" },
+      { label: "ETH Profit", value: "1.06 Ξ" },
+      { label: "USDT Profit", value: "$2,330" },
+      { label: "Users", value: "156" },
+    ],
     transactions: defaultTransactions,
     otherPools: defaultOtherPools.filter((p) => p.id !== "pudgy-1180"),
   },
@@ -230,6 +262,7 @@ const poolDetails: Record<string, PoolDetail> = {
     progressSummary: "9.11 / 18.75 ETH (48.6%)",
     lockMessage: "Liquidity locked until pool target or timeout (9d remaining)",
     metrics: defaultMetrics,
+    footerStats: defaultFooterStats,
     transactions: defaultTransactions,
     otherPools: defaultOtherPools,
   },
@@ -275,6 +308,7 @@ function buildDetailFromRunningPool(
     progressSummary: `${raised} / ${target} ETH (${pool.stakePercent}%)`,
     lockMessage: "Liquidity locked until pool target or timeout (7d remaining)",
     metrics: defaultMetrics,
+    footerStats: defaultFooterStats,
     transactions: defaultTransactions,
     otherPools: defaultOtherPools.filter((item) => item.id !== pool.id),
   };
@@ -302,25 +336,34 @@ function buildDetailFromFeaturedPool(
       {
         label: "AP (Gross Profit)",
         value: pool.gpProfit,
-        delta: "-0.2% vs avg",
+        delta: "↓ -0.2% wk avg",
         deltaVariant: "danger",
       },
       {
         label: "ETH Profit",
         value: pool.ethProfit.replace(" ETH", ""),
-        delta: "+0.05 week",
+        delta: "↑ +0.05 week",
         deltaVariant: "success",
       },
       {
         label: "USDT Profit",
         value: pool.usdtProfit,
-        subtext: "Unrealized PnL",
+        subtext: "Unrealised P&L",
       },
       {
         label: "Participants",
         value: pool.users,
         subtext: "👤👤👤",
       },
+    ],
+    footerStats: [
+      { label: "GP Profit", value: pool.gpProfit },
+      {
+        label: "ETH Profit",
+        value: `${pool.ethProfit.replace(/\s*ETH$/i, "").trim()} Ξ`,
+      },
+      { label: "USDT Profit", value: pool.usdtProfit },
+      { label: "Users", value: pool.users },
     ],
     transactions: defaultTransactions,
     otherPools: defaultOtherPools,

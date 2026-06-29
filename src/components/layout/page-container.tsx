@@ -7,7 +7,7 @@ type PageContainerProps = {
 
 export function PageContainer({ children, as: Tag = "div" }: PageContainerProps) {
   return (
-    <Tag className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <Tag className="page-container mx-auto w-full px-3 py-6 sm:px-4 lg:px-6">
       {children}
     </Tag>
   );

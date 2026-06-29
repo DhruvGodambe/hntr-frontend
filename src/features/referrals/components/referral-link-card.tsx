@@ -18,19 +18,19 @@ export function ReferralLinkCard() {
   };
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-md bg-e2 p-4 shadow-[var(--sh1),var(--glow)]">
-      <h2 className="font-mono text-[9px] uppercase tracking-[0.12em] text-t1">
+    <div className="flex flex-col gap-2.5 rounded-[var(--r)] bg-e2 p-4 shadow-[var(--sh1),var(--glow)]">
+      <h2 className="font-mono text-caption uppercase tracking-[0.12em] text-t1">
         Referral Link
       </h2>
 
-      <div className="flex items-center gap-2">
-        <div className="flex h-[30px] flex-1 items-center rounded-[5px] bg-e3 px-2.5 font-mono text-[9px] text-t2 shadow-sh1">
+      <div className="flex items-center gap-1.5">
+        <div className="flex h-[30px] flex-1 items-center rounded-[5px] bg-e3 px-2.5 font-mono text-caption text-t2 shadow-sh1">
           {referralLink.display}
         </div>
         <button
           type="button"
           onClick={handleCopy}
-          className="flex size-[30px] shrink-0 items-center justify-center rounded-[5px] bg-e3 text-t1 shadow-sh1 transition-colors hover:text-t4"
+          className="flex size-[30px] shrink-0 items-center justify-center rounded-[5px] bg-e3 text-t1 shadow-sh1 transition-colors hover:bg-[var(--sage-faint)] hover:text-t4"
           aria-label={copied ? "Copied" : "Copy referral link"}
         >
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -51,7 +51,7 @@ export function ReferralLinkCard() {
             value={referralLink.url}
             size={140}
             bgColor="#ffffff"
-            fgColor="#2b3224"
+            fgColor="#111113"
             aria-label="Referral link QR code"
           />
         </div>

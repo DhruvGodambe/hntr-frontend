@@ -19,16 +19,16 @@ export function MarketOverviewSection() {
 
   return (
     <section className="mb-[22px]" aria-labelledby="market-heading">
-      <div className="rounded-md bg-e2 p-[15px] shadow-sh2 [box-shadow:var(--sh2),var(--glow)]">
-        <div className="mb-[13px] flex items-start justify-between gap-4">
+      <div className="rounded-md bg-e2 p-4 shadow-sh2 [box-shadow:var(--sh2),var(--glow)] sm:p-[15px]">
+        <div className="mb-3.5 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2
               id="market-heading"
-              className="font-display text-[11px] font-bold uppercase tracking-[0.1em] text-t4"
+              className="font-display text-body-sm font-bold uppercase tracking-[0.1em] text-t4"
             >
               Market Overview
             </h2>
-            <p className="mt-0.5 text-[9px] uppercase text-t0">
+            <p className="mt-1 text-label leading-snug text-t0">
               Real-time NFT liquidity and floor data across major collections.
             </p>
           </div>
@@ -43,7 +43,7 @@ export function MarketOverviewSection() {
               onChange={(event) =>
                 setTimeframe(event.target.value as (typeof timeframes)[number])
               }
-              className="h-5 appearance-none rounded border border-bd1 bg-e2 py-0 pl-2 pr-6 font-mono text-[9px] text-t2 shadow-sh1"
+              className="h-7 appearance-none rounded border border-bd1 bg-e2 py-0 pl-2.5 pr-7 font-mono text-label text-t3 shadow-sh1"
             >
               {timeframes.map((option) => (
                 <option key={option} value={option}>
@@ -52,19 +52,19 @@ export function MarketOverviewSection() {
               ))}
             </select>
             <ChevronDown
-              className="pointer-events-none absolute right-1.5 top-1/2 size-3 -translate-y-1/2 text-t1"
+              className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 text-t1"
               aria-hidden
             />
           </div>
         </div>
 
-        <div className="mb-[15px] grid grid-cols-2 gap-px overflow-hidden rounded-md bg-bd1 shadow-sh1 lg:grid-cols-4">
+        <div className="mb-4 grid grid-cols-2 gap-px overflow-hidden rounded-md bg-bd1 shadow-sh1 sm:grid-cols-2 lg:grid-cols-4">
           {marketMetrics.map((metric) => (
-            <div key={metric.label} className="bg-e3 px-3 py-2.5">
-              <p className="mb-[3px] text-[8px] uppercase tracking-[0.06em] text-t1">
+            <div key={metric.label} className="bg-e3 px-3 py-3 sm:py-2.5">
+              <p className="mb-1 text-caption uppercase tracking-[0.06em] text-t1">
                 {metric.label}
               </p>
-              <p className="font-mono text-[15px] font-bold text-t4">
+              <p className="font-mono text-stat font-bold leading-tight text-t4">
                 {metric.value}
               </p>
             </div>

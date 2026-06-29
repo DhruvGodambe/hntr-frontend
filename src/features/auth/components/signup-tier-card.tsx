@@ -1,60 +1,98 @@
 import { Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import type { SignupTier } from "@/features/auth/data/signup-data";
 import { cn } from "@/lib/utils";
 
 type SignupTierCardProps = {
   tier: SignupTier;
   onSelect: () => void;
+  index?: number;
   className?: string;
 };
 
-export function SignupTierCard({ tier, onSelect, className }: SignupTierCardProps) {
+export function SignupTierCard({
+  tier,
+  onSelect,
+  index = 0,
+  className,
+}: SignupTierCardProps) {
   const isRecommended = tier.recommended;
 
   return (
     <article
       className={cn(
-        "relative flex min-w-[140px] flex-1 flex-col overflow-hidden rounded-md border border-border bg-e2",
-        isRecommended && "border-t4",
+        "signup-tier-card card-reveal relative flex h-full flex-col overflow-hidden rounded-[var(--r)] shadow-[var(--sh1),var(--glow)] transition-shadow duration-200 hover:shadow-sh3",
+        isRecommended ? "tier-card-recommended" : "border border-bd0 bg-e2",
         className,
       )}
+      style={{ animationDelay: `${0.05 + index * 0.05}s` }}
     >
       {isRecommended && (
-        <div className="absolute left-0 right-0 top-0 z-[1] flex justify-center">
-          <span className="rounded-b-md bg-primary px-2 py-0.5 font-mono text-[6px] font-bold uppercase tracking-[0.08em] text-primary-foreground">
-            Recommended
-          </span>
+        <div className="signup-tier-badge tier-card-badge absolute left-1/2 top-0 -translate-x-1/2 rounded-b px-2 py-0.5 font-mono font-bold uppercase tracking-[0.1em]">
+          Recommended
         </div>
       )}
 
       <div className={cn("flex flex-1 flex-col p-3", isRecommended && "pt-5")}>
-        <p className="font-mono text-[7px] uppercase tracking-[0.06em] text-t0">
+        <p
+          className={cn(
+            "signup-tier-label tier-card-label mb-0.5 font-mono uppercase tracking-[0.1em]",
+            !isRecommended && "text-t0",
+          )}
+        >
           {tier.tierLabel}
         </p>
-        <h3 className="mb-2 font-display text-[11px] font-bold text-t4">
+        <h3
+          className={cn(
+            "signup-tier-name tier-card-title mb-1.5 font-display font-bold",
+            !isRecommended && "text-t4",
+          )}
+        >
           {tier.name}
         </h3>
-        <p className="mb-3 font-mono text-[16px] font-bold leading-none text-t4">
+        <p
+          className={cn(
+            "signup-tier-price tier-card-price mb-2 font-mono font-bold leading-none",
+            !isRecommended && "text-t4",
+          )}
+        >
           ${tier.price.toLocaleString()}
         </p>
 
-        <ul className="mb-3 flex flex-1 flex-col gap-1">
+        <ul className="mb-3 flex min-w-0 flex-1 flex-col gap-1">
           {tier.features.map((feature) => (
-            <li key={feature} className="flex items-start gap-1">
-              <Check className="mt-px size-2.5 shrink-0 text-accent" strokeWidth={2.5} />
-              <span className="text-[8px] leading-snug text-t2">{feature}</span>
+            <li key={feature} className="flex min-w-0 items-center gap-1">
+              <Check
+                className={cn(
+                  "signup-tier-check mt-px shrink-0",
+                  isRecommended ? "tier-card-icon" : "text-green",
+                )}
+                strokeWidth={2.25}
+              />
+              <span
+                className={cn(
+                  "signup-tier-feature",
+                  isRecommended ? "tier-card-feature" : "text-t2",
+                )}
+                title={feature}
+              >
+                {feature}
+              </span>
             </li>
           ))}
         </ul>
 
-        <Button
-          variant={isRecommended ? "default" : "outline"}
-          className="h-6 w-full font-mono text-[7px] normal-case tracking-normal"
+        <button
+          type="button"
+          className={cn(
+            "signup-tier-cta w-full rounded-md font-mono font-bold transition-colors",
+            isRecommended
+              ? "tier-card-cta"
+              : "border border-bd0 bg-e3 text-t4 hover:bg-[var(--sage-faint)]",
+          )}
           onClick={onSelect}
         >
           Select
-        </Button>
+        </button>
       </div>
     </article>
   );

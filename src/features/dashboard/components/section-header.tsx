@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 type SectionHeaderProps = {
   title: string;
   subtitle?: string;
+  badge?: string;
   actionLabel?: string;
   actionHref?: string;
   className?: string;
@@ -12,6 +13,7 @@ type SectionHeaderProps = {
 export function SectionHeader({
   title,
   subtitle,
+  badge,
   actionLabel,
   actionHref = "#",
   className,
@@ -24,17 +26,21 @@ export function SectionHeader({
       )}
     >
       <div>
-        <h2 className="font-display text-[11px] font-bold uppercase tracking-[0.1em] text-t4">
+        <h2 className="font-display text-body-sm font-bold uppercase tracking-[0.1em] text-t4">
           {title}
         </h2>
-        {subtitle && (
-          <p className="mt-0.5 text-[9px] text-t0">{subtitle}</p>
+        {badge ? (
+          <span className="featured-badge mt-1.5">{badge}</span>
+        ) : (
+          subtitle && (
+            <p className="mt-0.5 text-label text-t0">{subtitle}</p>
+          )
         )}
       </div>
       {actionLabel && (
         <Link
           href={actionHref}
-          className="border-b border-e4 pb-px font-mono text-[9px] tracking-[0.04em] text-accent transition-colors hover:text-accent-h"
+          className="border-b border-e4 pb-px font-mono text-label tracking-[0.04em] text-accent transition-colors hover:text-accent-h"
         >
           {actionLabel}
         </Link>

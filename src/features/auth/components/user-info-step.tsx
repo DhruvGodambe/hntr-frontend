@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,24 +20,24 @@ type UserInfoStepProps = {
 export function UserInfoStep({ onContinue }: UserInfoStepProps) {
   return (
     <div className="flex flex-col">
-      <SignupStepHeader step={2} />
+      <SignupStepHeader step={2} showProgress />
 
-      <div className="mb-4">
-        <h2 className="font-display text-[14px] font-bold text-t4">
-          Step 2 of 3: User Information
+      <div className="mb-5">
+        <h2 className="font-display text-heading-sm font-bold text-t4">
+          User Information
         </h2>
-        <p className="mt-0.5 text-[9px] text-t2">
+        <p className="mt-1 text-label leading-relaxed text-t2">
           Complete your profile to access the terminal.
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         <FormField id="sponsor" label="Sponsor">
           <Input
             id="sponsor"
             readOnly
             value="@username"
-            className="h-8 bg-e3 font-mono text-[10px] text-t1"
+            className="bg-e3 font-mono text-label text-t2"
           />
         </FormField>
 
@@ -46,7 +45,7 @@ export function UserInfoStep({ onContinue }: UserInfoStepProps) {
           <Input
             id="username"
             placeholder="e.g. ALPHA"
-            className="h-8 font-mono text-[10px]"
+            className="font-mono text-label"
           />
         </FormField>
 
@@ -54,18 +53,18 @@ export function UserInfoStep({ onContinue }: UserInfoStepProps) {
           <Input
             id="fullName"
             placeholder="Enter as shown on identification"
-            className="h-8 text-[10px]"
+            className="text-label"
           />
         </FormField>
 
         <FormField id="nationality" label="Nationality">
           <Select>
-            <SelectTrigger className="h-8 text-[10px]">
+            <SelectTrigger className="h-10 text-label">
               <SelectValue placeholder="Select Region" />
             </SelectTrigger>
             <SelectContent>
               {nationalityOptions.map((option) => (
-                <SelectItem key={option} value={option} className="text-[10px]">
+                <SelectItem key={option} value={option} className="text-label">
                   {option}
                 </SelectItem>
               ))}
@@ -78,12 +77,12 @@ export function UserInfoStep({ onContinue }: UserInfoStepProps) {
             <Input
               id="phoneCode"
               defaultValue="+00"
-              className="h-8 w-14 shrink-0 font-mono text-[10px]"
+              className="w-16 shrink-0 font-mono text-label"
             />
             <Input
               id="phone"
               placeholder="0000 0000"
-              className="h-8 flex-1 font-mono text-[10px]"
+              className="flex-1 font-mono text-label"
             />
           </div>
         </FormField>
@@ -93,20 +92,21 @@ export function UserInfoStep({ onContinue }: UserInfoStepProps) {
             id="email"
             type="email"
             placeholder="institutional@gmail.com"
-            className="h-8 text-[10px]"
+            className="text-label"
           />
         </FormField>
       </div>
 
-      <Button
-        className="mt-5 h-9 w-full font-mono text-[9px] uppercase tracking-[0.06em]"
+      <button
+        type="button"
+        className="signup-continue-btn mt-6"
         onClick={onContinue}
       >
         Continue
-        <ArrowRight className="size-3.5" />
-      </Button>
+        <ArrowRight className="size-4" strokeWidth={2} />
+      </button>
 
-      <p className="mt-3 border-t border-border pt-3 text-center font-mono text-[7px] uppercase tracking-[0.04em] text-t0">
+      <p className="mt-4 border-t border-bd0 pt-4 text-center font-mono text-micro uppercase tracking-[0.06em] text-t0">
         Encrypted Session ID: {signupSessionId} — End-to-End Security Active
       </p>
     </div>

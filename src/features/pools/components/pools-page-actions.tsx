@@ -30,14 +30,14 @@ export function PoolsPageActions() {
     <div className="mb-3.5 flex items-center justify-end gap-2">
       <button
         type="button"
-        className="flex h-[30px] items-center gap-1.5 rounded-[5px] bg-e2 px-3.5 font-mono text-[9px] tracking-[0.06em] text-t2 shadow-[var(--sh1),var(--glow)] transition-colors hover:bg-[var(--sage-faint)] hover:text-t4"
+        className="flex h-[30px] items-center gap-1.5 rounded-[5px] bg-e2 px-3.5 font-mono text-caption tracking-[0.06em] text-t2 shadow-[var(--sh1),var(--glow)] transition-colors hover:bg-[var(--sage-faint)] hover:text-t4"
       >
         <FilterIcon />
         Filter
       </button>
       <button
         type="button"
-        className="flex h-[30px] items-center gap-1.5 rounded-[5px] bg-e2 px-3.5 font-mono text-[9px] tracking-[0.06em] text-t2 shadow-[var(--sh1),var(--glow)] transition-colors hover:bg-[var(--sage-faint)] hover:text-t4"
+        className="flex h-[30px] items-center gap-1.5 rounded-[5px] bg-e2 px-3.5 font-mono text-caption tracking-[0.06em] text-t2 shadow-[var(--sh1),var(--glow)] transition-colors hover:bg-[var(--sage-faint)] hover:text-t4"
       >
         <ExportIcon />
         Export

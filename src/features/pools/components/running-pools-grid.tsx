@@ -1,27 +1,28 @@
 import Link from "next/link";
-import { runningPools } from "@/features/pools/data/pools-data";
+import { PoolsSlider } from "@/components/ui/pools-slider";
+import { runningPoolIds } from "@/features/pools/data/pools-data";
 import { PoolCollectionCard } from "./pool-collection-card";
 
 export function RunningPoolsGrid() {
   return (
     <section className="mb-5">
-      <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="font-mono text-[9px] uppercase tracking-[0.14em] text-t1">
+      <div className="mb-2.5 flex items-center justify-between">
+        <h2 className="font-mono text-caption uppercase tracking-[0.1em] text-t1">
           Current Running Pools
         </h2>
         <Link
           href="/pools"
-          className="cursor-pointer border-b border-[var(--sage-faint)] font-mono text-[9px] text-[var(--olive)]"
+          className="border-b border-[var(--sage-faint)] font-mono text-caption text-[var(--olive)] transition-colors hover:text-[var(--olive-dark)]"
         >
           Manage All
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {runningPools.map((pool) => (
-          <PoolCollectionCard key={pool.id} pool={pool} />
+      <PoolsSlider layout="pools" spaceBetween={12}>
+        {runningPoolIds.map((poolId) => (
+          <PoolCollectionCard key={poolId} poolId={poolId} />
         ))}
-      </div>
+      </PoolsSlider>
     </section>
   );
 }

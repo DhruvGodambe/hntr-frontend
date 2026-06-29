@@ -5,6 +5,7 @@ import { SectionHeader } from "./section-header";
 
 type ListingsSectionProps = {
   title: string;
+  subtitle?: string;
   actionLabel: string;
   actionHref: string;
   items: ListingItem[];
@@ -13,6 +14,7 @@ type ListingsSectionProps = {
 
 export function ListingsSection({
   title,
+  subtitle,
   actionLabel,
   actionHref,
   items,
@@ -22,6 +24,7 @@ export function ListingsSection({
     <section className="mb-[22px]" aria-labelledby={headingId}>
       <SectionHeader
         title={title}
+        subtitle={subtitle}
         actionLabel={actionLabel}
         actionHref={actionHref}
       />

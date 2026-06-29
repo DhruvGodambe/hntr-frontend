@@ -94,7 +94,7 @@ export function AppNavbar({
           <NavbarIconBtn
             aria-label="Open account panel"
             onClick={onRightPanelOpen}
-            className="xl:hidden"
+            className="lg:hidden"
           >
             <PanelRight className="size-[13px]" />
           </NavbarIconBtn>

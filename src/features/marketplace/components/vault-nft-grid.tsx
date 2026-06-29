@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { collectionFilters, vaultNfts } from "@/features/marketplace/data/vault-data";
+import { collectionFilters, networkActivity, vaultNfts } from "@/features/marketplace/data/vault-data";
 import { nftPlaceholder } from "@/lib/placeholders";
 import { CollectionFilters } from "./collection-filters";
 import { NetworkActivityTable } from "./network-activity-table";
@@ -94,7 +94,7 @@ export function VaultNFTGrid() {
               setSort(value as (typeof sortOptions)[number]["value"])
             }
           >
-            <SelectTrigger className="h-8 w-[180px] font-mono text-[9px]">
+            <SelectTrigger className="h-8 w-[180px] font-mono text-label">
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
             <SelectContent>
@@ -102,7 +102,7 @@ export function VaultNFTGrid() {
                 <SelectItem
                   key={option.value}
                   value={option.value}
-                  className="font-mono text-[9px]"
+                  className="font-mono text-label"
                 >
                   Sort: {option.label}
                 </SelectItem>
@@ -139,7 +139,7 @@ export function VaultNFTGrid() {
         </div>
 
         {view === "grid" ? (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {visible.map((nft) => (
               <VaultNFTCard key={nft.id} nft={nft} />
             ))}
@@ -158,10 +158,10 @@ export function VaultNFTGrid() {
                   className="size-12 shrink-0 rounded-sm object-cover"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="font-mono text-[9px] font-bold text-t4">
+                  <p className="font-mono text-label font-bold text-t4">
                     {nft.name}
                   </p>
-                  <p className="font-mono text-[8px] text-t2">
+                  <p className="font-mono text-caption text-t2">
                     {nft.boughtPrice} → {nft.sellPrice} · {nft.apy}
                   </p>
                 </div>
@@ -174,7 +174,7 @@ export function VaultNFTGrid() {
           <div className="mt-4 flex justify-center">
             <Button
               variant="secondary"
-              className="h-8 min-w-[140px] font-mono text-[9px] normal-case tracking-normal"
+              className="h-8 min-w-[140px] font-mono text-label normal-case tracking-normal"
               onClick={() => setVisibleCount((c) => c + 4)}
             >
               Show More
@@ -182,7 +182,7 @@ export function VaultNFTGrid() {
           </div>
         )}
 
-        <NetworkActivityTable className="mt-6" />
+        <NetworkActivityTable className="mt-6" rows={networkActivity} showViewAll />
       </div>
     </div>
   );

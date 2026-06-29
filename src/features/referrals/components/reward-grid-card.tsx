@@ -59,32 +59,32 @@ function RewardIcon({ icon }: { icon: ActiveReward["icon"] }) {
 export function RewardGridCard({ reward }: RewardGridCardProps) {
   return (
     <article
-      className="flex flex-col rounded-md bg-e2 p-[18px] shadow-[var(--sh1),var(--glow)] transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-sh2"
+      className="net-card-in flex flex-col rounded-[var(--r)] bg-e2 p-[18px] shadow-[var(--sh1),var(--glow)] transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-sh3"
       style={{ animationDelay: reward.delay }}
     >
       <div className="mb-4 flex items-start justify-between">
         <div className="flex size-[38px] items-center justify-center rounded-lg bg-e3 text-t4">
           <RewardIcon icon={reward.icon} />
         </div>
-        <span className="rounded-[3px] bg-e3 px-[7px] py-[3px] font-mono text-[7px] tracking-[0.1em] text-t1">
+        <span className="rounded-[3px] bg-e3 px-[7px] py-[3px] font-mono text-caption tracking-[0.1em] text-t1">
           {reward.tag}
         </span>
       </div>
 
-      <h3 className="mb-1.5 font-display text-[13px] font-semibold leading-tight text-t4">
+      <h3 className="mb-1.5 font-display text-body-sm font-semibold leading-tight text-t4">
         {reward.title}
       </h3>
-      <p className="mb-[18px] flex-1 text-[10px] leading-[1.5] text-t1">
+      <p className="mb-[18px] flex-1 text-caption leading-[1.5] text-t1">
         {reward.description}
       </p>
 
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-sm font-bold text-t4">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-label font-bold text-t4">
           {reward.amount}
         </span>
         <button
           type="button"
-          className="h-8 rounded-[5px] bg-[var(--inverse-surface)] px-4 font-mono text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--inverse-foreground)] shadow-sh1 transition-colors hover:brightness-110 dark:bg-[var(--inverse-btn-bg)] dark:text-[var(--inverse-btn-text)] dark:hover:brightness-95"
+          className="net-claim-btn h-8 shrink-0 rounded-[5px] px-4 font-mono text-caption font-bold uppercase tracking-[0.1em] shadow-sh1 transition-colors"
         >
           CLAIM
         </button>

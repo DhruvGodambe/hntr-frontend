@@ -40,7 +40,7 @@ export function NavbarLogo({
   return (
     <span
       className={cn(
-        "font-display text-[13px] font-bold tracking-[0.2em]",
+        "font-display text-stat font-bold tracking-[0.2em]",
         className,
       )}
       style={{ color: "var(--navbar-text)" }}

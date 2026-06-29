@@ -39,6 +39,45 @@ export const networkHero = {
   subtitle: "Institutional rewards dashboard & network commissions",
 };
 
+export type ReferralPerformanceColumn = {
+  name: string;
+  current: string;
+  target: string;
+  percent: number;
+  complete: boolean;
+  team: string;
+};
+
+export const referralPerformance = {
+  rule: [40, 40, 40] as const,
+  columns: [
+    {
+      name: "COMPETITIVE",
+      current: "10K",
+      target: "10K",
+      percent: 100,
+      complete: true,
+      team: "Vanguard",
+    },
+    {
+      name: "COMPETITVE",
+      current: "10K",
+      target: "10K",
+      percent: 100,
+      complete: true,
+      team: "Frontier",
+    },
+    {
+      name: "WEAKEST",
+      current: "1.1K",
+      target: "4K",
+      percent: 33,
+      complete: false,
+      team: "Outpost",
+    },
+  ] satisfies ReferralPerformanceColumn[],
+};
+
 export const referralProfile: ReferralProfile = {
   username: "masteraccount",
   rank: "Elite Hunter",

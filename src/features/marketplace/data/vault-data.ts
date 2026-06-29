@@ -13,7 +13,7 @@ export type CollectionFilter = {
 export type PortfolioSegment = {
   label: string;
   percent: number;
-  colorClass: string;
+  color: string;
 };
 
 export type VaultNFT = {
@@ -25,6 +25,7 @@ export type VaultNFT = {
   sellPrice: string;
   apy: string;
   imageSeed: string;
+  source: "OpenSea" | "Blur";
 };
 
 export type NetworkActivity = {
@@ -59,9 +60,9 @@ export const collectionFilters: CollectionFilter[] = [
 ];
 
 export const portfolioDistribution: PortfolioSegment[] = [
-  { label: "Punks", percent: 28, colorClass: "bg-[var(--olive)]" },
-  { label: "BAYC", percent: 42, colorClass: "bg-t4" },
-  { label: "Art", percent: 30, colorClass: "bg-[var(--sage)]" },
+  { label: "Punks", percent: 28, color: "var(--dist-punks)" },
+  { label: "BAYC", percent: 42, color: "var(--dist-bayc)" },
+  { label: "Art", percent: 30, color: "var(--dist-art)" },
 ];
 
 export const vaultNfts: VaultNFT[] = [
@@ -74,6 +75,7 @@ export const vaultNfts: VaultNFT[] = [
     sellPrice: "7.75 ETH",
     apy: "+18.3%",
     imageSeed: "bayc-9112",
+    source: "Blur",
   },
   {
     id: "2",
@@ -84,6 +86,7 @@ export const vaultNfts: VaultNFT[] = [
     sellPrice: "18.75 ETH",
     apy: "+7.8%",
     imageSeed: "bayc-3392",
+    source: "OpenSea",
   },
   {
     id: "3",
@@ -94,6 +97,7 @@ export const vaultNfts: VaultNFT[] = [
     sellPrice: "95.00 ETH",
     apy: "+8.0%",
     imageSeed: "punk-8822",
+    source: "OpenSea",
   },
   {
     id: "4",
@@ -104,6 +108,7 @@ export const vaultNfts: VaultNFT[] = [
     sellPrice: "12.40 ETH",
     apy: "+5.1%",
     imageSeed: "pudgy-2210",
+    source: "Blur",
   },
   {
     id: "5",
@@ -114,6 +119,7 @@ export const vaultNfts: VaultNFT[] = [
     sellPrice: "14.50 ETH",
     apy: "+4.3%",
     imageSeed: "fidenza-565",
+    source: "Blur",
   },
   {
     id: "6",
@@ -124,6 +130,7 @@ export const vaultNfts: VaultNFT[] = [
     sellPrice: "9.10 ETH",
     apy: "+11.0%",
     imageSeed: "azuki-4201",
+    source: "Blur",
   },
   {
     id: "7",
@@ -134,6 +141,7 @@ export const vaultNfts: VaultNFT[] = [
     sellPrice: "17.90 ETH",
     apy: "+4.1%",
     imageSeed: "bayc-1044",
+    source: "OpenSea",
   },
   {
     id: "8",
@@ -144,6 +152,7 @@ export const vaultNfts: VaultNFT[] = [
     sellPrice: "8.45 ETH",
     apy: "+8.3%",
     imageSeed: "chromie-935",
+    source: "OpenSea",
   },
 ];
 
@@ -187,5 +196,65 @@ export const networkActivity: NetworkActivity[] = [
     price: "8.20 ETH",
     source: "Blur.io",
     time: "2h ago",
+  },
+];
+
+export const allNetworkActivity: NetworkActivity[] = [
+  ...networkActivity,
+  {
+    id: "a6",
+    asset: "Pudgy Penguin #6523",
+    event: "PURCHASE",
+    price: "4.85 ETH",
+    source: "Blur.io",
+    time: "3h ago",
+  },
+  {
+    id: "a7",
+    asset: "BAYC #3295",
+    event: "SALE",
+    price: "18.20 ETH",
+    source: "OpenSea",
+    time: "4h ago",
+  },
+  {
+    id: "a8",
+    asset: "CryptoPunk #7804",
+    event: "SALE",
+    price: "91.00 ETH",
+    source: "Blur.io",
+    time: "5h ago",
+  },
+  {
+    id: "a9",
+    asset: "Chromie #935",
+    event: "PURCHASE",
+    price: "7.80 ETH",
+    source: "OpenSea",
+    time: "6h ago",
+  },
+  {
+    id: "a10",
+    asset: "BAYC #1044",
+    event: "PURCHASE",
+    price: "17.20 ETH",
+    source: "Blur.io",
+    time: "8h ago",
+  },
+  {
+    id: "a11",
+    asset: "Normie #2265",
+    event: "SALE",
+    price: "0.42 ETH",
+    source: "OpenSea",
+    time: "10h ago",
+  },
+  {
+    id: "a12",
+    asset: "Lil Pudgy #1102",
+    event: "PURCHASE",
+    price: "0.89 ETH",
+    source: "Blur.io",
+    time: "12h ago",
   },
 ];

@@ -28,7 +28,7 @@ export function StatCard({
   return (
     <Card className={cn("shadow-sh1", className)}>
       <CardContent className="flex flex-col gap-2 p-4">
-        <span className="font-mono text-[10px] uppercase tracking-wider text-t1">
+        <span className="font-mono text-body-sm uppercase tracking-wider text-t1">
           {label}
         </span>
         <div className="flex items-end justify-between gap-2">

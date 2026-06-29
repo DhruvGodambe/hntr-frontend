@@ -75,16 +75,16 @@ export function PoolDepositButton({ pool, className }: PoolDepositButtonProps) {
 
   return (
     <>
-      <Button
+      <button
         type="button"
         className={cn(
-          "h-8 w-full font-mono text-[8px] uppercase tracking-[0.06em]",
+          "pool-deposit-btn text-micro uppercase tracking-[0.06em]",
           className,
         )}
         onClick={() => setOpen(true)}
       >
         Make a Deposit Now
-      </Button>
+      </button>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent

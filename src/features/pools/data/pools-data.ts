@@ -18,6 +18,8 @@ export type RunningPool = {
   userStake: string;
 };
 
+export const runningPoolIds = ["bayc-0291", "punk-4521", "pudgy-1180"] as const;
+
 export type PoolActivity = {
   id: string;
   wallet: string;

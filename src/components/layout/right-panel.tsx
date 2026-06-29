@@ -64,19 +64,19 @@ function StatBox({
 }) {
   return (
     <div className="rounded-md bg-e3 p-[9px] shadow-sh1">
-      <p className="mb-[3px] text-[8px] uppercase tracking-[0.05em] text-t0">
+      <p className="mb-[3px] text-caption uppercase tracking-[0.05em] text-t0">
         {label}
       </p>
       <p
         className={cn(
-          "font-mono text-[13px] font-bold text-t4",
+          "font-mono text-stat font-bold text-t4",
           valueClassName,
         )}
       >
         {value}
       </p>
       {footer && (
-        <p className={cn("mt-0.5 font-mono text-[8px]", footerClassName)}>
+        <p className={cn("mt-0.5 font-mono text-caption", footerClassName)}>
           {footer}
         </p>
       )}
@@ -109,22 +109,22 @@ function RewardTierCard({
           <span className="shrink-0">
             {tier.icon === "referral" ? <ReferralIcon /> : <PoolIcon />}
           </span>
-          <span className="truncate text-[10px] font-semibold text-t3">
+          <span className="truncate text-body-sm font-semibold text-t3">
             {tier.title}
           </span>
         </div>
-        <span className="shrink-0 rounded-[2px] bg-[var(--sage-faint)] px-[5px] py-0.5 font-mono text-[7px] tracking-[0.06em] text-t4">
+        <span className="shrink-0 rounded-[2px] bg-[var(--sage-faint)] px-[5px] py-0.5 font-mono text-micro tracking-[0.06em] text-t4">
           {tier.tag}
         </span>
       </div>
-      <p className="mb-2 text-[8px] leading-[1.4] text-t0">{tier.description}</p>
+      <p className="mb-2 text-caption leading-[1.4] text-t0">{tier.description}</p>
       <div className="flex items-center justify-between gap-2">
-        <span className="min-w-0 font-mono text-[13px] font-bold text-t4">
+        <span className="min-w-0 font-mono text-stat font-bold text-t4">
           {tier.amount}
         </span>
         <button
           type="button"
-          className="h-[22px] shrink-0 rounded-[3px] bg-[var(--inverse-surface)] px-[9px] font-mono text-[8px] font-bold tracking-[0.06em] text-[var(--inverse-foreground)] transition-colors hover:brightness-110 dark:bg-[var(--inverse-btn-bg)] dark:text-[var(--inverse-btn-text)] dark:hover:brightness-95"
+          className="h-[22px] shrink-0 rounded-[3px] bg-t4 px-[9px] font-mono text-caption font-bold tracking-[0.06em] text-e1 transition-colors hover:bg-[var(--olive-deep)] dark:bg-[var(--inverse-btn-bg)] dark:text-[var(--inverse-btn-text)] dark:hover:brightness-95"
         >
           CLAIM
         </button>
@@ -142,7 +142,7 @@ export function RightPanel({ className }: { className?: string }) {
   return (
     <aside
       className={cn(
-        "block h-full min-h-0 w-64 shrink-0 overflow-x-hidden overflow-y-auto rounded-t-[10px] bg-e1 p-4 shadow-sh2 scrollbar-thin",
+        "right-panel block h-full min-h-0 shrink-0 overflow-x-hidden overflow-y-auto rounded-t-[10px] bg-e1 p-3 shadow-sh2 scrollbar-thin sm:p-4",
         className,
       )}
       aria-label="Account overview"
@@ -150,21 +150,21 @@ export function RightPanel({ className }: { className?: string }) {
       <RailDivider>
         <div className="flex items-center gap-[9px]">
           <div
-            className="flex size-[34px] shrink-0 items-center justify-center rounded-[7px] bg-[var(--sage-faint)] text-[15px] shadow-sh1"
+            className="flex size-[34px] shrink-0 items-center justify-center rounded-[7px] bg-[var(--sage-faint)] text-heading-sm shadow-sh1"
             aria-hidden
           >
             👤
           </div>
           <div className="min-w-0">
             <div className="flex items-center">
-              <span className="font-display text-xs font-bold text-t4">
+              <span className="font-display text-body-sm font-bold text-t4">
                 {data.username}
               </span>
-              <span className="ml-[5px] inline-flex h-[14px] items-center rounded-[2px] bg-[var(--inverse-surface)] px-[5px] font-mono text-[7px] font-bold tracking-[0.08em] text-[var(--inverse-foreground)]">
+              <span className="ml-[5px] inline-flex h-[14px] items-center rounded-[2px] bg-[var(--inverse-surface)] px-[5px] font-mono text-micro font-bold tracking-[0.08em] text-[var(--inverse-foreground)]">
                 {data.badge}
               </span>
             </div>
-            <p className="mt-px text-[8px] uppercase tracking-[0.06em] text-t0">
+            <p className="mt-px text-caption uppercase tracking-[0.06em] text-t1">
               {data.title}
             </p>
           </div>
@@ -172,24 +172,26 @@ export function RightPanel({ className }: { className?: string }) {
 
         <div className="mt-3">
           <div className="mb-[5px] flex justify-between">
-            <span className="text-[8px] uppercase tracking-[0.06em] text-t0">
+            <span className="text-caption uppercase tracking-[0.06em] text-t1">
               Current Progress
             </span>
-            <span className="font-mono text-[9px] text-t4">{data.progress}%</span>
+            <span className="font-mono text-label font-semibold text-t4">
+              {data.progress}%
+            </span>
           </div>
           <div
-            className="mb-[3px] h-[3px] overflow-hidden rounded-[2px] bg-[var(--sage-faint)]"
+            className="mb-[3px] h-1 overflow-hidden rounded-[2px] bg-[var(--sage-faint)]"
             role="progressbar"
             aria-valuenow={data.progress}
             aria-valuemin={0}
             aria-valuemax={100}
           >
             <div
-              className="rail-progress-fill h-full rounded-[2px] bg-[var(--inverse-surface)] dark:bg-[var(--inverse-foreground)]"
+              className="rail-progress-fill h-full rounded-[2px] bg-[var(--olive)]"
               style={{ width: `${data.progress}%` }}
             />
           </div>
-          <div className="flex justify-between font-mono text-[8px] text-t0">
+          <div className="flex justify-between font-mono text-caption text-t1">
             <span>{data.progressStart}</span>
             <span>{data.progressEnd}</span>
           </div>
@@ -218,7 +220,7 @@ export function RightPanel({ className }: { className?: string }) {
           <StatBox
             label="Membership"
             value={data.membership.tier}
-            valueClassName="font-display text-[15px]"
+            valueClassName="font-display text-heading-sm"
             footer={data.membership.tierSubtitle}
             footerClassName="text-t0"
           />
@@ -231,7 +233,7 @@ export function RightPanel({ className }: { className?: string }) {
         </div>
       </RailDivider>
 
-      <p className="mb-[9px] shrink-0 font-mono text-[8px] uppercase tracking-[0.08em] text-t0">
+      <p className="mb-[9px] shrink-0 font-mono text-caption uppercase tracking-[0.08em] text-t0">
         Active Rewards Tiers
       </p>
 
@@ -243,7 +245,7 @@ export function RightPanel({ className }: { className?: string }) {
         />
       ))}
 
-      <p className="mb-[9px] mt-1 shrink-0 font-mono text-[8px] uppercase tracking-[0.08em] text-t0">
+      <p className="mb-[9px] mt-1 shrink-0 font-mono text-caption uppercase tracking-[0.08em] text-t0">
         Platform Activity
       </p>
 
@@ -260,7 +262,7 @@ export function RightPanel({ className }: { className?: string }) {
             aria-selected={activeTab === tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
-              "-mb-px border-b px-[7px] py-[3px] font-mono text-[8px] tracking-[0.05em] transition-colors",
+              "-mb-px border-b px-[7px] py-[3px] font-mono text-caption tracking-[0.05em] transition-colors",
               activeTab === tab
                 ? "border-t4 text-t4"
                 : "border-transparent text-t0",
@@ -281,21 +283,21 @@ export function RightPanel({ className }: { className?: string }) {
             )}
           >
             <span
-              className="flex size-[18px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--sage-faint)] text-[8px]"
+              className="flex size-[18px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--sage-faint)] text-caption"
               aria-hidden
             >
               {item.icon}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[9px] text-t3">{item.name}</p>
+              <p className="truncate text-label text-t3">{item.name}</p>
               <p
-                className="font-mono text-[8px]"
+                className="font-mono text-caption"
                 style={{ color: item.positive ? "var(--green)" : "var(--red)" }}
               >
                 {item.action} · {item.value}
               </p>
             </div>
-            <span className="shrink-0 font-mono text-[8px] text-t0">
+            <span className="shrink-0 font-mono text-caption text-t0">
               {item.timeAgo}
             </span>
           </div>
@@ -304,7 +306,7 @@ export function RightPanel({ className }: { className?: string }) {
 
       <button
         type="button"
-        className="block w-full pt-[9px] text-center font-mono text-[9px] text-t4 underline"
+        className="block w-full pt-[9px] text-center font-mono text-label text-t4 underline"
       >
         View Activity
       </button>

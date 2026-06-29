@@ -8,7 +8,7 @@ export function PoolsSection() {
     <section className="mb-[22px]" aria-labelledby="pools-heading">
       <SectionHeader
         title="HNTR's Pools"
-        subtitle="04 active pools available for deposit"
+        badge="Featured"
         actionLabel="View All Pools"
         actionHref="/pools"
       />
