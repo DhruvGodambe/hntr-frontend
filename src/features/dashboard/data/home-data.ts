@@ -428,7 +428,7 @@ export const rightPanelData = {
       icon: "pool" as const,
     },
   ] satisfies RewardTier[],
-  activityTabs: ["All Perso", "Bids", "Sales"] as const,
+  activityTabs: ["All Feeds", "Bids", "Sales"] as const,
   activity: [
     {
       id: "a1",

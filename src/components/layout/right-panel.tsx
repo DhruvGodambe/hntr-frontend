@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import * as React from "react";
 import { rightPanelData } from "@/features/dashboard/data/home-data";
 import { cn } from "@/lib/utils";
@@ -55,12 +56,14 @@ function StatBox({
   valueClassName,
   footer,
   footerClassName,
+  footerButton,
 }: {
   label: string;
   value: string;
   valueClassName?: string;
   footer?: string;
   footerClassName?: string;
+  footerButton?: React.ReactNode;
 }) {
   return (
     <div className="min-w-0 overflow-hidden rounded-md bg-e3 p-[9px] shadow-sh1">
@@ -75,7 +78,7 @@ function StatBox({
       >
         {value}
       </p>
-      {footer && (
+      {footerButton ?? (footer && (
         <p
           className={cn(
             "mt-0.5 truncate font-mono text-micro leading-tight",
@@ -85,7 +88,7 @@ function StatBox({
         >
           {footer}
         </p>
-      )}
+      ))}
     </div>
   );
 }
@@ -227,8 +230,14 @@ export function RightPanel({ className }: { className?: string }) {
             label="Membership"
             value={data.membership.tier}
             valueClassName="font-display text-heading-sm"
-            footer={data.membership.tierSubtitle}
-            footerClassName="text-t0"
+            footerButton={
+              <Link
+                href="/membership"
+                className="mt-1 inline-flex h-[18px] items-center rounded-[3px] bg-t4 px-[7px] font-mono text-micro font-bold tracking-[0.07em] text-e1 transition-opacity hover:opacity-80"
+              >
+                UPGRADE
+              </Link>
+            }
           />
           <StatBox
             label="Users"
