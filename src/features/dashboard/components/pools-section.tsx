@@ -5,18 +5,25 @@ import { SectionHeader } from "./section-header";
 
 export function PoolsSection() {
   return (
-    <section className="mb-[22px]" aria-labelledby="pools-heading">
+    <section className="mb-6 sm:mb-[22px]" aria-labelledby="pools-heading">
       <SectionHeader
         title="HNTR's Pools"
         badge="Featured"
         actionLabel="View All Pools"
         actionHref="/pools"
       />
-      <PoolsSlider layout="pools" spaceBetween={12}>
+      <div className="flex flex-col gap-3.5 sm:hidden">
         {pools.map((pool) => (
-          <PoolFeaturedCard key={pool.id} pool={pool} variant="carousel" />
+          <PoolFeaturedCard key={pool.id} pool={pool} variant="default" />
         ))}
-      </PoolsSlider>
+      </div>
+      <div className="hidden sm:block">
+        <PoolsSlider layout="pools" spaceBetween={12}>
+          {pools.map((pool) => (
+            <PoolFeaturedCard key={pool.id} pool={pool} variant="carousel" />
+          ))}
+        </PoolsSlider>
+      </div>
     </section>
   );
 }

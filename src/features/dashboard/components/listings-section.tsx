@@ -21,18 +21,25 @@ export function ListingsSection({
   headingId,
 }: ListingsSectionProps) {
   return (
-    <section className="mb-[22px]" aria-labelledby={headingId}>
+    <section className="mb-6 sm:mb-[22px]" aria-labelledby={headingId}>
       <SectionHeader
         title={title}
         subtitle={subtitle}
         actionLabel={actionLabel}
         actionHref={actionHref}
       />
-      <Carousel layout="cards">
+      <div className="grid grid-cols-2 gap-[11px] sm:hidden">
         {items.map((listing) => (
           <NFTListingCard key={listing.id} listing={listing} />
         ))}
-      </Carousel>
+      </div>
+      <div className="hidden sm:block">
+        <Carousel layout="cards">
+          {items.map((listing) => (
+            <NFTListingCard key={listing.id} listing={listing} />
+          ))}
+        </Carousel>
+      </div>
     </section>
   );
 }

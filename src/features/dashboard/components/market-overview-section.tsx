@@ -18,17 +18,17 @@ export function MarketOverviewSection() {
   );
 
   return (
-    <section className="mb-[22px]" aria-labelledby="market-heading">
-      <div className="rounded-md bg-e2 p-4 shadow-sh2 [box-shadow:var(--sh2),var(--glow)] sm:p-[15px]">
+    <section className="mb-6 sm:mb-[22px]" aria-labelledby="market-heading">
+      <div className="rounded-xl border border-bd0 bg-e2 p-4 shadow-sh2 sm:rounded-md sm:border-0 sm:p-[15px] sm:[box-shadow:var(--sh2),var(--glow)]">
         <div className="mb-3.5 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2
               id="market-heading"
-              className="font-display text-body-sm font-bold uppercase tracking-[0.1em] text-t4"
+              className="font-display text-[12px] font-bold uppercase tracking-[0.1em] text-t4"
             >
               Market Overview
             </h2>
-            <p className="mt-1 text-label leading-snug text-t0">
+            <p className="mt-1 text-[10px] leading-snug text-t1 sm:text-label">
               Real-time NFT liquidity and floor data across major collections.
             </p>
           </div>

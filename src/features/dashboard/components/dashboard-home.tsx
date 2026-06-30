@@ -5,12 +5,14 @@ import { MarketOverviewSection } from "./market-overview-section";
 import { PartnersSection } from "./partners-section";
 import { PoolsSection } from "./pools-section";
 import { SalesSection } from "./sales-section";
+import { UserProfileCard } from "./user-profile-card";
 
 export function DashboardHome() {
   return (
     <>
       <DashboardHero />
       <PartnersSection />
+      <UserProfileCard />
       <PoolsSection />
       <ListingsSection
         headingId="listings-heading"

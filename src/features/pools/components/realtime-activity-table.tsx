@@ -162,21 +162,53 @@ export function RealtimeActivityTable() {
   }, [rows]);
 
   return (
-    <section className="mb-4 overflow-hidden rounded-[var(--r)] bg-e2 shadow-[var(--sh1),var(--glow)]">
-      <div className="flex items-center justify-between gap-2 border-b border-bd0 px-3 py-2 sm:px-4 sm:py-3">
-        <h2 className="min-w-0 font-mono text-micro uppercase tracking-[0.08em] text-t1 sm:text-caption sm:tracking-[0.1em]">
-          Real-Time Activity
+    <section className="mb-4 overflow-hidden sm:rounded-[var(--r)] sm:bg-e2 sm:shadow-[var(--sh1),var(--glow)]">
+      <div className="mb-2.75 flex items-center justify-between sm:mb-0 sm:border-b sm:border-bd0 sm:px-4 sm:py-3">
+        <h2 className="font-mono text-[12px] font-bold uppercase tracking-[0.1em] text-t4 sm:text-caption sm:font-normal sm:text-t1 sm:tracking-[0.1em]">
+          Recent Deposits
         </h2>
-        <span className="flex shrink-0 items-center gap-1.5 font-mono text-micro text-green sm:text-caption">
+        <span className="flex shrink-0 items-center gap-1.5 font-mono text-[8px] tracking-[0.08em] text-green sm:text-caption sm:tracking-normal">
           <span
-            className="size-[5px] animate-pulse rounded-full bg-green"
+            className="size-[5px] animate-pulse rounded-full bg-green shadow-[0_0_6px_rgba(63,178,127,0.7)]"
             aria-hidden
           />
-          Real-Time
+          LIVE
         </span>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile list view */}
+      <div className="flex flex-col overflow-hidden rounded-xl border border-bd0 bg-e2 sm:hidden">
+        {rows.map((row) => (
+          <div
+            key={row.id}
+            className={cn(
+              "flex items-center gap-2.5 border-b border-bd0 p-[13px_14px] last:border-0",
+              row.isNew && "bg-e3",
+            )}
+          >
+            <span className="shrink-0 rounded-[4px] bg-featured-badge-bg/15 px-1.75 py-0.75 font-mono text-[7px] font-bold tracking-[0.05em] text-featured-badge-bg">
+              POOL_DEPOSIT
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="font-mono text-[11px] font-bold text-t4 truncate">
+                {row.wallet}
+              </div>
+              <div className="mt-0.75 font-mono text-[8px] text-t1">
+                Jun 28, 2026
+              </div>
+            </div>
+            <div className="shrink-0 font-mono text-[12px] font-bold text-green">
+              {row.bidAmount}
+            </div>
+          </div>
+        ))}
+        <div className="p-[11px_14px] font-mono text-[8px] tracking-[0.04em] text-t1">
+          Showing 1–{rows.length} of 1,244 entries
+        </div>
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden overflow-x-auto sm:block">
         <table className="w-full min-w-[520px] border-collapse">
           <thead>
             <tr className="bg-e3">
@@ -214,7 +246,9 @@ export function RealtimeActivityTable() {
                       style={{ background: row.collectionColor }}
                       aria-hidden
                     />
-                    <span className="text-caption text-t2 sm:text-label">{row.collection}</span>
+                    <span className="text-caption text-t2 sm:text-label">
+                      {row.collection}
+                    </span>
                   </span>
                 </td>
                 <td className="border-b border-bd0 px-2 py-2 last:border-b-0 sm:px-4 sm:py-2.5">
