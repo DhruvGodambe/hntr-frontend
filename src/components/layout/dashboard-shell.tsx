@@ -87,7 +87,7 @@ function MobileBottomNav() {
   );
 }
 
-function MobileSidebar({
+function TabletSidebar({
   open,
   onOpenChange,
 }: {
@@ -95,9 +95,25 @@ function MobileSidebar({
   onOpenChange: (open: boolean) => void;
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent variant="drawer-left" hideClose className="relative bg-[var(--sidebar-bg)]">
-        <DialogTitle className="sr-only">Navigation menu</DialogTitle>
+    <>
+      {/* Dark overlay — no blur, just a translucent shadow */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          "fixed inset-0 z-40 bg-black/50 transition-opacity duration-300",
+          open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
+        )}
+        onClick={() => onOpenChange(false)}
+      />
+      {/* Sliding sidebar panel */}
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col bg-[var(--sidebar-bg)] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+          open ? "translate-x-0" : "-translate-x-full",
+        )}
+        style={{ boxShadow: "var(--sidebar-shadow)" }}
+        aria-label="Navigation menu"
+      >
         <DrawerCloseButton
           onClick={() => onOpenChange(false)}
           className="text-white/75 hover:bg-white/15 hover:text-white"
@@ -110,8 +126,8 @@ function MobileSidebar({
             <AppSidebarNav onNavigate={() => onOpenChange(false)} />
           </SidebarRail>
         </SidebarRailProvider>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </>
   );
 }
 
@@ -155,7 +171,7 @@ export function DashboardShell({
 
         <div className="shell">
           <AppSidebar />
-          <MobileSidebar open={mobileOpen} onOpenChange={setMobileOpen} />
+          <TabletSidebar open={mobileOpen} onOpenChange={setMobileOpen} />
 
           <div className="content">
             <div className="page-panel">

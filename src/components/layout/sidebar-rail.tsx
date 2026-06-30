@@ -141,23 +141,53 @@ export function SidebarRail({
   "data-mobile-nav": dataMobileNav,
   ...props
 }: SidebarRailProps) {
-  const { expanded } = useSidebarRail();
+  const { expanded, setExpanded } = useSidebarRail();
   const isMobileNav = dataMobileNav !== undefined;
 
+  if (isMobileNav) {
+    return (
+      <aside
+        data-mobile-nav={dataMobileNav}
+        data-expanded={true}
+        className={cn(
+          "group/sidebar sb flex shrink-0 flex-col overflow-hidden bg-[var(--sidebar-bg)] py-3.5",
+          className,
+        )}
+        style={{ boxShadow: "var(--sidebar-shadow)" }}
+        aria-label="Main navigation"
+        {...props}
+      >
+        {children}
+      </aside>
+    );
+  }
+
   return (
-    <aside
-      data-mobile-nav={dataMobileNav}
-      data-expanded={expanded || isMobileNav ? true : undefined}
-      className={cn(
-        "group/sidebar sb mt-2 ml-2 hidden min-w-[46px] shrink-0 flex-col overflow-hidden rounded-t-[10px] bg-[var(--sidebar-bg)] py-3.5 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:flex",
-        className,
-      )}
-      style={{ boxShadow: "var(--sidebar-shadow)" }}
-      aria-label="Main navigation"
-      {...props}
-    >
-      {children}
-    </aside>
+    <>
+      {/* Backdrop for desktop/tablet when expanded */}
+      <div
+        className={cn(
+          "absolute inset-0 z-20 hidden bg-black/40 transition-opacity duration-300 lg:block",
+          expanded ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
+        )}
+        onClick={() => setExpanded(false)}
+      />
+
+      <div className="relative hidden w-[46px] shrink-0 lg:block">
+        <aside
+          data-expanded={expanded ? true : undefined}
+          className={cn(
+            "group/sidebar sb absolute left-0 top-0 z-30 flex h-full w-[46px] flex-col overflow-hidden rounded-t-[10px] bg-[var(--sidebar-bg)] py-3.5 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+            className,
+          )}
+          style={{ boxShadow: "var(--sidebar-shadow)" }}
+          aria-label="Main navigation"
+          {...props}
+        >
+          {children}
+        </aside>
+      </div>
+    </>
   );
 }
 

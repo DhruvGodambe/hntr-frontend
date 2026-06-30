@@ -195,7 +195,7 @@ export function PoolFeaturedCard({
           detailsOpen ? "max-h-48" : "max-h-0",
         )}
       >
-        <div className="grid grid-cols-2 gap-2 border-t border-bd0 bg-e3 px-3.5 py-3.5 sm:grid-cols-4 sm:gap-1 sm:border-border sm:px-2.5 sm:py-2">
+        <div className="grid grid-cols-2 gap-2 border-t border-bd0 bg-e2 px-3.5 py-3.5 sm:grid-cols-4 sm:gap-1 sm:border-border sm:px-2.5 sm:py-2">
           {[
             { label: "GP Profit", value: pool.gpProfit },
             {
@@ -207,9 +207,9 @@ export function PoolFeaturedCard({
           ].map((stat) => (
             <div
               key={stat.label}
-              className="flex min-h-[40px] flex-col justify-between rounded-lg bg-e2 px-2.5 py-2.25 sm:min-h-[34px] sm:rounded-[3px] sm:border sm:border-border sm:px-1.5 sm:py-1"
+              className="flex min-h-[40px] flex-col justify-between rounded-lg bg-e1 px-2.5 py-2.25 sm:min-h-[34px] sm:rounded-[3px] sm:border sm:border-border sm:px-1.5 sm:py-1"
             >
-              <p className="font-mono text-[7px] uppercase leading-tight tracking-[0.06em] text-t0 sm:text-micro">
+              <p className="font-mono text-[7px] uppercase leading-tight tracking-[0.06em] text-t1 sm:text-micro sm:text-t0">
                 {stat.label}
               </p>
               <p className="font-display text-[14px] font-bold leading-tight text-t4 sm:font-mono sm:text-caption">
