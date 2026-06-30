@@ -160,7 +160,7 @@ export function DashboardShell({
   const [rightPanelOpen, setRightPanelOpen] = React.useState(false);
 
   return (
-    <>
+    <ToastProvider>
       <PageLoader />
       <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-e0">
         <AppNavbar
@@ -197,7 +197,6 @@ export function DashboardShell({
           <AppFooter />
         </div>
       </div>
-      <ToastProvider />
-    </>
+    </ToastProvider>
   );
 }

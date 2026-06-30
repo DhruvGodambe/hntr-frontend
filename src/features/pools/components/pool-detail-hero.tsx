@@ -1,5 +1,8 @@
+"use client";
+
 import { Expand, Share2 } from "lucide-react";
 import type { PoolDetail } from "@/features/pools/data/pool-detail-data";
+import { useToast } from "@/components/toast/toast-provider";
 import { nftPlaceholder } from "@/lib/placeholders";
 import { PoolDepositButton } from "./deposit-modal";
 
@@ -12,6 +15,25 @@ function ethAmount(value: string): string {
 }
 
 export function PoolDetailHero({ pool }: PoolDetailHeroProps) {
+  const { showToast } = useToast();
+
+  const handleShare = async () => {
+    const poolUrl = `${window.location.origin}/pools/${pool.id}`;
+
+    try {
+      await navigator.clipboard.writeText(poolUrl);
+      showToast({
+        title: "Link copied",
+        sub: "Pool link copied to clipboard",
+      });
+    } catch {
+      showToast({
+        title: "Copy failed",
+        sub: "Could not copy link to clipboard",
+      });
+    }
+  };
+
   return (
     <section className="mb-3.5">
       <header className="breadcrumb mb-3.5">
@@ -47,6 +69,7 @@ export function PoolDetailHero({ pool }: PoolDetailHeroProps) {
                   type="button"
                   className="pool-detail-share-btn"
                   aria-label="Share pool"
+                  onClick={handleShare}
                 >
                   <Share2 className="size-3" strokeWidth={1.75} />
                 </button>

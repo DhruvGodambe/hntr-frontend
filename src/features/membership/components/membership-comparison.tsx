@@ -1,87 +1,93 @@
-import {
-  comparisonRows,
-  membershipTiers,
-} from "@/features/membership/data/membership-data";
-import { cn } from "@/lib/utils";
-
-const CURRENT_TIER_INDEX = 2;
-
-export function MembershipComparison() {
-  return (
-    <section className="mb-5 overflow-hidden rounded-[var(--r)] bg-e2 shadow-[var(--sh1),var(--glow)]">
-      <div className="border-b border-bd0 px-[18px] py-3.5">
-        <h2 className="font-display text-body-sm font-bold text-t4">
-          Membership Comparison
-        </h2>
-        <p className="mt-0.5 text-caption text-t1">
-          Detailed feature breakdown across all institutional tiers.
-        </p>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse">
-          <thead>
-            <tr>
-              <th className="w-[28%] border-b border-bd0 bg-e3 px-3.5 py-2.5 text-left font-mono text-caption font-semibold uppercase tracking-[0.06em] text-t0">
-                Feature
-              </th>
-              {membershipTiers.map((tier, index) => (
-                <th
-                  key={tier.id}
-                  className={cn(
-                    "relative border-b border-bd0 bg-e3 px-3.5 py-2.5 text-center font-mono text-caption font-semibold uppercase tracking-[0.08em] text-t1",
-                    index === CURRENT_TIER_INDEX && "cmp-current-col pb-6",
-                    index === membershipTiers.length - 1 &&
-                      "font-bold text-[var(--olive)] dark:text-t4",
-                  )}
-                >
-                  {tier.name}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {comparisonRows.map((row) => (
-              <tr
-                key={row.id}
-                className={cn(
-                  "group hover:[&>td]:bg-e3",
-                  row.highlight &&
-                    "[&>td]:bg-[rgba(94,107,85,0.04)] dark:[&>td]:bg-white/[0.03]",
-                )}
-              >
-                <td className="border-b border-bd0 px-3.5 py-2.5 text-caption font-semibold text-t4">
-                  {row.label}
-                </td>
-                {row.values.map((value, index) => (
-                  <td
-                    key={`${row.id}-${index}`}
-                    className={cn(
-                      "border-b border-bd0 px-3.5 py-2.5 text-center text-caption text-t2",
-                      index === membershipTiers.length - 1 &&
-                        row.type === "text" &&
-                        "font-bold text-[var(--olive)] dark:text-t4",
-                    )}
-                  >
-                    {row.type === "boolean" ? (
-                      <span
-                        className={cn(
-                          "text-body-sm",
-                          value ? "text-green" : "text-t0 opacity-40",
-                        )}
-                      >
-                        {value ? "✓" : "✕"}
-                      </span>
-                    ) : (
-                      value
-                    )}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
+import {
+  comparisonRows,
+  membershipTiers,
+} from "@/features/membership/data/membership-data";
+import { Check, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const CURRENT_TIER_INDEX = 2;
+
+export function MembershipComparison() {
+  return (
+    <section className="mb-5 overflow-hidden rounded-[var(--r)] bg-e2 shadow-[var(--sh1),var(--glow)]">
+      <div className="border-b border-bd0 px-[18px] py-3.5">
+        <h2 className="font-display text-body-sm font-bold text-t4">
+          Membership Comparison
+        </h2>
+        <p className="mt-0.5 text-caption text-t1">
+          Detailed feature breakdown across all institutional tiers.
+        </p>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px] border-collapse">
+          <thead>
+            <tr>
+              <th className="w-[28%] border-b border-bd0 bg-e3 px-3.5 py-2.5 text-left font-mono text-caption font-semibold uppercase tracking-[0.06em] text-t0">
+                Feature
+              </th>
+              {membershipTiers.map((tier, index) => (
+                <th
+                  key={tier.id}
+                  className={cn(
+                    "relative border-b border-bd0 bg-e3 px-3.5 py-2.5 text-center font-mono text-caption font-semibold uppercase tracking-[0.08em] text-t1",
+                    index === CURRENT_TIER_INDEX && "cmp-current-col pb-6",
+                    index === membershipTiers.length - 1 &&
+                      "font-bold text-[var(--olive)] dark:text-t4",
+                  )}
+                >
+                  {tier.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {comparisonRows.map((row) => (
+              <tr
+                key={row.id}
+                className={cn(
+                  "group hover:[&>td]:bg-e3",
+                  row.highlight &&
+                    "[&>td]:bg-[rgba(94,107,85,0.04)] dark:[&>td]:bg-white/[0.03]",
+                )}
+              >
+                <td className="border-b border-bd0 px-3.5 py-2.5 text-caption font-semibold text-t4">
+                  {row.label}
+                </td>
+                {row.values.map((value, index) => (
+                  <td
+                    key={`${row.id}-${index}`}
+                    className={cn(
+                      "border-b border-bd0 px-3.5 py-2.5 text-center text-caption text-t2",
+                      index === membershipTiers.length - 1 &&
+                        row.type === "text" &&
+                        "font-bold text-[var(--olive)] dark:text-t4",
+                    )}
+                  >
+                    {row.type === "boolean" ? (
+                      value ? (
+                        <Check
+                          className="mx-auto size-3.5 text-green"
+                          strokeWidth={2.5}
+                          aria-hidden
+                        />
+                      ) : (
+                        <X
+                          className="mx-auto size-3.5 text-t0 opacity-40"
+                          strokeWidth={2}
+                          aria-hidden
+                        />
+                      )
+                    ) : (
+                      value
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}

@@ -1,5 +1,6 @@
+import type { PoolItem } from "@/features/dashboard/data/home-data";
 import { pools } from "@/features/dashboard/data/home-data";
-import { runningPools } from "@/features/pools/data/pools-data";
+import { runningPoolIds, runningPools } from "@/features/pools/data/pools-data";
 
 export type PoolDetailMetric = {
   label: string;
@@ -375,3 +376,47 @@ export const poolTransactionPagination = {
   to: 4,
   total: 1244,
 };
+
+const poolImageBgClass: Record<string, string> = {
+  "bayc-0291": "bg-[#5eb8b0] dark:bg-[#2d5248]",
+  "punk-4521": "bg-[#9aa8b0] dark:bg-[#2a3238]",
+  "pudgy-1180": "bg-[#c4d8e8] dark:bg-[#2d3f52]",
+};
+
+function footerStatValue(detail: PoolDetail, label: string): string {
+  return detail.footerStats.find((stat) => stat.label === label)?.value ?? "—";
+}
+
+export function toPoolItem(poolId: string): PoolItem | null {
+  const detail = getPoolDetail(poolId);
+  if (!detail) {
+    return null;
+  }
+
+  const ethProfit = footerStatValue(detail, "ETH Profit").replace(/\s*Ξ$/, " ETH");
+
+  return {
+    id: detail.id,
+    name: detail.name,
+    tokenId: detail.itemId,
+    creator: detail.creator,
+    series: detail.series,
+    poolTargetEth: detail.targetPriceEth,
+    poolTargetUsd: detail.targetPriceUsd,
+    communityRaisedEth: detail.communityRaisedEth,
+    communityRaisedUsd: detail.communityRaisedUsd,
+    progress: detail.progress,
+    imageBgClass: poolImageBgClass[detail.id] ?? "bg-e3",
+    imageSeed: detail.imageSeed,
+    gpProfit: footerStatValue(detail, "GP Profit"),
+    ethProfit,
+    usdtProfit: footerStatValue(detail, "USDT Profit"),
+    users: footerStatValue(detail, "Users"),
+  };
+}
+
+export function getRunningPoolItems(): PoolItem[] {
+  return runningPoolIds
+    .map((poolId) => toPoolItem(poolId))
+    .filter((pool): pool is PoolItem => pool !== null);
+}

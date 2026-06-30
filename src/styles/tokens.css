@@ -55,6 +55,11 @@
   --pool-deposit-text: #ffffff;
   --pool-deposit-bg-hover: #000000;
 
+  /* ── Filter checkbox (readable in light and dark) ── */
+  --checkbox-border: rgba(0, 0, 0, 0.16);
+  --checkbox-bg-checked: #0f0f10;
+  --checkbox-check: #ffffff;
+
   /* ── Featured badge ── */
   --featured-badge-bg: #ec7a2c;
   --featured-badge-text: #ffffff;
@@ -300,6 +305,11 @@
   --pool-deposit-bg: #ffffff;
   --pool-deposit-text: #0c0c0e;
   --pool-deposit-bg-hover: #e4e4e6;
+
+  /* ── Filter checkbox ── */
+  --checkbox-border: rgba(255, 255, 255, 0.22);
+  --checkbox-bg-checked: #ffffff;
+  --checkbox-check: #0c0c0e;
 
   /* ── Featured badge ── */
   --featured-badge-bg: #f25623;

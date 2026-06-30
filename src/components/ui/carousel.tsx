@@ -20,11 +20,9 @@ const layoutPresets: Record<
   }
 > = {
   pools: {
-    slidesPerView: 1,
-    slidesPerGroup: 1,
-    breakpoints: {
-      640: { slidesPerView: 2, slidesPerGroup: 2 },
-    },
+    slidesPerView: 2,
+    slidesPerGroup: 2,
+    breakpoints: {},
   },
   cards: {
     slidesPerView: 1,
@@ -132,10 +130,19 @@ export function Carousel({
       slidesPerView={slidesPerView}
       slidesPerGroup={slidesPerGroup}
       breakpoints={breakpoints}
+      observer={isFixedLayout}
+      observeParents={isFixedLayout}
+      resizeObserver={isFixedLayout}
       watchOverflow
       onSwiper={(swiper) => {
         swiperRef.current = swiper;
         updateNav(swiper);
+        if (isFixedLayout) {
+          requestAnimationFrame(() => {
+            swiper.update();
+            updateNav(swiper);
+          });
+        }
       }}
       onSlideChange={updateNav}
       onResize={updateNav}

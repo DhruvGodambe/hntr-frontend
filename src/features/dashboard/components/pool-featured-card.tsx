@@ -74,23 +74,23 @@ export function PoolFeaturedCard({
                 href={href}
                 className="min-w-0 flex-1 transition-opacity hover:opacity-90"
               >
-                <h3 className="font-display text-[17px] font-bold leading-[1.1] text-t4 sm:text-body-sm">
-                  {pool.name}{" "}
-                  <span className="text-t2 sm:hidden">
-                    {pool.tokenId}
-                  </span>
+                <h3
+                  className="truncate font-display text-[17px] font-bold leading-tight text-t4 sm:text-body-sm"
+                  title={pool.name}
+                >
+                  {pool.name}
                 </h3>
-                <p className="hidden font-display text-body-sm font-bold leading-tight text-t4 sm:block">
+                <p className="truncate font-display text-[17px] font-bold leading-tight text-t2 sm:text-body-sm">
                   {pool.tokenId}
                 </p>
               </Link>
               <Link
                 href={href}
-                className="inline-flex shrink-0 items-center gap-1 font-mono text-micro tracking-[0.06em] text-t2 transition-colors hover:text-t4 sm:flex"
+                title="View Insights"
+                aria-label="View Insights"
+                className="inline-flex size-6 shrink-0 items-center justify-center rounded-[5px] text-t2 transition-colors hover:text-t4 sm:flex"
               >
                 <BarChart3 className="size-2.5" strokeWidth={1.75} />
-                <span className="hidden min-[360px]:inline">View Insights</span>
-                <span className="min-[360px]:hidden">Insights</span>
               </Link>
             </div>
 

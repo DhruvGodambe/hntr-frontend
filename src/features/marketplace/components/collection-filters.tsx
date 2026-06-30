@@ -1,10 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { ChevronDown } from "lucide-react";
 import {
   collectionFilters,
   portfolioDistribution,
 } from "@/features/marketplace/data/vault-data";
+import { FilterCheckbox } from "@/components/ui/filter-checkbox";
 import { cn } from "@/lib/utils";
 
 type CollectionFiltersProps = {
@@ -18,13 +20,39 @@ export function CollectionFilters({
   onToggle,
   className,
 }: CollectionFiltersProps) {
+  const [collectionsOpen, setCollectionsOpen] = React.useState(false);
+
   return (
     <aside className={cn("shrink-0 space-y-4", className)}>
       <div className="rounded-md border border-border bg-e2 p-3 shadow-sh1">
-        <h2 className="mb-3 font-mono text-[8px] uppercase tracking-[0.08em] text-t0">
-          Collections
-        </h2>
-        <ul className="space-y-2">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="font-mono text-[8px] uppercase tracking-[0.08em] text-t0">
+            Collections
+          </h2>
+          <button
+            type="button"
+            className="inline-flex size-6 shrink-0 items-center justify-center rounded-[3px] text-t2 transition-colors hover:text-t4 lg:hidden"
+            aria-expanded={collectionsOpen}
+            aria-controls="marketplace-collection-filters"
+            aria-label={collectionsOpen ? "Collapse collections" : "Expand collections"}
+            onClick={() => setCollectionsOpen((open) => !open)}
+          >
+            <ChevronDown
+              className={cn(
+                "size-3.5 transition-transform duration-200",
+                collectionsOpen && "rotate-180",
+              )}
+              strokeWidth={1.75}
+            />
+          </button>
+        </div>
+        <ul
+          id="marketplace-collection-filters"
+          className={cn(
+            "space-y-2",
+            collectionsOpen ? "block" : "hidden lg:block",
+          )}
+        >
           {collectionFilters.map((collection) => {
             const checked = selected.has(collection.id);
             return (
@@ -34,8 +62,9 @@ export function CollectionFilters({
                     type="checkbox"
                     checked={checked}
                     onChange={() => onToggle(collection.id)}
-                    className="size-3 rounded-sm border-border accent-accent"
+                    className="sr-only"
                   />
+                  <FilterCheckbox checked={checked} />
                   <span className="min-w-0 flex-1 truncate text-[9px] text-t3">
                     {collection.name}
                   </span>

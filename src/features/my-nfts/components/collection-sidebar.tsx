@@ -1,10 +1,12 @@
 "use client";
 
+import * as React from "react";
 import { ChevronDown } from "lucide-react";
 import {
   collectionFilters,
   portfolioDistribution,
 } from "@/features/my-nfts/data/collection-data";
+import { FilterCheckbox } from "@/components/ui/filter-checkbox";
 import { cn } from "@/lib/utils";
 
 type CollectionSidebarProps = {
@@ -18,6 +20,8 @@ export function CollectionSidebar({
   onToggle,
   className,
 }: CollectionSidebarProps) {
+  const [collectionsOpen, setCollectionsOpen] = React.useState(false);
+
   return (
     <aside
       className={cn(
@@ -26,11 +30,32 @@ export function CollectionSidebar({
       )}
     >
       <div className="rounded-[var(--r)] bg-e2 p-3.5 shadow-[var(--sh1),var(--glow)]">
-        <div className="mb-2.5 flex items-center justify-between font-display text-label font-bold text-t4">
+        <div className="mb-2.5 flex items-center justify-between gap-2 font-display text-label font-bold text-t4">
           Collections
-          <ChevronDown className="size-3.5 text-t2" aria-hidden />
+          <button
+            type="button"
+            className="inline-flex size-6 shrink-0 items-center justify-center rounded-[3px] text-t2 transition-colors hover:text-t4 lg:hidden"
+            aria-expanded={collectionsOpen}
+            aria-controls="my-nfts-collection-filters"
+            aria-label={collectionsOpen ? "Collapse collections" : "Expand collections"}
+            onClick={() => setCollectionsOpen((open) => !open)}
+          >
+            <ChevronDown
+              className={cn(
+                "size-3.5 transition-transform duration-200",
+                collectionsOpen && "rotate-180",
+              )}
+              strokeWidth={1.75}
+            />
+          </button>
         </div>
-        <div className="space-y-1.5">
+        <div
+          id="my-nfts-collection-filters"
+          className={cn(
+            "space-y-1.5",
+            collectionsOpen ? "block" : "hidden lg:block",
+          )}
+        >
           {collectionFilters.map((filter) => {
             const checked = selected.has(filter.id);
             return (
@@ -40,17 +65,7 @@ export function CollectionSidebar({
                 onClick={() => onToggle(filter.id)}
                 className="flex w-full items-center gap-2 rounded px-0.5 py-1 text-left transition-colors hover:bg-e3"
               >
-                <span
-                  className={cn(
-                    "flex size-3.5 shrink-0 items-center justify-center rounded-[2px] border-[1.5px] border-[var(--sage-faint)] transition-colors",
-                    checked && "border-[var(--olive)] bg-[var(--olive)] text-[var(--cream)]",
-                  )}
-                  aria-hidden
-                >
-                  {checked && (
-                    <span className="text-[8px] leading-none">✓</span>
-                  )}
-                </span>
+                <FilterCheckbox checked={checked} />
                 <span className="min-w-0 flex-1 truncate font-mono text-caption text-t3">
                   {filter.name}
                 </span>

@@ -7,9 +7,23 @@ import { cn } from "@/lib/utils";
 type ToastData = {
   id: string;
   title: string;
-  sub: string;
-  link: string;
+  sub?: string;
+  link?: string;
 };
+
+type ToastContextValue = {
+  showToast: (data: Omit<ToastData, "id">) => void;
+};
+
+const ToastContext = React.createContext<ToastContextValue | null>(null);
+
+export function useToast(): ToastContextValue {
+  const context = React.useContext(ToastContext);
+  if (!context) {
+    throw new Error("useToast must be used within ToastProvider");
+  }
+  return context;
+}
 
 const INITIAL_TOASTS: Omit<ToastData, "id">[] = [
   {
@@ -66,19 +80,23 @@ function ToastItem({
         <p className="font-display text-xs font-bold leading-snug text-t4">
           {toast.title}
         </p>
-        <p className="mt-0.5 text-[10px] leading-snug text-t1">{toast.sub}</p>
-        <button
-          type="button"
-          className="mt-2 font-mono text-[8px] font-bold tracking-[0.06em] text-accent"
-        >
-          {toast.link}
-        </button>
+        {toast.sub ? (
+          <p className="mt-0.5 text-[10px] leading-snug text-t1">{toast.sub}</p>
+        ) : null}
+        {toast.link ? (
+          <button
+            type="button"
+            className="mt-2 font-mono text-[8px] font-bold tracking-[0.06em] text-accent"
+          >
+            {toast.link}
+          </button>
+        ) : null}
       </div>
     </div>
   );
 }
 
-export function ToastProvider() {
+export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = React.useState<ToastData[]>([]);
 
   const dismiss = React.useCallback((id: string) => {
@@ -119,13 +137,16 @@ export function ToastProvider() {
   }, [showToast]);
 
   return (
-    <div
-      id="toast-container"
-      className="pointer-events-none fixed bottom-[72px] right-6 z-[8000] flex flex-col-reverse gap-2.5 md:bottom-6"
-    >
-      {toasts.map((toast) => (
-        <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />
-      ))}
-    </div>
+    <ToastContext.Provider value={{ showToast }}>
+      {children}
+      <div
+        id="toast-container"
+        className="pointer-events-none fixed bottom-[72px] right-6 z-[8000] flex flex-col-reverse gap-2.5 md:bottom-6"
+      >
+        {toasts.map((toast) => (
+          <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />
+        ))}
+      </div>
+    </ToastContext.Provider>
   );
 }

@@ -1,25 +1,23 @@
 import { PoolsSlider } from "@/components/ui/pools-slider";
-import { runningPoolIds } from "@/features/pools/data/pools-data";
-import { PoolCollectionCard } from "./pool-collection-card";
+import { PoolFeaturedCard } from "@/features/dashboard/components/pool-featured-card";
+import { SectionHeader } from "@/features/dashboard/components/section-header";
+import { getRunningPoolItems } from "@/features/pools/data/pool-detail-data";
 
 export function RunningPoolsGrid() {
-  return (
-    <section className="mb-5">
-      <div className="mb-2.5 flex items-center justify-between">
-        <h2 className="font-mono text-[12px] font-bold uppercase tracking-[0.1em] text-t4 sm:text-caption sm:font-normal sm:text-t1">
-          Current Running Pools
-        </h2>
-      </div>
+  const pools = getRunningPoolItems();
 
+  return (
+    <section className="mb-6 sm:mb-[22px]" aria-labelledby="running-pools-heading">
+      <SectionHeader title="Current Running Pools" />
       <div className="flex flex-col gap-3.5 sm:hidden">
-        {runningPoolIds.map((poolId) => (
-          <PoolCollectionCard key={poolId} poolId={poolId} variant="default" />
+        {pools.map((pool) => (
+          <PoolFeaturedCard key={pool.id} pool={pool} variant="default" />
         ))}
       </div>
       <div className="hidden sm:block">
         <PoolsSlider layout="pools" spaceBetween={12}>
-          {runningPoolIds.map((poolId) => (
-            <PoolCollectionCard key={poolId} poolId={poolId} variant="carousel" />
+          {pools.map((pool) => (
+            <PoolFeaturedCard key={pool.id} pool={pool} variant="carousel" />
           ))}
         </PoolsSlider>
       </div>
