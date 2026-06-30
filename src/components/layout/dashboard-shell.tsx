@@ -1,6 +1,8 @@
 "use client";
 
 import { X } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import * as React from "react";
 import { AppFooter } from "@/components/layout/app-footer";
 import { AppNavbar } from "@/components/layout/app-navbar";
@@ -18,6 +20,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { mainNavItems } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 function DrawerCloseButton({
@@ -46,6 +49,43 @@ type DashboardShellProps = {
   children: React.ReactNode;
   showRightPanel?: boolean;
 };
+
+function MobileBottomNav() {
+  const pathname = usePathname();
+
+  return (
+    <nav
+      className="flex shrink-0 border-t border-[var(--sidebar-border)] bg-[var(--sidebar-bg)] md:hidden"
+      aria-label="Mobile navigation"
+    >
+      {mainNavItems.map((item) => {
+        const Icon = item.icon;
+        const active =
+          item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+
+        return (
+          <Link
+            key={item.label}
+            href={item.href}
+            aria-current={active ? "page" : undefined}
+            aria-label={item.label}
+            className={cn(
+              "flex flex-1 flex-col items-center justify-center gap-[3px] py-3 text-[var(--sidebar-text)] transition-colors hover:text-[var(--sidebar-text-active)]",
+              active && "text-[var(--sidebar-text-active)]",
+            )}
+          >
+            <span className="flex items-center justify-center [&_svg]:size-[18px]">
+              <Icon strokeWidth={1.4} />
+            </span>
+            <span className="w-full text-center font-mono text-[8px] uppercase leading-none tracking-[0.06em]">
+              {item.label}
+            </span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
 
 function MobileSidebar({
   open,
@@ -136,7 +176,10 @@ export function DashboardShell({
           </div>
         </div>
 
-        <AppFooter />
+        <MobileBottomNav />
+        <div className="hidden md:block">
+          <AppFooter />
+        </div>
       </div>
       <ToastProvider />
     </>

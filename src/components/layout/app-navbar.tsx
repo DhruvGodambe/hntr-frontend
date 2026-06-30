@@ -54,13 +54,14 @@ export function AppNavbar({
   return (
     <Navbar className={className}>
       <NavbarBrand>
-        <NavbarIconBtn
-          aria-label="Open navigation menu"
-          onClick={onMobileMenuOpen}
-          className="lg:hidden"
-        >
-          <Menu className="size-[13px]" />
-        </NavbarIconBtn>
+        <div className="hidden md:flex lg:hidden">
+          <NavbarIconBtn
+            aria-label="Open navigation menu"
+            onClick={onMobileMenuOpen}
+          >
+            <Menu className="size-[13px]" />
+          </NavbarIconBtn>
+        </div>
         <Link href="/" aria-label="HNTR home" className="nav-brand">
           <NavbarLogo />
         </Link>

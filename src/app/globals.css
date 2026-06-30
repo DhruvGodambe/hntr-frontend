@@ -89,6 +89,35 @@ html.dark {
   }
 }
 
+@keyframes loaderBar {
+  from { width: 0; }
+  to   { width: 82%; }
+}
+
+@keyframes loaderGlowPulse {
+  0%   { opacity: 0; }
+  40%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.loader-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(to right, #f25623, rgba(242, 86, 35, 0.45));
+  border-radius: 0 1px 1px 0;
+  animation: loaderBar 0.95s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+.loader-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 55% 35% at 50% 50%, rgba(242, 86, 35, 0.09) 0%, transparent 70%);
+  animation: loaderGlowPulse 0.9s ease 0.5s both;
+}
+
 @keyframes lcShow {
   to {
     opacity: 1;

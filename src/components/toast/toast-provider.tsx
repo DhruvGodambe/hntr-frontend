@@ -121,7 +121,7 @@ export function ToastProvider() {
   return (
     <div
       id="toast-container"
-      className="pointer-events-none fixed bottom-6 right-6 z-[8000] flex flex-col-reverse gap-2.5"
+      className="pointer-events-none fixed bottom-[72px] right-6 z-[8000] flex flex-col-reverse gap-2.5 md:bottom-6"
     >
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />

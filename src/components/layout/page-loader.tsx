@@ -33,6 +33,9 @@ export function PageLoader() {
       )}
       aria-hidden
     >
+      <div className="loader-glow" />
+      <div className="loader-bar" />
+
       <div className="loader-inner flex items-baseline gap-0">
         {["H", "N", "T", "R"].map((letter, i) => (
           <span
@@ -48,7 +51,7 @@ export function PageLoader() {
         ))}
         <span
           className="ls ml-px font-display text-[clamp(1.75rem,5vw,2.75rem)] font-normal leading-none tracking-[0.02em]"
-          style={{ color: "var(--loader-letter)", animationDelay: "0.82s" }}
+          style={{ color: "#f25623", animationDelay: "0.82s" }}
         >
           .art
         </span>
@@ -56,7 +59,8 @@ export function PageLoader() {
           className="loader-cursor ml-1 inline-block w-[3px] align-middle"
           style={{
             height: "clamp(36px, 8vw, 56px)",
-            background: "var(--loader-cursor)",
+            background: "#f25623",
+            boxShadow: "0 0 10px rgba(242, 86, 35, 0.55), 0 0 3px rgba(242, 86, 35, 0.8)",
             animationDelay: "1s",
           }}
         />
