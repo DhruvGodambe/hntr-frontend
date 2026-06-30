@@ -7,7 +7,10 @@ import { AppSidebar, AppSidebarNav } from "@/components/layout/app-sidebar";
 import { MainContent } from "@/components/layout/main-content";
 import { PageLoader } from "@/components/layout/page-loader";
 import { RightPanel } from "@/components/layout/right-panel";
-import { SidebarRail } from "@/components/layout/sidebar-rail";
+import {
+  SidebarRail,
+  SidebarRailProvider,
+} from "@/components/layout/sidebar-rail";
 import { ToastProvider } from "@/components/toast/toast-provider";
 import {
   Dialog,
@@ -29,14 +32,16 @@ function MobileSidebar({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="left-0 top-0 flex h-dvh max-h-dvh w-[min(100%,280px)] max-w-[280px] translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-r border-bd1 bg-[var(--sidebar-bg)] p-0 sm:rounded-none">
+      <DialogContent variant="drawer-left" hideClose className="bg-[var(--sidebar-bg)]">
         <DialogTitle className="sr-only">Navigation menu</DialogTitle>
-        <SidebarRail
-          data-mobile-nav
-          className="mt-0 ml-0 !flex h-full w-full min-w-0 rounded-none hover:w-full"
-        >
-          <AppSidebarNav onNavigate={() => onOpenChange(false)} />
-        </SidebarRail>
+        <SidebarRailProvider defaultExpanded>
+          <SidebarRail
+            data-mobile-nav
+            className="mt-0 ml-0 !flex h-full w-full min-w-0 rounded-none"
+          >
+            <AppSidebarNav onNavigate={() => onOpenChange(false)} />
+          </SidebarRail>
+        </SidebarRailProvider>
       </DialogContent>
     </Dialog>
   );
@@ -51,9 +56,9 @@ function MobileRightPanel({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="left-auto right-0 top-0 flex h-dvh max-h-dvh w-[min(100%,360px)] max-w-[360px] translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-l border-bd1 p-0 sm:rounded-none">
+      <DialogContent variant="drawer-right" hideClose>
         <DialogTitle className="sr-only">Account overview</DialogTitle>
-        <RightPanel className="h-full min-h-0 w-full max-w-none border-0 shadow-none" />
+        <RightPanel className="right-panel--drawer h-full min-h-0 w-full min-w-0 max-w-none shrink rounded-none border-0 p-3 shadow-none sm:p-4" />
       </DialogContent>
     </Dialog>
   );

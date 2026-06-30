@@ -1,8 +1,19 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { cn } from "@/lib/utils";
+
+type SidebarRailContextValue = {
+  expanded: boolean;
+  setExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+  toggle: () => void;
+};
+
+const SidebarRailContext = React.createContext<SidebarRailContextValue | null>(
+  null,
+);
 
 type SidebarNavItemProps = {
   href: string;
@@ -121,13 +132,24 @@ export function SidebarRailAction({
 
 type SidebarRailProps = React.ComponentProps<"aside"> & {
   children: React.ReactNode;
+  "data-mobile-nav"?: boolean | string;
 };
 
-export function SidebarRail({ className, children, ...props }: SidebarRailProps) {
+export function SidebarRail({
+  className,
+  children,
+  "data-mobile-nav": dataMobileNav,
+  ...props
+}: SidebarRailProps) {
+  const { expanded } = useSidebarRail();
+  const isMobileNav = dataMobileNav !== undefined;
+
   return (
     <aside
+      data-mobile-nav={dataMobileNav}
+      data-expanded={expanded || isMobileNav ? true : undefined}
       className={cn(
-        "group/sidebar sb mt-2 ml-2 hidden w-[46px] min-w-[46px] shrink-0 flex-col overflow-hidden rounded-t-[10px] bg-[var(--sidebar-bg)] py-3.5 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:w-[162px] lg:flex",
+        "group/sidebar sb mt-2 ml-2 hidden min-w-[46px] shrink-0 flex-col overflow-hidden rounded-t-[10px] bg-[var(--sidebar-bg)] py-3.5 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:flex",
         className,
       )}
       style={{ boxShadow: "var(--sidebar-shadow)" }}
@@ -136,6 +158,31 @@ export function SidebarRail({ className, children, ...props }: SidebarRailProps)
     >
       {children}
     </aside>
+  );
+}
+
+export function SidebarRailToggle({ className }: { className?: string }) {
+  const { expanded, toggle } = useSidebarRail();
+  const Icon = expanded ? ChevronLeft : ChevronRight;
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+      aria-expanded={expanded}
+      className={cn(
+        "mx-[5px] flex h-[34px] w-[calc(100%-10px)] items-center overflow-hidden rounded-md text-[var(--sidebar-text)] transition-colors hover:bg-[var(--sidebar-hover-bg)] hover:text-[var(--sidebar-text-active)]",
+        className,
+      )}
+    >
+      <span className="si-icon flex size-9 min-w-9 shrink-0 items-center justify-center [&_svg]:size-3.5">
+        <Icon strokeWidth={1.4} />
+      </span>
+      <span className="sidebar-label whitespace-nowrap font-mono text-label uppercase tracking-[0.07em]">
+        {expanded ? "Collapse" : "Expand"}
+      </span>
+    </button>
   );
 }
 
@@ -169,16 +216,35 @@ export function SidebarRailSeparator() {
   );
 }
 
-/* Keep provider for mobile sidebar compatibility */
 export function SidebarRailProvider({
   children,
+  defaultExpanded = false,
 }: {
   children: React.ReactNode;
   defaultExpanded?: boolean;
 }) {
-  return <>{children}</>;
+  const [expanded, setExpanded] = React.useState(defaultExpanded);
+  const toggle = React.useCallback(() => setExpanded((prev) => !prev), []);
+
+  const value = React.useMemo(
+    () => ({ expanded, setExpanded, toggle }),
+    [expanded, toggle],
+  );
+
+  return (
+    <SidebarRailContext.Provider value={value}>
+      {children}
+    </SidebarRailContext.Provider>
+  );
 }
 
-export function useSidebarRail() {
-  return { expanded: true, toggle: () => undefined };
+export function useSidebarRail(): SidebarRailContextValue {
+  const context = React.useContext(SidebarRailContext);
+  return (
+    context ?? {
+      expanded: false,
+      setExpanded: () => undefined,
+      toggle: () => undefined,
+    }
+  );
 }

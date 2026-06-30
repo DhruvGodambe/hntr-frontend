@@ -9,12 +9,10 @@ export function OwnershipRing({ percent }: OwnershipRingProps) {
   const offset = CIRCUMFERENCE * (1 - percent / 100);
 
   return (
-    <div className="absolute right-2 top-1.5 before:absolute before:-inset-1 before:-z-10 before:rounded-full before:bg-black/45 before:backdrop-blur-[3px]">
+    <div className="absolute right-1.5 top-1.5 sm:right-2 before:absolute before:-inset-1 before:-z-10 before:rounded-full before:bg-black/45 before:backdrop-blur-[3px]">
       <svg
         viewBox="0 0 80 80"
-        width={70}
-        height={70}
-        className="overflow-visible"
+        className="size-12 overflow-visible sm:size-14 lg:size-11"
         aria-hidden
       >
         <circle

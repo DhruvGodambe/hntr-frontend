@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/navbar";
 import { useConnectWizard } from "@/features/auth";
 import { NotificationsPanel } from "@/features/notifications";
+import { ThemeToggle } from "@/components/theme";
 import { cn } from "@/lib/utils";
 
 type AppNavbarProps = {
@@ -18,26 +19,6 @@ type AppNavbarProps = {
   showRightPanelToggle?: boolean;
   className?: string;
 };
-
-function SearchIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <circle
-        cx="7"
-        cy="7"
-        r="4.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M10.5 10.5L13.5 13.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 
 function NavbarIconBtn({
   onClick,
@@ -86,9 +67,7 @@ export function AppNavbar({
       </NavbarBrand>
 
       <NavbarActions>
-        <NavbarIconBtn aria-label="Search">
-          <SearchIcon />
-        </NavbarIconBtn>
+        <ThemeToggle className="lg:hidden" />
         <NotificationsPanel />
         {showRightPanelToggle && (
           <NavbarIconBtn

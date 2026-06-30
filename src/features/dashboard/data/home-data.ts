@@ -398,7 +398,7 @@ export const rightPanelData = {
   progressEnd: "Hunter Legend",
   totalRewarded: {
     value: "$119,551.44",
-    delta: "↑+4.2% This Month",
+    delta: "↑+4.2% Mo.",
   },
   hntrPoints: {
     value: "6,913,586",
@@ -408,7 +408,7 @@ export const rightPanelData = {
     tier: "RANGER",
     tierSubtitle: "Current Tier",
     networkUsers: "12,482",
-    growth: "↑+1.6% Growth",
+    growth: "↑+1.6%",
   },
   rewardTiers: [
     {

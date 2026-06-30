@@ -24,7 +24,7 @@ export function MainContent({
       tabIndex={-1}
     >
       {centered ? (
-        <div className="page-container px-3 pb-10 pt-4 sm:px-4">
+        <div className="page-container px-2 pb-8 pt-3 sm:px-4 sm:pb-10 sm:pt-4">
           {children}
         </div>
       ) : (

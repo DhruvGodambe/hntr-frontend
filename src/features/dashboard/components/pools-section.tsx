@@ -14,7 +14,7 @@ export function PoolsSection() {
       />
       <PoolsSlider layout="pools" spaceBetween={12}>
         {pools.map((pool) => (
-          <PoolFeaturedCard key={pool.id} pool={pool} />
+          <PoolFeaturedCard key={pool.id} pool={pool} variant="carousel" />
         ))}
       </PoolsSlider>
     </section>

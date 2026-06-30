@@ -9,7 +9,9 @@ import {
   SidebarRailAction,
   SidebarRailContent,
   SidebarRailFooter,
+  SidebarRailProvider,
   SidebarRailSeparator,
+  SidebarRailToggle,
   SidebarNavItem,
 } from "@/components/layout/sidebar-rail";
 
@@ -47,6 +49,7 @@ export function AppSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           href="mailto:support@hntr.art"
           icon={<HelpCircle strokeWidth={1.4} />}
         />
+        <SidebarRailToggle className="sidebar-rail-toggle" />
       </SidebarRailFooter>
     </>
   );
@@ -54,9 +57,11 @@ export function AppSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppSidebar() {
   return (
-    <SidebarRail>
-      <AppSidebarNav />
-    </SidebarRail>
+    <SidebarRailProvider>
+      <SidebarRail>
+        <AppSidebarNav />
+      </SidebarRail>
+    </SidebarRailProvider>
   );
 }
 

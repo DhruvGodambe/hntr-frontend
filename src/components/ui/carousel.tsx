@@ -159,12 +159,69 @@ export function Carousel({
     return (
       <div
         className={cn(
-          "flex overflow-hidden rounded-md border border-border bg-e2 shadow-sh2 [box-shadow:var(--sh2),var(--glow)]",
+          "flex flex-col overflow-hidden rounded-md border border-border bg-e2 shadow-sh2 [box-shadow:var(--sh2),var(--glow)] sm:flex-row",
           className,
         )}
       >
-        <div className="min-w-0 flex-1 overflow-hidden p-3">{swiperNode}</div>
-        <div className="flex w-12 shrink-0 flex-col items-center justify-center gap-2 border-l border-border bg-[var(--slider-rail-bg)]">
+        <div className="min-w-0 flex-1 overflow-hidden p-2 sm:p-3">{swiperNode}</div>
+        <div className="flex shrink-0 flex-row items-center justify-center gap-3 border-t border-border bg-[var(--slider-rail-bg)] px-3 py-2 sm:w-12 sm:flex-col sm:gap-2 sm:border-t-0 sm:border-l sm:px-0 sm:py-0">
+          <NavButton
+            direction="left"
+            disabled={!canPrev}
+            onClick={() => slideBy("left")}
+            label="Previous slide"
+          />
+          <NavButton
+            direction="right"
+            disabled={!canNext}
+            onClick={() => slideBy("right")}
+            label="Next slide"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "cards") {
+    return (
+      <div className={cn("flex flex-col overflow-hidden", className)}>
+        <div className="relative min-w-0 overflow-hidden">
+          <NavButton
+            direction="left"
+            disabled={!canPrev}
+            onClick={() => slideBy("left")}
+            label="Previous slide"
+            className={cn(
+              "absolute left-1 top-1/2 z-10 hidden -translate-y-1/2 sm:inline-flex",
+              !canPrev && "opacity-0",
+            )}
+          />
+
+          {swiperNode}
+
+          {fadeRight && (
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-y-0 right-0 z-[1] w-16 bg-gradient-to-l from-e0 to-transparent transition-opacity",
+                canNext ? "opacity-100" : "opacity-0",
+              )}
+              aria-hidden
+            />
+          )}
+
+          <NavButton
+            direction="right"
+            disabled={!canNext}
+            onClick={() => slideBy("right")}
+            label="Next slide"
+            className={cn(
+              "absolute right-1 top-1/2 z-10 hidden -translate-y-1/2 sm:inline-flex",
+              !canNext && "opacity-0",
+            )}
+          />
+        </div>
+
+        <div className="mt-2 flex items-center justify-center gap-3 sm:hidden">
           <NavButton
             direction="left"
             disabled={!canPrev}

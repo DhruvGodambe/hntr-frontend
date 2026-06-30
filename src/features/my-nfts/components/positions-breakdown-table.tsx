@@ -22,7 +22,7 @@ function StatusCell({ status }: { status: "listed" | "sold" }) {
         )}
         aria-hidden
       />
-      <span className="font-mono text-caption uppercase text-t2">
+      <span className="whitespace-nowrap font-mono text-micro uppercase text-t2 sm:text-caption">
         {listed ? "Listed" : "Sold"}
       </span>
     </div>
@@ -32,54 +32,46 @@ function StatusCell({ status }: { status: "listed" | "sold" }) {
 export function PositionsBreakdownTable() {
   return (
     <section className="mt-6" aria-labelledby="positions-breakdown-heading">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-2.5 flex items-center justify-between gap-2 sm:mb-3 sm:gap-3">
         <h2
           id="positions-breakdown-heading"
-          className="font-display text-body-sm font-bold tracking-[0.01em] text-t4"
+          className="min-w-0 font-display text-caption font-bold tracking-[0.01em] text-t4 sm:text-body-sm"
         >
           All Positions Breakdown
         </h2>
         <button
           type="button"
-          className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-bd1 bg-e2 px-3 font-mono text-caption tracking-[0.06em] text-t2 transition-colors hover:bg-e3 hover:text-t4"
+          className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-[5px] border border-bd1 bg-e2 px-2.5 font-mono text-micro tracking-[0.06em] text-t2 transition-colors hover:bg-e3 hover:text-t4 sm:px-3 sm:text-caption"
         >
           <Download className="size-2.5" aria-hidden />
-          Export CSV
+          <span className="hidden min-[360px]:inline">Export CSV</span>
+          <span className="min-[360px]:hidden">Export</span>
         </button>
       </div>
 
       <div className="overflow-hidden rounded-[var(--r)] border border-bd1 bg-e2 shadow-[var(--sh1),var(--glow)]">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse">
+          <table className="w-full min-w-[640px] border-collapse">
             <thead>
               <tr className="bg-e3">
-                <th className="border-b border-bd0 px-3 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                  Source
-                </th>
-                <th className="border-b border-bd0 px-3 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                  Collection
-                </th>
-                <th className="border-b border-bd0 px-3 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                  Token ID
-                </th>
-                <th className="border-b border-bd0 px-3 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                  Collateral Val.
-                </th>
-                <th className="border-b border-bd0 px-3 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                  LTV %
-                </th>
-                <th className="border-b border-bd0 px-3 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                  APR
-                </th>
-                <th className="border-b border-bd0 px-3 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                  Date
-                </th>
-                <th className="border-b border-bd0 px-3 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                  Action
-                </th>
-                <th className="border-b border-bd0 px-3 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                  View NFT
-                </th>
+                {[
+                  "Source",
+                  "Collection",
+                  "Token ID",
+                  "Collateral Val.",
+                  "LTV %",
+                  "APR",
+                  "Date",
+                  "Action",
+                  "View NFT",
+                ].map((heading) => (
+                  <th
+                    key={heading}
+                    className="border-b border-bd0 px-2 py-1.5 text-left font-mono text-micro font-medium uppercase tracking-[0.08em] text-t0 sm:px-3 sm:py-2 sm:text-caption"
+                  >
+                    {heading}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -88,39 +80,39 @@ export function PositionsBreakdownTable() {
                   key={row.id}
                   className="transition-colors last:[&_td]:border-b-0 hover:bg-e3"
                 >
-                  <td className="border-b border-bd0 px-3 py-2.5 text-caption text-t1">
+                  <td className="whitespace-nowrap border-b border-bd0 px-2 py-2 text-micro text-t1 sm:px-3 sm:py-2.5 sm:text-caption">
                     {row.source}
                   </td>
-                  <td className="border-b border-bd0 px-3 py-2.5 text-label font-semibold text-t4">
+                  <td className="whitespace-nowrap border-b border-bd0 px-2 py-2 text-caption font-semibold text-t4 sm:px-3 sm:py-2.5 sm:text-label">
                     {row.collection}
                   </td>
-                  <td className="border-b border-bd0 px-3 py-2.5 font-mono text-caption text-t2">
+                  <td className="whitespace-nowrap border-b border-bd0 px-2 py-2 font-mono text-micro text-t2 sm:px-3 sm:py-2.5 sm:text-caption">
                     {row.tokenId}
                   </td>
-                  <td className="border-b border-bd0 px-3 py-2.5">
-                    <div className="font-mono text-label font-bold text-t4">
+                  <td className="border-b border-bd0 px-2 py-2 sm:px-3 sm:py-2.5">
+                    <div className="whitespace-nowrap font-mono text-caption font-bold text-t4 sm:text-label">
                       {row.collateralEth}
                     </div>
-                    <div className="mt-0.5 font-mono text-caption text-t0">
+                    <div className="mt-0.5 whitespace-nowrap font-mono text-micro text-t0 sm:text-caption">
                       {row.collateralUsd}
                     </div>
                   </td>
-                  <td className="border-b border-bd0 px-3 py-2.5 font-mono text-label text-t2">
+                  <td className="whitespace-nowrap border-b border-bd0 px-2 py-2 font-mono text-caption text-t2 sm:px-3 sm:py-2.5 sm:text-label">
                     {row.ltv}
                   </td>
-                  <td className="border-b border-bd0 px-3 py-2.5 font-mono text-label text-t2">
+                  <td className="whitespace-nowrap border-b border-bd0 px-2 py-2 font-mono text-caption text-t2 sm:px-3 sm:py-2.5 sm:text-label">
                     {row.apr}
                   </td>
-                  <td className="border-b border-bd0 px-3 py-2.5 font-mono text-caption text-t1">
+                  <td className="whitespace-nowrap border-b border-bd0 px-2 py-2 font-mono text-micro text-t1 sm:px-3 sm:py-2.5 sm:text-caption">
                     {row.date}
                   </td>
-                  <td className="border-b border-bd0 px-3 py-2.5">
+                  <td className="border-b border-bd0 px-2 py-2 sm:px-3 sm:py-2.5">
                     <StatusCell status={row.status} />
                   </td>
-                  <td className="border-b border-bd0 px-3 py-2.5">
+                  <td className="border-b border-bd0 px-2 py-2 sm:px-3 sm:py-2.5">
                     <Link
                       href={`/pools/${row.poolId}`}
-                      className="inline-flex h-[22px] items-center rounded-[3px] border border-bd1 bg-e3 px-2.5 font-mono text-caption tracking-[0.05em] text-t2 transition-colors hover:bg-[var(--sage-faint)] hover:text-t4"
+                      className="inline-flex h-[22px] items-center whitespace-nowrap rounded-[3px] border border-bd1 bg-e3 px-2.5 font-mono text-micro tracking-[0.05em] text-t2 transition-colors hover:bg-[var(--sage-faint)] hover:text-t4 sm:text-caption"
                     >
                       View NFT
                     </Link>
@@ -131,8 +123,8 @@ export function PositionsBreakdownTable() {
           </table>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-bd0 bg-e3 px-3 py-2">
-          <p className="font-mono text-caption text-t0">
+        <div className="flex flex-col gap-2 border-t border-bd0 bg-e3 px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <p className="font-mono text-micro text-t0 sm:text-caption">
             Showing {positionsPagination.from}-{positionsPagination.to} of{" "}
             {positionsPagination.total.toLocaleString()} entries
           </p>

@@ -6,5 +6,6 @@ export { DashboardShell } from "./dashboard-shell";
 export { Header } from "./header";
 export { MainContent } from "./main-content";
 export { PageContainer } from "./page-container";
+export { PageHero } from "./page-hero";
 export { RightPanel } from "./right-panel";
 export { Sidebar } from "./sidebar";

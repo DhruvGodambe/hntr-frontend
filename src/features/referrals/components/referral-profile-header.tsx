@@ -126,31 +126,31 @@ export function ReferralProfileHeader() {
 
             <div className="mb-2.5 h-px bg-bd0" />
 
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="mt-2 grid grid-cols-3 gap-2 sm:mt-3 sm:gap-3">
               {referralPerformance.columns.map((column) => (
                 <div key={column.name} className="net-perf-col min-w-0">
-                  <p className="mb-1 font-display text-caption font-bold text-t4">
+                  <p className="mb-1 truncate font-display text-micro font-bold text-t4 sm:text-caption">
                     {column.name}
                   </p>
-                  <div className="mb-2 flex items-center gap-1.5">
-                    <p className="font-mono text-caption text-t1">
+                  <div className="mb-1.5 flex items-center gap-1 sm:mb-2 sm:gap-1.5">
+                    <p className="whitespace-nowrap font-mono text-micro text-t1 sm:text-caption">
                       {column.current}
                       <b className="font-bold text-t4">/{column.target}</b>
                     </p>
-                    <div className="ml-auto flex items-center gap-1 font-mono text-label font-bold text-t4">
+                    <div className="ml-auto flex items-center gap-1 whitespace-nowrap font-mono text-caption font-bold text-t4 sm:text-label">
                       <PerfBadge complete={column.complete} />
                       {column.percent}%
                     </div>
                   </div>
-                  <div className="mb-1.5 h-[7px] overflow-hidden rounded-[2px] bg-e4">
+                  <div className="mb-1 h-[6px] overflow-hidden rounded-[2px] bg-e4 sm:mb-1.5 sm:h-[7px]">
                     <div
                       className="net-perf-fill"
                       style={{ "--w": `${column.percent}%` } as CSSProperties}
                     />
                   </div>
-                  <p className="font-mono text-micro uppercase tracking-[0.1em] text-t0">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-t0 sm:text-micro sm:tracking-[0.1em]">
                     Referring Team
-                    <b className="mt-0.5 block font-display text-caption font-bold normal-case tracking-normal text-t2">
+                    <b className="mt-0.5 block truncate font-display text-micro font-bold normal-case tracking-normal text-t2 sm:text-caption">
                       {column.team}
                     </b>
                   </p>
@@ -173,7 +173,7 @@ export function ReferralProfileHeader() {
             </p>
             <p
               className={cn(
-                "mb-1 font-mono text-[1.571rem] font-bold leading-none text-t4",
+                "mb-1 truncate font-mono text-heading-sm font-bold leading-none text-t4 sm:text-heading",
                 stat.displayFont && "font-display",
               )}
             >

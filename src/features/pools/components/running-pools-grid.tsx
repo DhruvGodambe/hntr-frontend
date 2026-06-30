@@ -20,7 +20,7 @@ export function RunningPoolsGrid() {
 
       <PoolsSlider layout="pools" spaceBetween={12}>
         {runningPoolIds.map((poolId) => (
-          <PoolCollectionCard key={poolId} poolId={poolId} />
+          <PoolCollectionCard key={poolId} poolId={poolId} variant="carousel" />
         ))}
       </PoolsSlider>
     </section>

@@ -41,6 +41,22 @@ export function VaultNFTGrid() {
   );
   const [view, setView] = React.useState<"grid" | "list">("grid");
   const [visibleCount, setVisibleCount] = React.useState(8);
+  const [isMobile, setIsMobile] = React.useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(max-width: 639px)").matches
+      : false,
+  );
+
+  React.useLayoutEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+    const updateIsMobile = () => setIsMobile(mediaQuery.matches);
+
+    updateIsMobile();
+    mediaQuery.addEventListener("change", updateIsMobile);
+    return () => mediaQuery.removeEventListener("change", updateIsMobile);
+  }, []);
+
+  const activeView = isMobile ? "list" : view;
 
   const toggleCollection = (id: string) => {
     setSelectedCollections((prev) => {
@@ -110,7 +126,7 @@ export function VaultNFTGrid() {
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-1 rounded-md border border-border bg-e3 p-0.5">
+          <div className="hidden items-center gap-1 rounded-md border border-border bg-e3 p-0.5 sm:flex">
             <button
               type="button"
               onClick={() => setView("grid")}
@@ -138,7 +154,7 @@ export function VaultNFTGrid() {
           </div>
         </div>
 
-        {view === "grid" ? (
+        {activeView === "grid" ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {visible.map((nft) => (
               <VaultNFTCard key={nft.id} nft={nft} />

@@ -7,7 +7,7 @@ export function Navbar({ className, children, ...props }: NavbarProps) {
   return (
     <header
       className={cn(
-        "z-20 flex h-11 shrink-0 items-center justify-between gap-4 px-5",
+        "z-20 flex h-11 shrink-0 items-center justify-between gap-4 px-3 sm:px-5",
         className,
       )}
       style={{

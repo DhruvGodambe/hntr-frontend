@@ -10,8 +10,8 @@ type PoolDetailHomeProps = {
 
 export function PoolDetailHome({ pool }: PoolDetailHomeProps) {
   return (
-    <div className="-mx-3 -mt-4 flex flex-col pb-10 sm:-mx-4">
-      <div className="px-3 pt-[18px] sm:px-5">
+    <div className="-mx-2 -mt-3 flex flex-col pb-8 sm:-mx-4 sm:-mt-4 sm:pb-10">
+      <div className="px-2 pt-4 sm:px-5 sm:pt-[18px]">
         <PoolDetailHero pool={pool} />
         <PoolDetailMetricsRow pool={pool} />
         <TransactionActivityTable pool={pool} />

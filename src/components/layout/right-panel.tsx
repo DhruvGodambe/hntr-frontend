@@ -63,20 +63,26 @@ function StatBox({
   footerClassName?: string;
 }) {
   return (
-    <div className="rounded-md bg-e3 p-[9px] shadow-sh1">
-      <p className="mb-[3px] text-caption uppercase tracking-[0.05em] text-t0">
+    <div className="min-w-0 overflow-hidden rounded-md bg-e3 p-[9px] shadow-sh1">
+      <p className="mb-[3px] truncate text-caption uppercase tracking-[0.05em] text-t0">
         {label}
       </p>
       <p
         className={cn(
-          "font-mono text-stat font-bold text-t4",
+          "truncate font-mono text-body-sm font-bold leading-tight text-t4",
           valueClassName,
         )}
       >
         {value}
       </p>
       {footer && (
-        <p className={cn("mt-0.5 font-mono text-caption", footerClassName)}>
+        <p
+          className={cn(
+            "mt-0.5 truncate font-mono text-micro leading-tight",
+            footerClassName,
+          )}
+          title={footer}
+        >
           {footer}
         </p>
       )}
@@ -225,7 +231,7 @@ export function RightPanel({ className }: { className?: string }) {
             footerClassName="text-t0"
           />
           <StatBox
-            label="Total Network Users"
+            label="Users"
             value={data.membership.networkUsers}
             footer={data.membership.growth}
             footerClassName="text-green"

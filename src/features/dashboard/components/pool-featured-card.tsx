@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 type PoolFeaturedCardProps = {
   pool: PoolItem;
+  variant?: "default" | "carousel";
 };
 
 function ethAmount(value: string): string {
@@ -19,16 +20,19 @@ function ethAmount(value: string): string {
 
 function EthValue({ value }: { value: string }) {
   return (
-    <p className="font-mono text-stat font-bold leading-tight text-t4">
+    <p className="font-mono text-[15px] font-bold leading-tight text-t4 sm:text-stat">
       {ethAmount(value)}{" "}
-      <span className="text-body-sm font-bold" aria-hidden>
+      <span className="text-caption font-bold sm:text-body-sm" aria-hidden>
         Ξ
       </span>
     </p>
   );
 }
 
-export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
+export function PoolFeaturedCard({
+  pool,
+  variant = "default",
+}: PoolFeaturedCardProps) {
   const [detailsOpen, setDetailsOpen] = React.useState(false);
   const poolDetail = getPoolDetail(pool.id);
   const href = `/pools/${pool.id}`;
@@ -37,15 +41,18 @@ export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
     <article
       data-pool-slide
       className={cn(
-        "@container overflow-hidden rounded-md border border-border bg-e2 transition-opacity hover:opacity-95",
+        "@container overflow-hidden rounded-md bg-e2 transition-opacity hover:opacity-95",
+        variant === "default" && "border border-border",
+        variant === "carousel" && "border-0",
         detailsOpen && "open",
       )}
     >
-      <div className="flex">
+      <div className="flex flex-col sm:flex-row">
         <Link
           href={href}
           className={cn(
-            "relative w-[42%] shrink-0 self-stretch sm:w-[40%]",
+            "relative block w-full shrink-0 overflow-hidden sm:w-[40%] sm:self-stretch",
+            "aspect-[5/3] max-h-[160px] sm:aspect-auto sm:max-h-none",
             pool.imageBgClass,
           )}
         >
@@ -57,26 +64,28 @@ export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
           />
         </Link>
 
-        <div className="flex min-h-[210px] min-w-0 flex-1 flex-col p-2.5 sm:p-3">
-          <div className="relative mb-2.5">
-            <Link
-              href={href}
-              className="absolute right-0 top-0 inline-flex items-center gap-1 font-mono text-micro tracking-[0.06em] text-t2 transition-colors hover:text-t4"
-            >
-              <BarChart3 className="size-2.5" strokeWidth={1.75} />
-              View Insights
-            </Link>
+        <div className="flex min-w-0 flex-1 flex-col p-3 sm:min-h-[210px]">
+          <div className="mb-2.5">
+            <div className="mb-1.5 flex items-start justify-between gap-2">
+              <Link href={href} className="min-w-0 flex-1 transition-opacity hover:opacity-90">
+                <h3 className="font-display text-body-sm font-bold leading-tight text-t4">
+                  {pool.name}
+                </h3>
+                <p className="font-display text-body-sm font-bold leading-tight text-t4">
+                  {pool.tokenId}
+                </p>
+              </Link>
+              <Link
+                href={href}
+                className="inline-flex shrink-0 items-center gap-1 font-mono text-micro tracking-[0.06em] text-t2 transition-colors hover:text-t4"
+              >
+                <BarChart3 className="size-2.5" strokeWidth={1.75} />
+                <span className="hidden min-[360px]:inline">View Insights</span>
+                <span className="min-[360px]:hidden">Insights</span>
+              </Link>
+            </div>
 
-            <Link href={href} className="block pr-20 transition-opacity hover:opacity-90">
-              <h3 className="font-display text-body-sm font-bold leading-tight text-t4">
-                {pool.name}
-              </h3>
-              <p className="font-display text-body-sm font-bold leading-tight text-t4">
-                {pool.tokenId}
-              </p>
-            </Link>
-
-            <div className="mt-1.5 flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1">
               <span className="inline-flex h-3.5 items-center rounded-[2px] bg-e4 px-1.5 font-mono text-micro tracking-[0.06em] text-t2">
                 {pool.creator}
               </span>
@@ -86,7 +95,7 @@ export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
             </div>
           </div>
 
-          <div className="mb-2.5 grid grid-cols-2 gap-3">
+          <div className="mb-2.5 grid grid-cols-2 gap-2 sm:gap-3">
             <div>
               <p className="mb-1 text-caption uppercase tracking-[0.05em] text-t1">
                 Pool Target
@@ -143,7 +152,7 @@ export function PoolFeaturedCard({ pool }: PoolFeaturedCardProps) {
           detailsOpen ? "max-h-32" : "max-h-0",
         )}
       >
-        <div className="grid grid-cols-4 gap-1 border-t border-border bg-e3 px-2.5 py-2">
+        <div className="grid grid-cols-2 gap-1 border-t border-border bg-e3 px-2.5 py-2 sm:grid-cols-4">
           {[
             { label: "GP Profit", value: pool.gpProfit },
             {

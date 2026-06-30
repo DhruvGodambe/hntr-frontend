@@ -33,28 +33,52 @@ export function MarketOverviewSection() {
             </p>
           </div>
 
-          <div className="relative shrink-0">
-            <label htmlFor="market-timeframe" className="sr-only">
-              Timeframe
-            </label>
-            <select
-              id="market-timeframe"
-              value={timeframe}
-              onChange={(event) =>
-                setTimeframe(event.target.value as (typeof timeframes)[number])
-              }
-              className="h-7 appearance-none rounded border border-bd1 bg-e2 py-0 pl-2.5 pr-7 font-mono text-label text-t3 shadow-sh1"
+          <div className="shrink-0">
+            <div className="relative lg:hidden">
+              <label htmlFor="market-timeframe" className="sr-only">
+                Timeframe
+              </label>
+              <select
+                id="market-timeframe"
+                value={timeframe}
+                onChange={(event) =>
+                  setTimeframe(event.target.value as (typeof timeframes)[number])
+                }
+                className="h-7 appearance-none rounded border border-bd1 bg-e2 py-0 pl-2.5 pr-7 font-mono text-label text-t3 shadow-sh1"
+              >
+                {timeframes.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 text-t1"
+                aria-hidden
+              />
+            </div>
+            <div
+              className="hidden items-center gap-1 rounded border border-bd1 bg-e3 p-0.5 shadow-sh1 lg:flex"
+              role="tablist"
+              aria-label="Market timeframe"
             >
               {timeframes.map((option) => (
-                <option key={option} value={option}>
+                <button
+                  key={option}
+                  type="button"
+                  role="tab"
+                  aria-selected={timeframe === option}
+                  onClick={() => setTimeframe(option)}
+                  className={
+                    timeframe === option
+                      ? "h-6 rounded bg-e1 px-2.5 font-mono text-micro font-bold tracking-[0.06em] text-t4"
+                      : "h-6 rounded px-2.5 font-mono text-micro font-semibold tracking-[0.06em] text-t1 transition-colors hover:text-t3"
+                  }
+                >
                   {option}
-                </option>
+                </button>
               ))}
-            </select>
-            <ChevronDown
-              className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 text-t1"
-              aria-hidden
-            />
+            </div>
           </div>
         </div>
 

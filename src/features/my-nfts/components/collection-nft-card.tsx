@@ -30,32 +30,34 @@ export function CollectionNFTCard({ nft, index = 0 }: CollectionNFTCardProps) {
         <OwnershipRing percent={nft.sharePercent} />
       </div>
 
-      <div className="flex flex-1 flex-col px-2.5 pb-0 pt-2.5">
-        <h3 className="font-display text-label font-bold leading-tight text-t4">
+      <div className="flex flex-1 flex-col px-2.5 pb-0 pt-2.5 sm:px-3">
+        <h3 className="truncate font-display text-caption font-bold leading-tight text-t4 sm:text-label">
           {nft.name}
         </h3>
-        <p className="mb-2 font-mono text-caption tracking-[0.05em] text-t0">
+        <p className="mb-2 truncate font-mono text-micro tracking-[0.05em] text-t0 sm:text-caption">
           {nft.tokenId}
         </p>
 
         <div className="mb-2 flex justify-between gap-2">
-          <div>
-            <p className="mb-0.5 font-mono text-caption uppercase tracking-[0.06em] text-t0">
+          <div className="min-w-0">
+            <p className="mb-0.5 font-mono text-micro uppercase tracking-[0.06em] text-t0 sm:text-caption">
               Listed Price
             </p>
-            <p className="font-mono text-label font-bold text-t4">
+            <p className="font-mono text-caption font-bold text-t4 sm:text-label">
               {nft.listedPriceEth}{" "}
-              <span className="text-caption font-normal text-t2">ETH</span>
+              <span className="text-micro font-normal text-t2 sm:text-caption">ETH</span>
             </p>
-            <p className="mt-1 font-mono text-caption text-t1">{nft.listedPriceUsd}</p>
+            <p className="mt-0.5 truncate font-mono text-micro text-t1 sm:mt-1 sm:text-caption">
+              {nft.listedPriceUsd}
+            </p>
           </div>
-          <div className="text-right">
-            <p className="mb-0.5 font-mono text-caption uppercase tracking-[0.06em] text-t0">
+          <div className="shrink-0 text-right">
+            <p className="mb-0.5 font-mono text-micro uppercase tracking-[0.06em] text-t0 sm:text-caption">
               My Share
             </p>
-            <p className="font-mono text-label font-bold text-t4">
+            <p className="font-mono text-caption font-bold text-t4 sm:text-label">
               {nft.shareValueEth}{" "}
-              <span className="text-caption font-normal text-t2">ETH</span>
+              <span className="text-micro font-normal text-t2 sm:text-caption">ETH</span>
             </p>
           </div>
         </div>
@@ -65,7 +67,7 @@ export function CollectionNFTCard({ nft, index = 0 }: CollectionNFTCardProps) {
         <div className="flex items-center justify-between pb-2">
           <p
             className={cn(
-              "font-mono text-label font-bold",
+              "font-mono text-caption font-bold sm:text-label",
               profitPositive ? "text-green" : "text-red",
             )}
           >
@@ -85,7 +87,7 @@ export function CollectionNFTCard({ nft, index = 0 }: CollectionNFTCardProps) {
 
       <Link
         href={`/pools/${nft.poolId}`}
-        className="flex h-7 w-full items-center justify-center border-t border-bd0 bg-e3 font-mono text-caption tracking-[0.08em] text-t2 transition-colors hover:bg-[var(--sage-faint)] hover:text-t4"
+        className="flex h-7 w-full items-center justify-center border-t border-bd0 bg-e3 font-mono text-micro tracking-[0.08em] text-t2 transition-colors hover:bg-[var(--sage-faint)] hover:text-t4 sm:text-caption"
       >
         View NFT
       </Link>

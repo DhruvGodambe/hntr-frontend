@@ -97,13 +97,13 @@ function ActivityProgressBar({
 
   return (
     <div className="flex items-center gap-2">
-      <div className="h-1 max-w-[120px] flex-1 overflow-hidden rounded-[2px] bg-[var(--cream-dark)]">
+      <div className="h-1 max-w-[88px] flex-1 overflow-hidden rounded-[2px] bg-[var(--cream-dark)] sm:max-w-[120px]">
         <div
           className="h-full rounded-[2px] bg-[var(--olive)] transition-[width] duration-700 ease-out"
           style={{ width: `${width}%` }}
         />
       </div>
-      <span className="whitespace-nowrap font-mono text-caption text-t1">
+      <span className="whitespace-nowrap font-mono text-micro text-t1 sm:text-caption">
         {target}%
       </span>
     </div>
@@ -163,11 +163,11 @@ export function RealtimeActivityTable() {
 
   return (
     <section className="mb-4 overflow-hidden rounded-[var(--r)] bg-e2 shadow-[var(--sh1),var(--glow)]">
-      <div className="flex items-center justify-between border-b border-bd0 px-4 py-3">
-        <h2 className="font-mono text-caption uppercase tracking-[0.1em] text-t1">
+      <div className="flex items-center justify-between gap-2 border-b border-bd0 px-3 py-2 sm:px-4 sm:py-3">
+        <h2 className="min-w-0 font-mono text-micro uppercase tracking-[0.08em] text-t1 sm:text-caption sm:tracking-[0.1em]">
           Real-Time Activity
         </h2>
-        <span className="flex items-center gap-1.5 font-mono text-caption text-green">
+        <span className="flex shrink-0 items-center gap-1.5 font-mono text-micro text-green sm:text-caption">
           <span
             className="size-[5px] animate-pulse rounded-full bg-green"
             aria-hidden
@@ -177,24 +177,19 @@ export function RealtimeActivityTable() {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+        <table className="w-full min-w-[520px] border-collapse">
           <thead>
             <tr className="bg-e3">
-              <th className="border-b border-bd0 px-4 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                Wallet
-              </th>
-              <th className="border-b border-bd0 px-4 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                Bid Amount
-              </th>
-              <th className="border-b border-bd0 px-4 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                Collection
-              </th>
-              <th className="border-b border-bd0 px-4 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                Completion
-              </th>
-              <th className="border-b border-bd0 px-4 py-2 text-left font-mono text-caption font-medium uppercase tracking-[0.08em] text-t0">
-                Action
-              </th>
+              {["Wallet", "Bid Amount", "Collection", "Completion", "Action"].map(
+                (heading) => (
+                  <th
+                    key={heading}
+                    className="border-b border-bd0 px-2 py-1.5 text-left font-mono text-micro font-medium uppercase tracking-[0.08em] text-t0 sm:px-4 sm:py-2 sm:text-caption"
+                  >
+                    {heading}
+                  </th>
+                ),
+              )}
             </tr>
           </thead>
           <tbody>
@@ -206,34 +201,34 @@ export function RealtimeActivityTable() {
                   row.isNew && "activity-row-new",
                 )}
               >
-                <td className="border-b border-bd0 px-4 py-2.5 font-mono text-label font-medium text-t3 last:border-b-0">
+                <td className="border-b border-bd0 px-2 py-2 font-mono text-caption font-medium text-t3 last:border-b-0 sm:px-4 sm:py-2.5 sm:text-label">
                   {row.wallet}
                 </td>
-                <td className="border-b border-bd0 px-4 py-2.5 font-mono text-body-sm font-bold text-t4 last:border-b-0">
+                <td className="border-b border-bd0 px-2 py-2 font-mono text-caption font-bold text-t4 last:border-b-0 sm:px-4 sm:py-2.5 sm:text-body-sm">
                   {row.bidAmount}
                 </td>
-                <td className="border-b border-bd0 px-4 py-2.5 last:border-b-0">
-                  <span className="flex items-center gap-1.5">
+                <td className="border-b border-bd0 px-2 py-2 last:border-b-0 sm:px-4 sm:py-2.5">
+                  <span className="flex min-w-[120px] items-center gap-1.5">
                     <span
-                      className="size-2 shrink-0 rounded-[2px]"
+                      className="size-1.5 shrink-0 rounded-[2px] sm:size-2"
                       style={{ background: row.collectionColor }}
                       aria-hidden
                     />
-                    <span className="text-label text-t2">{row.collection}</span>
+                    <span className="text-caption text-t2 sm:text-label">{row.collection}</span>
                   </span>
                 </td>
-                <td className="border-b border-bd0 px-4 py-2.5 last:border-b-0">
+                <td className="border-b border-bd0 px-2 py-2 last:border-b-0 sm:px-4 sm:py-2.5">
                   <ActivityProgressBar
                     target={row.completion}
                     delay={index * 100}
                   />
                 </td>
-                <td className="border-b border-bd0 px-4 py-2.5 last:border-b-0">
+                <td className="border-b border-bd0 px-2 py-2 last:border-b-0 sm:px-4 sm:py-2.5">
                   <Link
                     href={`https://etherscan.io/tx/${row.txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="border-b border-[var(--sage-faint)] font-mono text-caption tracking-[0.05em] text-[var(--olive)]"
+                    className="whitespace-nowrap border-b border-[var(--sage-faint)] font-mono text-micro tracking-[0.05em] text-[var(--olive)] sm:text-caption"
                   >
                     VIEW TX
                   </Link>
