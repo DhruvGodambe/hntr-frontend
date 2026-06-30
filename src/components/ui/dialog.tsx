@@ -26,7 +26,7 @@ const dialogVariantClasses: Record<
   "drawer-left":
     "inset-y-0 left-0 right-auto flex h-dvh max-h-dvh w-full max-w-[280px] translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-0 p-0 shadow-none sm:rounded-none data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
   "drawer-right":
-    "inset-y-0 right-0 left-auto flex h-dvh max-h-dvh w-full max-w-[360px] translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-0 bg-e1 p-0 shadow-none sm:rounded-none data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+    "inset-y-0 right-0 left-auto flex h-dvh max-h-dvh w-dvw max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-0 bg-e1 p-0 shadow-none sm:w-full sm:max-w-[360px] sm:rounded-none data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
 };
 
 const DialogOverlay = React.forwardRef<

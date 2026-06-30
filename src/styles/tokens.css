@@ -168,9 +168,9 @@
   --conn-dot-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
 
   /* ── Loader ── */
-  --loader-letter: #5e6b55;
-  --loader-suffix: #a8b5a2;
-  --loader-cursor: #5e6b55;
+  --loader-letter: var(--t4);
+  --loader-suffix: var(--t2);
+  --loader-cursor: var(--t4);
 
   /* ── Inverse surfaces (hero banners, featured tiers — stay dark in both modes) ── */
   --inverse-surface: #0f0f10;

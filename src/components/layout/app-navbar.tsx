@@ -70,13 +70,14 @@ export function AppNavbar({
         <ThemeToggle className="lg:hidden" />
         <NotificationsPanel />
         {showRightPanelToggle && (
-          <NavbarIconBtn
-            aria-label="Open account panel"
-            onClick={onRightPanelOpen}
-            className="lg:hidden"
-          >
-            <PanelRight className="size-[13px]" />
-          </NavbarIconBtn>
+          <div className="lg:hidden">
+            <NavbarIconBtn
+              aria-label="Open account panel"
+              onClick={onRightPanelOpen}
+            >
+              <PanelRight className="size-[13px]" />
+            </NavbarIconBtn>
+          </div>
         )}
         <button
           type="button"

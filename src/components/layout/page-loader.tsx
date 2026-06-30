@@ -37,7 +37,7 @@ export function PageLoader() {
         {["H", "N", "T", "R"].map((letter, i) => (
           <span
             key={letter}
-            className="ll font-display text-display font-bold leading-none tracking-[0.04em]"
+            className="ll font-display text-[clamp(2.5rem,7vw,4rem)] font-bold leading-none tracking-[0.04em]"
             style={{
               color: "var(--loader-letter)",
               animationDelay: `${0.1 + i * 0.18}s`,
@@ -47,14 +47,15 @@ export function PageLoader() {
           </span>
         ))}
         <span
-          className="ls ml-px font-display text-heading font-normal leading-none tracking-[0.02em]"
-          style={{ color: "var(--loader-suffix)", animationDelay: "0.82s" }}
+          className="ls ml-px font-display text-[clamp(1.75rem,5vw,2.75rem)] font-normal leading-none tracking-[0.02em]"
+          style={{ color: "var(--loader-letter)", animationDelay: "0.82s" }}
         >
           .art
         </span>
         <span
-          className="loader-cursor ml-1 inline-block h-[42px] w-[3px] align-middle"
+          className="loader-cursor ml-1 inline-block w-[3px] align-middle"
           style={{
+            height: "clamp(36px, 8vw, 56px)",
             background: "var(--loader-cursor)",
             animationDelay: "1s",
           }}
