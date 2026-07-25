@@ -11,7 +11,7 @@ import { config } from "./wagmi";
 import { erc20Abi, hntrMembershipAbi, TOKEN_ADDRESSES, TIERS, type TierName } from "./contracts";
 import { api } from "./api";
 import { ensureAuth } from "./auth";
-import { getAddress } from "viem";
+import { getAddress, maxUint256 } from "viem";
 
 export type { TierName };
 
@@ -145,7 +145,7 @@ export async function purchaseOrUpgradeTier(
         address: tokenAddress,
         abi: erc20Abi,
         functionName: "approve",
-        args: [quote.contractAddress, 2n ** 256n - 1n],
+        args: [quote.contractAddress, maxUint256],
       });
       progress?.onWalletAccepted?.();
       await waitForTransactionReceipt(config, { hash: approveHash });

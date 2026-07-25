@@ -292,7 +292,7 @@ export default function MainLayout({
 
   useEffect(() => {
     let cancelled = false;
-    let timer: ReturnType<typeof setTimeout>;
+    let timer: number | undefined;
 
     const pushActivity = () => {
       const template = pickActivityTemplate(activeTabRef.current);
@@ -392,7 +392,7 @@ export default function MainLayout({
 
     let cancelled = false;
     let attempts = 0;
-    let timer: ReturnType<typeof setTimeout> | undefined;
+    let timer: number | undefined;
 
     const place = () => {
       if (cancelled) return;
@@ -400,7 +400,7 @@ export default function MainLayout({
       const anchor = panel?.querySelector(".pbar") as HTMLElement | null;
       if (!anchor) {
         if (attempts++ < 20) {
-          timer = setTimeout(place, 50);
+          timer = window.setTimeout(place, 50);
         } else {
           setProfileAnchor(null);
         }
@@ -441,7 +441,7 @@ export default function MainLayout({
 
     let cancelled = false;
     let attempts = 0;
-    let timer: ReturnType<typeof setTimeout> | undefined;
+    let timer: number | undefined;
 
     const place = () => {
       if (cancelled) return;
@@ -449,7 +449,7 @@ export default function MainLayout({
       const footer = feed?.querySelector(".home-footer") as HTMLElement | null;
       if (!feed || !footer) {
         if (attempts++ < 20) {
-          timer = setTimeout(place, 50);
+          timer = window.setTimeout(place, 50);
         } else {
           setActivityAnchor(null);
         }
