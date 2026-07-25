@@ -213,6 +213,7 @@ export function mapRegistrationApiError(error: unknown): {
 
   if (lower.includes("wallet") && (lower.includes("duplicate") || lower.includes("already") || lower.includes("e11000"))) {
     return {
+      fieldErrors: {},
       formError: "This wallet is already registered. Connect a different wallet or sign in.",
     };
   }
