@@ -75,6 +75,13 @@ export default function SignupOverlays() {
   const [region, setRegion] = useState<SignupRegion | "">("");
   const [phone, setPhone] = useState("");
   const purchaseBusyRef = useRef(false);
+  const skipStep2Ref = useRef(false);
+  const [isProfileRegistered, setIsProfileRegistered] = useState(false);
+
+  const goToSignupStep = useCallback((step: number) => {
+    if (skipStep2Ref.current && step === 2) return;
+    window.suGoto?.(step);
+  }, []);
 
   const clearStep2Error = useCallback((field: keyof SignupStep2Errors) => {
     setRegisterFormError("");
@@ -111,7 +118,21 @@ export default function SignupOverlays() {
     script.src = `/assets/js/script-8.js?${Date.now()}`;
     script.async = true;
     script.onload = () => {
+      const nativeSuGoto = window.suGoto;
+      const nativeOpenSignup = window.openSignup;
       const nativeClose = window.closeSignup;
+
+      window.suGoto = (step: number) => {
+        if (skipStep2Ref.current && step === 2) return;
+        nativeSuGoto?.(step);
+      };
+
+      window.openSignup = () => {
+        skipStep2Ref.current = false;
+        setIsProfileRegistered(false);
+        nativeOpenSignup?.();
+      };
+
       if (nativeClose) {
         window.closeSignup = () => {
           nativeClose();
@@ -217,11 +238,15 @@ export default function SignupOverlays() {
           return;
         }
         // Registered but hasn't purchased a tier yet - skip straight to tier selection.
+        skipStep2Ref.current = true;
+        setIsProfileRegistered(true);
         setPurchaseStatus({ state: "idle" });
-        window.suGoto?.(3);
+        goToSignupStep(3);
       } catch (error) {
         if (error instanceof ApiError && error.statusCode === 404) {
-          window.suGoto?.(2);
+          skipStep2Ref.current = false;
+          setIsProfileRegistered(false);
+          goToSignupStep(2);
         } else {
           throw error;
         }
@@ -271,8 +296,10 @@ export default function SignupOverlays() {
         sponsorUsername: sponsor,
       });
       setCurrentUsername(username);
+      skipStep2Ref.current = true;
+      setIsProfileRegistered(true);
       setPurchaseStatus({ state: "idle" });
-      window.suGoto?.(3);
+      goToSignupStep(3);
     } catch (error) {
       const { fieldErrors, formError } = mapRegistrationApiError(error);
       setStep2Errors(fieldErrors);
@@ -613,16 +640,18 @@ export default function SignupOverlays() {
               </div>
             </div>
             <div className="su-foot" style={{ padding: "16px 30px" }}>
-              <button
-                className="su-back"
-                type="button"
-                onClick={() => window.suGoto?.(2)}
-              >
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                  <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Previous Step
-              </button>
+              {!isProfileRegistered && (
+                <button
+                  className="su-back"
+                  type="button"
+                  onClick={() => goToSignupStep(2)}
+                >
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                    <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Previous Step
+                </button>
+              )}
               <span className="su-status">
                 Current Status<b>Onboarding</b>
               </span>
