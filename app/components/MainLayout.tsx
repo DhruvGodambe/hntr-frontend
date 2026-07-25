@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { formatEther } from "viem";
 import SignupOverlays from "./SignupOverlays";
@@ -16,6 +17,91 @@ import { useDashboardData, useClaimCommissions, useLeadershipStatus, usePointsSu
 import type { StandardToastData } from "../../lib/notification-data";
 
 const MOBILE_MQ = "(max-width: 900px)";
+
+type ActivityKind = "bid" | "sale" | "other";
+type ActivityTab = "all" | "bids" | "sales";
+
+type ActivityTemplate = {
+  icon: string;
+  name: string;
+  action: string;
+  val: string;
+  pos: boolean;
+  kind: ActivityKind;
+};
+
+type ActivityEntry = ActivityTemplate & {
+  id: string;
+  ts: number;
+  fresh: boolean;
+};
+
+const ACTIVITY_TEMPLATES: ActivityTemplate[] = [
+  { icon: "🐧", name: "Pudgy Penguin #3362", action: "DEPOSITED", val: "2.4 ETH", pos: true, kind: "other" },
+  { icon: "🦧", name: "BAYC #9112", action: "LISTED", val: "$19,400", pos: true, kind: "sale" },
+  { icon: "👾", name: "CryptoPunk #7804", action: "SOLD", val: "$91,000", pos: true, kind: "sale" },
+  { icon: "🐧", name: "Pudgy Penguin #1021", action: "BID PLACED", val: "3.1 ETH", pos: true, kind: "bid" },
+  { icon: "🦧", name: "BAYC #5678", action: "RENEWED", val: "+14% APY", pos: true, kind: "other" },
+  { icon: "🎨", name: "Normie #2265", action: "SOLD", val: "$4,200", pos: true, kind: "sale" },
+  { icon: "👾", name: "CryptoPunk #3100", action: "BID PLACED", val: "$110,000", pos: true, kind: "bid" },
+  { icon: "⚡", name: "Kaito Genesis #441", action: "LISTED", val: "1.4 ETH", pos: false, kind: "sale" },
+  { icon: "🦧", name: "BAYC #1142", action: "WITHDRAWN", val: "3.2 ETH", pos: false, kind: "other" },
+  { icon: "🐧", name: "Pudgy Penguin #884", action: "BID PLACED", val: "2.7 ETH", pos: true, kind: "bid" },
+  { icon: "🎨", name: "Bored Ape Yacht Club #3362", action: "BID PLACED", val: "2.5 ETH", pos: true, kind: "bid" },
+  { icon: "💎", name: "Pudgy Penguins #8721", action: "SALE", val: "4.2 ETH", pos: true, kind: "sale" },
+  { icon: "🔥", name: "Azuki #5234", action: "BID DECLINED", val: "3.1 ETH", pos: false, kind: "bid" },
+  { icon: "⚡", name: "Doodles #1523", action: "POOL FUNDED", val: "1.8 ETH", pos: true, kind: "other" },
+  { icon: "🎯", name: "CloneX #9841", action: "BID PLACED", val: "5.5 ETH", pos: true, kind: "bid" },
+  { icon: "💫", name: "Moonbirds #2341", action: "SALE", val: "6.7 ETH", pos: true, kind: "sale" },
+];
+
+let activityIdCounter = 0;
+
+function nextActivityId() {
+  activityIdCounter += 1;
+  return `act-${activityIdCounter}`;
+}
+
+function seedActivityLog(): ActivityEntry[] {
+  return Array.from({ length: 7 }, (_, index) => {
+    const template = ACTIVITY_TEMPLATES[index % ACTIVITY_TEMPLATES.length];
+    return {
+      ...template,
+      id: nextActivityId(),
+      ts: Date.now() - (index * 47 + 22) * 1000,
+      fresh: false,
+    };
+  });
+}
+
+function formatActivityTimeAgo(ts: number): string {
+  const seconds = Math.floor((Date.now() - ts) / 1000);
+  if (seconds < 60) return `${Math.max(1, seconds)}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  return `${Math.floor(seconds / 3600)}h`;
+}
+
+function activityAccentColor(action: string, pos: boolean): string {
+  if (/LISTED|SOLD|SALE/.test(action)) return "var(--green)";
+  if (/BID|WITHDRAWN/.test(action)) return "var(--t4)";
+  return pos ? "var(--green)" : "var(--red)";
+}
+
+function filterActivityByTab(entries: ActivityEntry[], tab: ActivityTab): ActivityEntry[] {
+  if (tab === "bids") return entries.filter((entry) => entry.kind === "bid");
+  if (tab === "sales") return entries.filter((entry) => entry.kind === "sale");
+  return entries;
+}
+
+function pickActivityTemplate(tab: ActivityTab): ActivityTemplate {
+  const pool =
+    tab === "bids"
+      ? ACTIVITY_TEMPLATES.filter((entry) => entry.kind === "bid")
+      : tab === "sales"
+        ? ACTIVITY_TEMPLATES.filter((entry) => entry.kind === "sale")
+        : ACTIVITY_TEMPLATES;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 
 function buildNavBarPath(width: number, notchX: number, hasNotch: boolean) {
   const h = 64;
@@ -112,7 +198,10 @@ export default function MainLayout({
   const { data: leadershipStatus } = useLeadershipStatus();
   const claimCommissions = useClaimCommissions();
   const [claimBusy, setClaimBusy] = useState(false);
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState<ActivityTab>("all");
+  const [activityLog, setActivityLog] = useState<ActivityEntry[]>(() => seedActivityLog());
+  const [activityTimeTick, setActivityTimeTick] = useState(0);
+  const activeTabRef = useRef<ActivityTab>("all");
   const [isDark, setIsDark] = useState(true);
   const [walletPanelOpen, setWalletPanelOpen] = useState(false);
   const [notifPanelOpen, setNotifPanelOpen] = useState(false);
@@ -196,6 +285,60 @@ export default function MainLayout({
   useEffect(() => {
     setRailOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+
+    const pushActivity = () => {
+      const template = pickActivityTemplate(activeTabRef.current);
+      setActivityLog((entries) => [
+        {
+          ...template,
+          id: nextActivityId(),
+          ts: Date.now(),
+          fresh: true,
+        },
+        ...entries.map((entry) => ({ ...entry, fresh: false })),
+      ].slice(0, 20));
+    };
+
+    const scheduleNext = () => {
+      timer = window.setTimeout(() => {
+        if (cancelled) return;
+        pushActivity();
+        scheduleNext();
+      }, 2800 + Math.random() * 2200);
+    };
+
+    timer = window.setTimeout(() => {
+      if (cancelled) return;
+      pushActivity();
+      scheduleNext();
+    }, 3200);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActivityTimeTick((tick) => tick + 1);
+      setActivityLog((entries) => entries.map((entry) => ({ ...entry, fresh: false })));
+    }, 15000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const filteredActivity = useMemo(
+    () => filterActivityByTab(activityLog, activeTab).slice(0, 7),
+    [activityLog, activeTab, activityTimeTick],
+  );
 
   useEffect(() => {
     const updateActiveNotch = () => {
@@ -826,66 +969,28 @@ export default function MainLayout({
         </button>
       </div>
       <div id={inline ? "mobileActivityFeed" : "activityFeed"} className={inline ? "mobile-activity-feed" : undefined}>
-        <div className="arow arow-new">
-          <div className="adot">🎨</div>
-          <div className="ainf">
-            <div className="an">Bored Ape Yacht Club #3362</div>
-            <div className="aa" style={{ color: "var(--green)" }}>
-              BID PLACED · 2.5 ETH
-            </div>
-          </div>
-          <div className="atm">2m</div>
-        </div>
-        <div className="arow">
-          <div className="adot">💎</div>
-          <div className="ainf">
-            <div className="an">Pudgy Penguins #8721</div>
-            <div className="aa" style={{ color: "var(--green)" }}>
-              SALE · 4.2 ETH
-            </div>
-          </div>
-          <div className="atm">5m</div>
-        </div>
-        <div className="arow">
-          <div className="adot">🔥</div>
-          <div className="ainf">
-            <div className="an">Azuki #5234</div>
-            <div className="aa" style={{ color: "var(--red)" }}>
-              BID DECLINED · 3.1 ETH
-            </div>
-          </div>
-          <div className="atm">12m</div>
-        </div>
-        <div className="arow">
-          <div className="adot">⚡</div>
-          <div className="ainf">
-            <div className="an">Doodles #1523</div>
-            <div className="aa" style={{ color: "var(--green)" }}>
-              POOL FUNDED · 1.8 ETH
-            </div>
-          </div>
-          <div className="atm">18m</div>
-        </div>
-        <div className="arow">
-          <div className="adot">🎯</div>
-          <div className="ainf">
-            <div className="an">CloneX #9841</div>
-            <div className="aa" style={{ color: "var(--green)" }}>
-              BID PLACED · 5.5 ETH
-            </div>
-          </div>
-          <div className="atm">25m</div>
-        </div>
-        <div className="arow">
-          <div className="adot">💫</div>
-          <div className="ainf">
-            <div className="an">Moonbirds #2341</div>
-            <div className="aa" style={{ color: "var(--green)" }}>
-              SALE · 6.7 ETH
-            </div>
-          </div>
-          <div className="atm">32m</div>
-        </div>
+        <AnimatePresence mode="popLayout" initial={false}>
+          {filteredActivity.map((entry) => (
+            <motion.div
+              key={entry.id}
+              layout
+              initial={{ opacity: 0, y: -14, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className={`arow${entry.fresh ? " arow-new" : ""}`}
+            >
+              <div className="adot">{entry.icon}</div>
+              <div className="ainf">
+                <div className="an">{entry.name}</div>
+                <div className="aa" style={{ color: activityAccentColor(entry.action, entry.pos) }}>
+                  {entry.action} · {entry.val}
+                </div>
+              </div>
+              <div className="atm">{formatActivityTimeAgo(entry.ts)}</div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
       <a className="vact">View Activity</a>
     </>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Fragment, ReactNode, useEffect, useLayoutEffect, useMemo, useState, useRef } from "react";
+import { motion } from "framer-motion";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper/modules';
 import 'swiper/css';
@@ -145,6 +146,8 @@ function renderTypedSegments(segments: Segment[], count: number, keyBase: string
     return <Fragment key={`${keyBase}-seg-${segIdx}`}>{children}</Fragment>;
   });
 }
+
+const MOBILE_LISTINGS_BATCH = 4;
 
 const FALLBACK_LISTING_CARDS = [
   { img: "/assets/images/image-11.jpg", name: "BAYC #9112", bought: "5.75", sell: "7.15", profit: "+19.3%", soon: false, openseaUrl: "https://opensea.io" },
@@ -298,6 +301,8 @@ export default function HomePage() {
   const [marketTimeFrame, setMarketTimeFrame] = useState<MarketTimeFrame>("24H");
   const [isMobile, setIsMobile] = useState(false);
   const [mobileSlideWidth, setMobileSlideWidth] = useState(0);
+  const [mobileListingsVisible, setMobileListingsVisible] = useState(MOBILE_LISTINGS_BATCH);
+  const [mobileListingsAnimFrom, setMobileListingsAnimFrom] = useState(MOBILE_LISTINGS_BATCH);
 
   const { data: baycListings } = useOpenSeaListings("boredapeyachtclub", 1);
   const { data: pudgyListings } = useOpenSeaListings("pudgypenguins", 1);
@@ -404,6 +409,21 @@ export default function HomePage() {
       },
     ];
   }, [openSeaListings]);
+
+  useEffect(() => {
+    setMobileListingsVisible(MOBILE_LISTINGS_BATCH);
+    setMobileListingsAnimFrom(MOBILE_LISTINGS_BATCH);
+  }, [listingCards.length]);
+
+  const visibleMobileListings = listingCards.slice(0, mobileListingsVisible);
+  const hasMoreMobileListings = mobileListingsVisible < listingCards.length;
+
+  const loadMoreMobileListings = () => {
+    setMobileListingsAnimFrom(mobileListingsVisible);
+    setMobileListingsVisible((count) =>
+      Math.min(count + MOBILE_LISTINGS_BATCH, listingCards.length),
+    );
+  };
 
   const salesCards = useMemo(() => {
     if (!openSeaSales?.length) return FALLBACK_SALES_CARDS;
@@ -575,6 +595,72 @@ export default function HomePage() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", measure);
+    };
+  }, [isMobile, loaderOut]);
+
+  // Mobile strategies slider — grab/swipe scroll with snap
+  useEffect(() => {
+    if (!isMobile) return;
+    const viewport = npViewportRef.current;
+    if (!viewport) return;
+
+    let dragging = false;
+    let moved = false;
+    let pointerId: number | null = null;
+    let startX = 0;
+    let startScrollLeft = 0;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      dragging = true;
+      moved = false;
+      pointerId = event.pointerId;
+      startX = event.clientX;
+      startScrollLeft = viewport.scrollLeft;
+      viewport.classList.add("is-dragging");
+      viewport.setPointerCapture(event.pointerId);
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (!dragging || event.pointerId !== pointerId) return;
+      const delta = event.clientX - startX;
+      if (Math.abs(delta) > 4) moved = true;
+      viewport.scrollLeft = startScrollLeft - delta;
+    };
+
+    const endDrag = (event: PointerEvent) => {
+      if (!dragging || event.pointerId !== pointerId) return;
+      dragging = false;
+      pointerId = null;
+      viewport.classList.remove("is-dragging");
+      try {
+        viewport.releasePointerCapture(event.pointerId);
+      } catch {
+        // Pointer may already be released.
+      }
+    };
+
+    const onClick = (event: MouseEvent) => {
+      if (moved) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    viewport.addEventListener("pointerdown", onPointerDown);
+    viewport.addEventListener("pointermove", onPointerMove);
+    viewport.addEventListener("pointerup", endDrag);
+    viewport.addEventListener("pointercancel", endDrag);
+    viewport.addEventListener("click", onClick, true);
+
+    return () => {
+      viewport.classList.remove("is-dragging");
+      viewport.removeEventListener("pointerdown", onPointerDown);
+      viewport.removeEventListener("pointermove", onPointerMove);
+      viewport.removeEventListener("pointerup", endDrag);
+      viewport.removeEventListener("pointercancel", endDrag);
+      viewport.removeEventListener("click", onClick, true);
     };
   }, [isMobile, loaderOut]);
 
@@ -1360,107 +1446,84 @@ export default function HomePage() {
 
               <div className="sh sh-strategies" style={{ position: 'relative' }}>
                 <div className="sh-strategies-left">
-                  <div className="st" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    HNTR LIVE STRATEGIES
-                    <span className="live-dot" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34d399', boxShadow: '0 0 8px rgba(52,211,153,.8)', flexShrink: 0 }} />
+                  <div className="st sh-strategies-title">
+                    <span className="sh-strategies-title-text">HNTR Live Strategies</span>
+                    <span className="live-dot sh-strategies-live-dot" aria-hidden="true" />
                   </div>
-                  <span className="featured-pill">
+                  <span className="featured-pill sh-strategies-featured">
                     Featured
                   </span>
                 </div>
                 <div className="sh-strategies-right">
-                  <div style={{ display: 'flex', gap: '6px' }}>
+                  <div className="sh-strategies-nav">
                     <button
+                      type="button"
+                      className="sh-strategies-nav-btn"
                       onClick={goToPrevSlide}
                       disabled={!canGoPrev}
                       aria-label="Previous strategy"
-                      style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--bd1)',
-                        background: 'var(--e2)',
-                        color: 'var(--t3)',
-                        cursor: canGoPrev ? 'pointer' : 'not-allowed',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '16px',
-                        opacity: canGoPrev ? 1 : 0.4,
-                        transition: 'all .15s'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (canGoPrev) {
-                          e.currentTarget.style.background = 'var(--e3)';
-                          e.currentTarget.style.borderColor = 'var(--bd2)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--e2)';
-                        e.currentTarget.style.borderColor = 'var(--bd1)';
-                      }}
                     >
                       ←
                     </button>
                     <button
+                      type="button"
+                      className="sh-strategies-nav-btn"
                       onClick={goToNextSlide}
                       disabled={!canGoNext}
                       aria-label="Next strategy"
-                      style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--bd1)',
-                        background: 'var(--e2)',
-                        color: 'var(--t3)',
-                        cursor: canGoNext ? 'pointer' : 'not-allowed',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '16px',
-                        opacity: canGoNext ? 1 : 0.4,
-                        transition: 'all .15s'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (canGoNext) {
-                          e.currentTarget.style.background = 'var(--e3)';
-                          e.currentTarget.style.borderColor = 'var(--bd2)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--e2)';
-                        e.currentTarget.style.borderColor = 'var(--bd1)';
-                      }}
                     >
                       →
                     </button>
                   </div>
-                  <Link href="/pools" className="va" style={{ cursor: "pointer" }}>
-                    View All Pools
+                  <Link href="/pools" className="va sh-strategies-view-all">
+                    <span className="sh-strategies-view-all-mobile">View All</span>
+                    <span className="sh-strategies-view-all-desktop">View All Pools</span>
                   </Link>
                 </div>
               </div>
 
               <div
                 ref={npViewportRef}
-                className="np-slider-viewport"
-                style={{ 
-                overflow: 'hidden', 
-                marginBottom: '22px',
-                position: 'relative',
-                width: '100%'
-              }}>
-                <div 
-                  className="np-grid" 
-                  style={{ 
-                    transform: `translateX(-${slideOffset}px)`,
-                    transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                    overflow: 'visible',
-                    marginBottom: '0',
-                    paddingBottom: '0',
-                    maskImage: 'none',
-                    WebkitMaskImage: 'none'
-                  }}
+                className={`np-slider-viewport${isMobile ? " np-slider-scroll" : ""}`}
+                style={
+                  isMobile
+                    ? ({
+                        marginBottom: "22px",
+                        position: "relative",
+                        width: "100%",
+                        ["--np-slide-width" as string]: mobileSlideWidth
+                          ? `${Math.max(mobileSlideWidth - 24, 280)}px`
+                          : "280px",
+                      } as React.CSSProperties)
+                    : {
+                        overflow: "hidden",
+                        marginBottom: "22px",
+                        position: "relative",
+                        width: "100%",
+                      }
+                }
+              >
+                <div
+                  className={`np-grid${isMobile ? " np-grid-scroll" : ""}`}
+                  style={
+                    isMobile
+                      ? {
+                          overflow: "visible",
+                          marginBottom: "0",
+                          paddingBottom: "0",
+                          maskImage: "none",
+                          WebkitMaskImage: "none",
+                        }
+                      : {
+                          transform: `translateX(-${slideOffset}px)`,
+                          transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                          overflow: "visible",
+                          marginBottom: "0",
+                          paddingBottom: "0",
+                          maskImage: "none",
+                          WebkitMaskImage: "none",
+                        }
+                  }
                 >
                 {strategyPools.map((pool) => (
                   <div className="npc" key={`${pool.slug}-${pool.tokenId}`}>
@@ -1574,8 +1637,27 @@ export default function HomePage() {
               <div className="listings-section" style={{ marginBottom: '22px' }}>
                 {isMobile ? (
                   <div className="lg listings-mobile-grid">
-                    {listingCards.map((item) => (
-                      <ListingCard key={`${item.name}-${item.img}-${item.sell}`} {...item} />
+                    {visibleMobileListings.map((item, index) => (
+                      <motion.div
+                        key={`${item.name}-${item.img}-${item.sell}`}
+                        className="listings-mobile-item"
+                        initial={
+                          index >= mobileListingsAnimFrom
+                            ? { opacity: 0, y: 22, scale: 0.96 }
+                            : false
+                        }
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{
+                          duration: 0.42,
+                          ease: [0.22, 1, 0.36, 1],
+                          delay:
+                            index >= mobileListingsAnimFrom
+                              ? (index - mobileListingsAnimFrom) * 0.07
+                              : 0,
+                        }}
+                      >
+                        <ListingCard {...item} />
+                      </motion.div>
                     ))}
                   </div>
                 ) : (
@@ -1604,11 +1686,11 @@ export default function HomePage() {
                     ))}
                   </Swiper>
                 )}
-                {isMobile && (
+                {isMobile && hasMoreMobileListings && (
                   <button
                     type="button"
                     className="listings-view-all-mobile"
-                    onClick={() => router.push("/marketplace")}
+                    onClick={loadMoreMobileListings}
                   >
                     VIEW ALL LISTINGS
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
