@@ -6439,7 +6439,7 @@ body.dark #signupOverlay{background:rgba(0,0,0,.6);}
 .su-input.is-error:focus,.su-select.is-error:focus{border-color:rgba(180,35,24,.7);box-shadow:0 0 0 3px rgba(180,35,24,.14);}
 .su-field-error{margin-top:6px;font-family:var(--fm);font-size:11px;line-height:1.45;color:#b42318;}
 body.dark .su-field-error{color:#fca5a5;}
-.su-form-errors{margin:-4px 0 14px;padding:10px 12px;border-radius:5px;font-family:var(--fm);font-size:11px;line-height:1.45;color:#b42318;background:rgba(180,35,24,.08);border:0.5px solid rgba(180,35,24,.24);}
+.su-form-errors{margin:0 0 16px;padding:10px 12px;border-radius:5px;font-family:var(--fm);font-size:11px;line-height:1.45;color:#b42318;background:rgba(180,35,24,.08);border:0.5px solid rgba(180,35,24,.24);}
 body.dark .su-form-errors{color:#fca5a5;background:rgba(240,112,111,.12);border-color:rgba(240,112,111,.28);}
 .su-select{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'><path d='M2.5 4.5L6 8l3.5-3.5' stroke='%23888' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;}
 /* step 3 */

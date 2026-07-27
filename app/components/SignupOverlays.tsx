@@ -14,6 +14,7 @@ import {
   type SignupStep2Errors,
   phonePlaceholderForRegion,
   sanitizePhoneInput,
+  mapRegistrationApiError,
   validateSignupStep2,
 } from "../../lib/signup-validation";
 
@@ -69,12 +70,21 @@ export default function SignupOverlays() {
   const [purchasePhase, setPurchasePhase] = useState<SignupPurchasePhase | null>(null);
   const [purchaseStatus, setPurchaseStatus] = useState<SignupPurchaseStatus>({ state: "idle" });
   const [step2Errors, setStep2Errors] = useState<SignupStep2Errors>({});
+  const [registerFormError, setRegisterFormError] = useState("");
   const [fullName, setFullName] = useState("");
   const [region, setRegion] = useState<SignupRegion | "">("");
   const [phone, setPhone] = useState("");
   const purchaseBusyRef = useRef(false);
+  const skipStep2Ref = useRef(false);
+  const [isProfileRegistered, setIsProfileRegistered] = useState(false);
+
+  const goToSignupStep = useCallback((step: number) => {
+    if (skipStep2Ref.current && step === 2) return;
+    window.suGoto?.(step);
+  }, []);
 
   const clearStep2Error = useCallback((field: keyof SignupStep2Errors) => {
+    setRegisterFormError("");
     setStep2Errors((prev) => {
       if (!prev[field]) return prev;
       const next = { ...prev };
@@ -108,7 +118,21 @@ export default function SignupOverlays() {
     script.src = `/assets/js/script-8.js?${Date.now()}`;
     script.async = true;
     script.onload = () => {
+      const nativeSuGoto = window.suGoto;
+      const nativeOpenSignup = window.openSignup;
       const nativeClose = window.closeSignup;
+
+      window.suGoto = (step: number) => {
+        if (skipStep2Ref.current && step === 2) return;
+        nativeSuGoto?.(step);
+      };
+
+      window.openSignup = () => {
+        skipStep2Ref.current = false;
+        setIsProfileRegistered(false);
+        nativeOpenSignup?.();
+      };
+
       if (nativeClose) {
         window.closeSignup = () => {
           nativeClose();
@@ -214,11 +238,15 @@ export default function SignupOverlays() {
           return;
         }
         // Registered but hasn't purchased a tier yet - skip straight to tier selection.
+        skipStep2Ref.current = true;
+        setIsProfileRegistered(true);
         setPurchaseStatus({ state: "idle" });
-        window.suGoto?.(3);
+        goToSignupStep(3);
       } catch (error) {
         if (error instanceof ApiError && error.statusCode === 404) {
-          window.suGoto?.(2);
+          skipStep2Ref.current = false;
+          setIsProfileRegistered(false);
+          goToSignupStep(2);
         } else {
           throw error;
         }
@@ -246,15 +274,18 @@ export default function SignupOverlays() {
       email,
     });
     if (Object.keys(errors).length > 0) {
+      setRegisterFormError("Please complete the required fields before continuing.");
       setStep2Errors(errors);
       return;
     }
     if (!address) {
+      setRegisterFormError("Wallet not connected. Go back and connect your wallet.");
       setStep2Errors({ sponsor: "Wallet not connected. Go back and connect your wallet." });
       return;
     }
 
     setStep2Errors({});
+    setRegisterFormError("");
     setRegisterBusy(true);
     try {
       await api.post("/api/users/register", {
@@ -265,10 +296,14 @@ export default function SignupOverlays() {
         sponsorUsername: sponsor,
       });
       setCurrentUsername(username);
+      skipStep2Ref.current = true;
+      setIsProfileRegistered(true);
       setPurchaseStatus({ state: "idle" });
-      window.suGoto?.(3);
+      goToSignupStep(3);
     } catch (error) {
-      notifyError("Registration failed", error);
+      const { fieldErrors, formError } = mapRegistrationApiError(error);
+      setStep2Errors(fieldErrors);
+      setRegisterFormError(formError ?? "");
     } finally {
       setRegisterBusy(false);
     }
@@ -367,6 +402,11 @@ export default function SignupOverlays() {
             <div className="su2-body">
               <div className="su2-title">Step 2 of 3: User Information</div>
               <div className="su2-sub">Complete your profile to access the terminal.</div>
+              {registerFormError && (
+                <div className="su-form-errors" role="alert">
+                  {registerFormError}
+                </div>
+              )}
               <div className="su-field">
                 <label className="su-lbl">Sponsor</label>
                 <input
@@ -470,11 +510,6 @@ export default function SignupOverlays() {
                 />
                 {step2Errors.email && <p className="su-field-error">{step2Errors.email}</p>}
               </div>
-              {Object.keys(step2Errors).length > 0 && (
-                <div className="su-form-errors" role="alert">
-                  Please complete the required fields before continuing.
-                </div>
-              )}
               <button className="su-primary" type="button" onClick={handleContinueRegistration} disabled={registerBusy}>
                 {registerBusy ? "Registering..." : <>Continue&nbsp;&nbsp;→</>}
               </button>
@@ -605,16 +640,18 @@ export default function SignupOverlays() {
               </div>
             </div>
             <div className="su-foot" style={{ padding: "16px 30px" }}>
-              <button
-                className="su-back"
-                type="button"
-                onClick={() => window.suGoto?.(2)}
-              >
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                  <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Previous Step
-              </button>
+              {!isProfileRegistered && (
+                <button
+                  className="su-back"
+                  type="button"
+                  onClick={() => goToSignupStep(2)}
+                >
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                    <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Previous Step
+                </button>
+              )}
               <span className="su-status">
                 Current Status<b>Onboarding</b>
               </span>

@@ -11,7 +11,7 @@ import { config } from "./wagmi";
 import { erc20Abi, hntrMembershipAbi, TOKEN_ADDRESSES, TIERS, type TierName } from "./contracts";
 import { api } from "./api";
 import { ensureAuth } from "./auth";
-import { getAddress } from "viem";
+import { getAddress, maxUint256 } from "viem";
 
 export type { TierName };
 

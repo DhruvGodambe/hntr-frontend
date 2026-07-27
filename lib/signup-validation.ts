@@ -171,3 +171,55 @@ export function validateSignupStep2(values: SignupStep2Values): SignupStep2Error
 export function phonePlaceholderForRegion(region: SignupRegion | ""): string {
   return getRegionOption(region)?.phonePlaceholder ?? "+00 0000 0000";
 }
+
+function duplicateFieldMessage(message: string, field: keyof SignupStep2Values, label: string): string | undefined {
+  const lower = message.toLowerCase();
+  if (!lower.includes("duplicate") && !lower.includes("already") && !lower.includes("e11000")) {
+    return undefined;
+  }
+  if (lower.includes(field) || lower.includes(label.toLowerCase())) {
+    return field === "username"
+      ? "This username is already taken. Choose another."
+      : `This ${label.toLowerCase()} is already registered.`;
+  }
+  return undefined;
+}
+
+/** Map registration API failures to inline signup field / form messages. */
+export function mapRegistrationApiError(error: unknown): {
+  fieldErrors: SignupStep2Errors;
+  formError?: string;
+} {
+  const message =
+    error && typeof error === "object" && "message" in error && typeof (error as { message: unknown }).message === "string"
+      ? (error as { message: string }).message
+      : typeof error === "string"
+        ? error
+        : "Registration failed. Please try again.";
+
+  const lower = message.toLowerCase();
+
+  if (lower.includes("sponsor not found")) {
+    const sponsorMessage =
+      "This sponsor username was not found. Check the spelling or ask your referrer.";
+    return {
+      fieldErrors: { sponsor: sponsorMessage },
+      formError: sponsorMessage,
+    };
+  }
+
+  const usernameDup = duplicateFieldMessage(message, "username", "Username");
+  if (usernameDup) return { fieldErrors: { username: usernameDup }, formError: usernameDup };
+
+  if (lower.includes("wallet") && (lower.includes("duplicate") || lower.includes("already") || lower.includes("e11000"))) {
+    return {
+      fieldErrors: {},
+      formError: "This wallet is already registered. Connect a different wallet or sign in.",
+    };
+  }
+
+  const emailDup = duplicateFieldMessage(message, "email", "Email");
+  if (emailDup) return { fieldErrors: { email: emailDup }, formError: emailDup };
+
+  return { fieldErrors: {}, formError: message };
+}
