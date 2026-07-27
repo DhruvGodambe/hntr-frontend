@@ -105,7 +105,19 @@ export interface PointsSummary {
 }
 
 export interface TransactionEntry {
-  type: "CommissionEarned" | "CommissionWithdrawn" | "MembershipPurchased" | "MembershipUpgraded" | "COMMISSION_EARNED" | "COMMISSION_WITHDRAWN" | "COMMISSION_CLAIM" | "PURCHASE" | "UPGRADE" | "COMPANY_WALLET_WITHDRAWN";
+  type:
+    | "CommissionEarned"
+    | "CommissionWithdrawn"
+    | "MembershipPurchased"
+    | "MembershipUpgraded"
+    | "COMMISSION_EARNED"
+    | "COMMISSION_WITHDRAWN"
+    | "COMMISSION_CLAIM"
+    | "PURCHASE"
+    | "UPGRADE"
+    | "COMPANY_WALLET_WITHDRAWN"
+    | "LEADERSHIP_PAYOUT"
+    | "ACHIEVEMENT_BONUS";
   txHash?: string;
   blockNumber: number;
   timestamp: string | null;

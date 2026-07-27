@@ -39,6 +39,8 @@ const TX_TYPE_LABEL: Record<TransactionEntry["type"], string> = {
   UPGRADE: "Membership Upgrade",
   COMMISSION_CLAIM: "Commission Claimed",
   COMPANY_WALLET_WITHDRAWN: "Company Wallet Withdrawal",
+  LEADERSHIP_PAYOUT: "Leadership Bonus",
+  ACHIEVEMENT_BONUS: "Rank Bonus",
 };
 
 function formatTxDate(iso: string | null) {
@@ -53,6 +55,12 @@ function formatTxDate(iso: string | null) {
 }
 
 function getTxSource(tx: TransactionEntry) {
+  if (tx.type === "LEADERSHIP_PAYOUT") {
+    return tx.tier ? `Leadership · ${tx.tier}` : "Leadership Pool";
+  }
+  if (tx.type === "ACHIEVEMENT_BONUS") {
+    return tx.tier ? `${tx.tier} rank` : "Rank Bonus";
+  }
   if (tx.tier) return `${tx.tier} tier`;
   if (tx.level) return `Level ${tx.level}`;
   return "—";
@@ -74,6 +82,10 @@ function getTxTypeCategory(type: TransactionEntry["type"]) {
     case "MembershipUpgraded":
     case "UPGRADE":
       return "upgrade";
+    case "LEADERSHIP_PAYOUT":
+      return "leadership";
+    case "ACHIEVEMENT_BONUS":
+      return "rankBonus";
     default:
       return "other";
   }
@@ -90,6 +102,8 @@ const TX_TYPE_FILTER_OPTIONS = [
   { value: "claimed", label: "Commission Claimed" },
   { value: "purchase", label: "Membership Purchase" },
   { value: "upgrade", label: "Membership Upgrade" },
+  { value: "leadership", label: "Leadership Bonus" },
+  { value: "rankBonus", label: "Rank Bonus" },
 ] as const;
 
 const TX_PAGE_SIZE = 10;
@@ -916,7 +930,7 @@ export default function NetworkPage() {
                   {paginatedTransactions.length === 0 && (
                     <tr>
                       <td colSpan={6} style={{ textAlign: "center", color: "var(--t2)", padding: "24px 0" }}>
-                        {transactions.length === 0 ? "No on-chain activity yet." : "No transactions match your filters."}
+                        {transactions.length === 0 ? "No reward activity yet." : "No transactions match your filters."}
                       </td>
                     </tr>
                   )}
