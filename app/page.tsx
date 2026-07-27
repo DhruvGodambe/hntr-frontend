@@ -300,7 +300,11 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [marketTimeFrame, setMarketTimeFrame] = useState<MarketTimeFrame>("24H");
   const [isMobile, setIsMobile] = useState(false);
-  const [mobileSlideWidth, setMobileSlideWidth] = useState(0);
+  const [sliderLayout, setSliderLayout] = useState({
+    viewportWidth: 0,
+    contentWidth: 0,
+    cardStep: 482,
+  });
   const [mobileListingsVisible, setMobileListingsVisible] = useState(MOBILE_LISTINGS_BATCH);
   const [mobileListingsAnimFrom, setMobileListingsAnimFrom] = useState(MOBILE_LISTINGS_BATCH);
 
@@ -468,20 +472,20 @@ export default function HomePage() {
       topFlyers: openSeaMarket.topFlyers.map(mapRow),
     };
   }, [openSeaMarket]);
-  const cardCount = 4;
-  const cardWidth = 468;
-  const cardGap = 14;
-  const cardStep = cardWidth + cardGap;
+  const cardCount = strategyPools.length;
   const npViewportRef = useRef<HTMLDivElement | null>(null);
+  const npGridRef = useRef<HTMLDivElement | null>(null);
   const salesMarqueeRef = useRef<HTMLDivElement | null>(null);
   const salesTrackRef = useRef<HTMLDivElement | null>(null);
-  const contentWidth = cardCount * cardWidth + (cardCount - 1) * cardGap;
-  const desktopMaxOffset = Math.max(0, contentWidth - mobileSlideWidth);
+  const { viewportWidth, contentWidth, cardStep } = sliderLayout;
+  const desktopMaxOffset = Math.max(0, contentWidth - viewportWidth);
   const desktopMaxSlide =
-    desktopMaxOffset <= 0 ? 0 : Math.ceil(desktopMaxOffset / cardStep);
-  const maxSlide = isMobile ? cardCount - 1 : desktopMaxSlide;
+    viewportWidth <= 0 || desktopMaxOffset <= 0
+      ? 0
+      : Math.ceil(desktopMaxOffset / cardStep);
+  const maxSlide = isMobile ? Math.max(0, cardCount - 1) : desktopMaxSlide;
   const slideOffset = isMobile
-    ? currentSlide * (mobileSlideWidth || 0)
+    ? currentSlide * (viewportWidth || 0)
     : Math.min(currentSlide * cardStep, desktopMaxOffset);
   
   const titleCharsRef = useRef(buildTimedChars(TITLE_SEGMENTS, 22));
@@ -585,18 +589,50 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const viewport = npViewportRef.current;
+    const track = npGridRef.current;
+    if (!viewport || !track) return;
+
     const measure = () => {
-      if (!npViewportRef.current) return;
-      setMobileSlideWidth(npViewportRef.current.clientWidth);
+      const nextViewportWidth = viewport.clientWidth;
+      const nextContentWidth = track.scrollWidth;
+      if (nextViewportWidth <= 0 || nextContentWidth <= 0) return;
+
+      const cards = track.querySelectorAll<HTMLElement>(".npc");
+      let nextCardStep = 482;
+      if (cards.length >= 2) {
+        nextCardStep = cards[1].offsetLeft - cards[0].offsetLeft;
+      } else if (cards.length === 1) {
+        nextCardStep = cards[0].offsetWidth;
+      }
+      if (nextCardStep <= 0) nextCardStep = 482;
+
+      const nextMaxOffset = Math.max(0, nextContentWidth - nextViewportWidth);
+      const nextMaxSlide =
+        nextMaxOffset <= 0 ? 0 : Math.ceil(nextMaxOffset / nextCardStep);
+      const mobileMaxSlide = Math.max(0, cardCount - 1);
+      const clampedMaxSlide = isMobile ? mobileMaxSlide : nextMaxSlide;
+
+      setSliderLayout({
+        viewportWidth: nextViewportWidth,
+        contentWidth: nextContentWidth,
+        cardStep: nextCardStep,
+      });
+      setCurrentSlide((prev) => Math.min(prev, clampedMaxSlide));
     };
+
     measure();
     const raf = requestAnimationFrame(measure);
-    window.addEventListener("resize", measure);
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(viewport);
+    observer.observe(track);
+
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("resize", measure);
+      observer.disconnect();
     };
-  }, [isMobile, loaderOut]);
+  }, [isMobile, loaderOut, cardCount]);
 
   // Mobile strategies slider — grab/swipe scroll with snap
   useEffect(() => {
@@ -664,13 +700,12 @@ export default function HomePage() {
     };
   }, [isMobile, loaderOut]);
 
-  // Keep slide index in range when viewport/max slides change
-  useEffect(() => {
-    setCurrentSlide((prev) => Math.min(prev, maxSlide));
-  }, [maxSlide]);
-
-  const canGoPrev = currentSlide > 0;
-  const canGoNext = currentSlide < maxSlide;
+  const canGoPrev = slideOffset > 0;
+  const canGoNext =
+    viewportWidth > 0 &&
+    contentWidth > viewportWidth &&
+    slideOffset < desktopMaxOffset - 1 &&
+    currentSlide < maxSlide;
 
   const goToPrevSlide = () => {
     if (!canGoPrev) return;
@@ -1491,8 +1526,8 @@ export default function HomePage() {
                         marginBottom: "22px",
                         position: "relative",
                         width: "100%",
-                        ["--np-slide-width" as string]: mobileSlideWidth
-                          ? `${Math.max(mobileSlideWidth - 24, 280)}px`
+                        ["--np-slide-width" as string]: viewportWidth
+                          ? `${Math.max(viewportWidth - 24, 280)}px`
                           : "280px",
                       } as React.CSSProperties)
                     : {
@@ -1504,6 +1539,7 @@ export default function HomePage() {
                 }
               >
                 <div
+                  ref={npGridRef}
                   className={`np-grid${isMobile ? " np-grid-scroll" : ""}`}
                   style={
                     isMobile
