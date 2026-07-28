@@ -639,6 +639,7 @@ export default function NetworkPage() {
                 name: "Leadership Bonus",
                 desc: leadershipDesc,
                 poolBalance: leadershipPoolLabel,
+                totalEarnings: `$${totalLeadershipReceived.toFixed(2)}`,
                 amount: leadershipAmountLabel,
                 delay: ".10s",
                 claimable: false,
@@ -656,6 +657,7 @@ export default function NetworkPage() {
                 name: "Rank Bonus",
                 desc: achievementDesc,
                 poolBalance: achievementPoolLabel,
+                totalEarnings: `$${achievementLifetimePaid.toFixed(2)}`,
                 amount: achievementAmountLabel,
                 delay: ".15s",
                 claimable: false,
@@ -759,6 +761,9 @@ export default function NetworkPage() {
                   </div>
                 ) : null}
                 <div className="net-rc-desc">{reward.desc}</div>
+                {"totalEarnings" in reward && reward.totalEarnings ? (
+                  <div className="net-rc-earnings">Total earnings: {reward.totalEarnings}</div>
+                ) : null}
                 <div className="net-rc-footer">
                   <div className="net-rc-amount">{reward.amount}</div>
                   <button

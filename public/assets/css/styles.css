@@ -939,6 +939,7 @@ body.dark .upgrade-btn:hover{background:#fff}
 .net-rc-name{font-family:var(--fd);font-size:13px;font-weight:600;color:var(--t4);margin-bottom:6px;line-height:1.2}
 .net-membership-banner{display:none}
 .net-rc-desc{font-size:10px;color:var(--t1);line-height:1.5;margin-bottom:18px;flex:1}
+.net-rc-earnings{font-size:11px;font-weight:600;color:var(--t3);margin-top:-12px;margin-bottom:16px}
 .net-rc-footer{display:flex;align-items:center;justify-content:space-between}
 .net-rc-amount{font-family:var(--fm);font-size:14px;font-weight:700;color:var(--t4)}
 .net-claim-btn{height:32px;padding:0 16px;background:var(--olive);color:var(--cream);border:none;border-radius:5px;font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:.1em;cursor:pointer;box-shadow:var(--sh1);transition:background .15s}
