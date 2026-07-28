@@ -126,6 +126,9 @@ export interface TransactionEntry {
   token: string | null;
   tier?: string;
   level?: number;
+  /** Wallet that purchased/upgraded and triggered this commission. */
+  sourceWalletAddress?: string | null;
+  sourceUsername?: string | null;
   status?: "PENDING" | "CONFIRMED" | "FAILED";
 }
 

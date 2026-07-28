@@ -17,6 +17,8 @@ import {
 import { useDashboardData } from "../../lib/rewards";
 import { COMMISSION_LEVELS, TIERS } from "../../lib/contracts";
 import { api, ApiError } from "../../lib/api";
+import PaymentTokenToggle from "../components/PaymentTokenToggle";
+import type { PaymentToken } from "../../lib/tokens";
 
 declare global {
   interface Window {
@@ -51,6 +53,7 @@ export default function MembershipPage() {
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [pendingTier, setPendingTier] = useState<string | null>(null);
   const [purchasePhase, setPurchasePhase] = useState<TierPurchasePhase | null>(null);
+  const [paymentToken, setPaymentToken] = useState<PaymentToken>("USDT");
 
   const currentTier = summary?.tier && summary.tier !== "None" ? summary.tier : null;
   const currentTierIndex = getTierIndex(currentTier);
@@ -132,7 +135,7 @@ export default function MembershipPage() {
       const ready = await ensureReadyToPurchase(walletAddress);
       if (!ready) return;
 
-      const result = await purchaseOrUpgradeTier(tierName, "USDT", {
+      const result = await purchaseOrUpgradeTier(tierName, paymentToken, {
         onAwaitingWallet: () => setPurchasePhase("wallet"),
         onWalletAccepted: () => setPurchasePhase("loading"),
       });
@@ -206,6 +209,11 @@ export default function MembershipPage() {
           </PageHeroBanner>
 
           {/* TIER CARDS */}
+          <PaymentTokenToggle
+            value={paymentToken}
+            onChange={setPaymentToken}
+            disabled={!!pendingTier}
+          />
           <div className="tiers-grid">
             {TIERS.map((tier, idx) => {
               const tierIndex = idx + 1;

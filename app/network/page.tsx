@@ -19,6 +19,7 @@ import {
   type TransactionEntry,
   type NetworkTreeNode,
 } from "../../lib/rewards";
+import { formatClaimableByToken, formatTokenLabel } from "../../lib/tokens";
 
 declare global {
   interface Window {
@@ -63,6 +64,17 @@ function getTxSource(tx: TransactionEntry) {
   }
   if (tx.tier) return `${tx.tier} tier`;
   if (tx.level) return `Level ${tx.level}`;
+  return "—";
+}
+
+function formatSourceUser(tx: TransactionEntry) {
+  const isCommission = tx.type === "CommissionEarned" || tx.type === "COMMISSION_EARNED";
+  if (!isCommission) return "—";
+
+  if (tx.sourceUsername) return `@${tx.sourceUsername}`;
+  if (tx.sourceWalletAddress) {
+    return `${tx.sourceWalletAddress.slice(0, 6)}…${tx.sourceWalletAddress.slice(-4)}`;
+  }
   return "—";
 }
 
@@ -262,6 +274,7 @@ export default function NetworkPage() {
   const achievementDesc =
     achievementStatus?.message ||
     "No rank bonus yet — reach Scout or above to unlock one-time achievement bonuses.";
+  const claimableByTokenLabel = formatClaimableByToken(summary?.tokens);
 
   useEffect(() => {
     const topoScriptId = "net-topo-script";
@@ -607,6 +620,7 @@ export default function NetworkPage() {
                 tag: "REAL-TIME",
                 name: "Referral Commissions",
                 desc: `80% claimable now ($${(summary?.claimableNow ?? 0).toFixed(2)}) + 20% locked in pool ($${(summary?.lockedRemaining ?? 0).toFixed(2)}) from your direct and indirect network volume.`,
+                tokenBreakdown: claimableByTokenLabel || undefined,
                 amount: `$${(summary?.claimableNow ?? 0).toFixed(2)}`,
                 delay: ".05s",
                 claimable: true,
@@ -761,6 +775,9 @@ export default function NetworkPage() {
                   </div>
                 ) : null}
                 <div className="net-rc-desc">{reward.desc}</div>
+                {"tokenBreakdown" in reward && reward.tokenBreakdown ? (
+                  <div className="net-rc-earnings">{reward.tokenBreakdown}</div>
+                ) : null}
                 {"totalEarnings" in reward && reward.totalEarnings ? (
                   <div className="net-rc-earnings">Total earnings: {reward.totalEarnings}</div>
                 ) : null}
@@ -926,7 +943,9 @@ export default function NetworkPage() {
                     <th>Date / Time</th>
                     <th>Type</th>
                     <th>Source</th>
+                    <th>Source User</th>
                     <th style={{ textAlign: "right" }}>Amount</th>
+                    <th>Token</th>
                     <th style={{ textAlign: "center" }}>Status</th>
                     <th>Tx Hash</th>
                   </tr>
@@ -934,7 +953,7 @@ export default function NetworkPage() {
                 <tbody id="txhTable">
                   {paginatedTransactions.length === 0 && (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: "center", color: "var(--t2)", padding: "24px 0" }}>
+                      <td colSpan={8} style={{ textAlign: "center", color: "var(--t2)", padding: "24px 0" }}>
                         {transactions.length === 0 ? "No reward activity yet." : "No transactions match your filters."}
                       </td>
                     </tr>
@@ -950,6 +969,7 @@ export default function NetworkPage() {
                         <td>{formatTxDate(tx.timestamp)}</td>
                         <td>{TX_TYPE_LABEL[tx.type] || tx.type}</td>
                         <td>{getTxSource(tx)}</td>
+                        <td>{formatSourceUser(tx)}</td>
                         <td
                           style={{
                             textAlign: "right",
@@ -964,6 +984,7 @@ export default function NetworkPage() {
                             </div>
                           )}
                         </td>
+                        <td>{formatTokenLabel(tx.token)}</td>
                         <td style={{ textAlign: "center" }}>
                           <span className={`txh-status ${statusClass}`}>{statusLabel}</span>
                         </td>

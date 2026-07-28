@@ -12,8 +12,10 @@ import { erc20Abi, hntrMembershipAbi, TOKEN_ADDRESSES, TIERS, type TierName } fr
 import { api } from "./api";
 import { ensureAuth } from "./auth";
 import { getAddress, maxUint256 } from "viem";
+import type { PaymentToken } from "./tokens";
 
 export type { TierName };
+export type { PaymentToken };
 
 /** Tier ladder index (0 = none / unknown). Matches on-chain enum order. */
 export function getTierIndex(tierName: string | null | undefined): number {
@@ -72,7 +74,7 @@ export interface MembershipQuote {
   insufficientBalance: boolean;
 }
 
-export async function getMembershipQuote(tierName: string, tokenSymbol: "USDT" | "USDC" = "USDT"): Promise<MembershipQuote> {
+export async function getMembershipQuote(tierName: string, tokenSymbol: PaymentToken = "USDT"): Promise<MembershipQuote> {
   await ensureAuth();
   return api.get<MembershipQuote>(`/api/membership/quote?tier=${encodeURIComponent(tierName)}&token=${tokenSymbol}`, {
     auth: true,
@@ -120,7 +122,7 @@ export interface PreparedMembershipTx {
  */
 export async function purchaseOrUpgradeTier(
   tierName: string,
-  tokenSymbol: "USDT" | "USDC" = "USDT",
+  tokenSymbol: PaymentToken = "USDT",
   progress?: PurchaseProgressHandlers,
 ): Promise<PurchaseResult> {
   const account = getAccount(config);

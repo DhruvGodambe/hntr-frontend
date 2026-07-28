@@ -14,6 +14,7 @@ import DepositModal from "./DepositModal";
 import { clearStoredAuth } from "../../lib/api";
 import { handleAppError } from "../../lib/errors";
 import { useDashboardData, useClaimCommissions, useLeadershipStatus, usePointsSummary } from "../../lib/rewards";
+import { formatClaimableByToken } from "../../lib/tokens";
 import type { StandardToastData } from "../../lib/notification-data";
 
 const MOBILE_MQ = "(max-width: 900px)";
@@ -781,6 +782,7 @@ export default function MainLayout({
   const renderMobileRewardCards = () => {
     const poolRewardsAmount = leadershipStatus?.estimatedPayoutUSD ?? 0;
     const hasPoolRewards = !!(leadershipStatus?.hasShares && poolRewardsAmount > 0);
+    const claimableByTokenLabel = formatClaimableByToken(summary?.tokens);
 
     return (
       <>
@@ -804,6 +806,11 @@ export default function MainLayout({
           <div className="rrcv mobile-rrcv">
             {maskBalance(`$${(summary?.claimableNow ?? 0).toFixed(2)}`)}
           </div>
+          {claimableByTokenLabel ? (
+            <div className="rrcd" style={{ marginTop: "4px", marginBottom: "8px" }}>
+              {claimableByTokenLabel}
+            </div>
+          ) : null}
           <button
             className="cbtn"
             disabled={claimBusy || !(summary?.claimableNow && summary.claimableNow > 0)}
@@ -857,6 +864,7 @@ export default function MainLayout({
   const renderRewardCards = () => {
     const poolRewardsAmount = leadershipStatus?.estimatedPayoutUSD ?? 0;
     const hasPoolRewards = !!(leadershipStatus?.hasShares && poolRewardsAmount > 0);
+    const claimableByTokenLabel = formatClaimableByToken(summary?.tokens);
 
     return (
     <>
@@ -877,6 +885,11 @@ export default function MainLayout({
           </div>
         </div>
         <div className="rrcd">Claimable now from your direct referral network</div>
+        {claimableByTokenLabel ? (
+          <div className="rrcd" style={{ marginTop: "2px", color: "var(--t3)" }}>
+            {claimableByTokenLabel}
+          </div>
+        ) : null}
         <div className="rrcb">
           <div className="rrcv">{maskBalance(`$${(summary?.claimableNow ?? 0).toFixed(2)}`)}</div>
           <button

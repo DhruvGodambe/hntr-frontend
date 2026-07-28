@@ -4406,6 +4406,17 @@ body{color:var(--t3);font-family:var(--fn);font-size:12px;line-height:1.5;displa
 /* PAGE BODY */
 .page-body{padding:0 0 0}
 
+/* PAYMENT TOKEN TOGGLE (USDT | USDC) */
+.payment-token-toggle{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.payment-token-toggle-label{font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t1)}
+.payment-token-toggle-btns{display:inline-flex;gap:4px;background:var(--e3);border-radius:6px;padding:3px}
+.payment-token-btn{height:28px;padding:0 14px;border:none;border-radius:4px;background:transparent;color:var(--t2);font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:background .15s,color .15s}
+.payment-token-btn:hover:not(:disabled){color:var(--t4)}
+.payment-token-btn.active{background:var(--cream,#F2EFEA);color:#0a0a0b;box-shadow:var(--sh1)}
+body.dark .payment-token-btn.active{background:#F2EFEA;color:#0a0a0b}
+.payment-token-btn:disabled{opacity:.45;cursor:not-allowed}
+.su-payment-token{margin:0 0 14px;justify-content:center}
+
 /* TIER CARDS */
 .tiers-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px}
 

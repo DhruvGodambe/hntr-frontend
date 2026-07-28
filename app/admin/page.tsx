@@ -26,6 +26,7 @@ import {
 import { clearStoredAuth } from "@/lib/api";
 import { useConnectWallet } from "@/lib/useConnectWallet";
 import { CONTRACT_ADDRESS, TOKEN_ADDRESSES, hntrMembershipAbi } from "@/lib/contracts";
+import { formatTokenLabel } from "@/lib/tokens";
 import { config } from "@/lib/wagmi";
 import { ConnectKitButton } from "connectkit";
 import { useAccount, useDisconnect } from "wagmi";
@@ -84,7 +85,14 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadMetrics();
     loadMaintenance();
-    adminApi.getOverdueCommissions("USDT", 1, 1).then((d) => setTotalUnclaimed(d.totalUnclaimedUSD || 0)).catch(() => {});
+    Promise.all([
+      adminApi.getOverdueCommissions("USDT", 1, 1),
+      adminApi.getOverdueCommissions("USDC", 1, 1),
+    ])
+      .then(([usdt, usdc]) => {
+        setTotalUnclaimed((usdt.totalUnclaimedUSD || 0) + (usdc.totalUnclaimedUSD || 0));
+      })
+      .catch(() => {});
     // Intentionally mount-only — loaders are stable via useCallback([notify]) and notify is now stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -790,7 +798,7 @@ function TransactionsTabContent({ notify }: { notify: (type: "success" | "error"
       </div>
 
       <AdminTable
-        headers={["Date", "User", "Type", "Amount", "HNTR Points", "TX Hash", "Status"]}
+        headers={["Date", "User", "Type", "Amount", "Token", "HNTR Points", "TX Hash", "Status"]}
         pagination={pagination}
         onPageChange={(p) => load(p, filter, limit)}
         onPageSizeChange={(size) => {
@@ -800,13 +808,13 @@ function TransactionsTabContent({ notify }: { notify: (type: "success" | "error"
       >
         {loading ? (
           <tr>
-            <td colSpan={7} className="px-6 py-8 text-center text-gray-500 text-sm">
+            <td colSpan={8} className="px-6 py-8 text-center text-gray-500 text-sm">
               Loading transactions...
             </td>
           </tr>
         ) : rows.length === 0 ? (
           <tr>
-            <td colSpan={7} className="px-6 py-8 text-center text-gray-500 text-sm">
+            <td colSpan={8} className="px-6 py-8 text-center text-gray-500 text-sm">
               No transactions found
             </td>
           </tr>
@@ -820,6 +828,7 @@ function TransactionsTabContent({ notify }: { notify: (type: "success" | "error"
                 {isWithdrawalTransactionType(typeLabel(tx.type)) ? "-" : "+"}
                 {formatUsd(tx.amount)}
               </td>
+              <td className="px-6 py-4 text-xs font-mono text-gray-400">{formatTokenLabel(tx.token)}</td>
               <td className="px-6 py-4 text-sm text-white font-mono">
                 {tx.hntrPoints != null ? `+${tx.hntrPoints.toLocaleString()} Pts` : "—"}
               </td>

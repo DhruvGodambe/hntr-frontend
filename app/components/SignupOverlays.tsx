@@ -8,6 +8,8 @@ import { TIERS } from "../../lib/contracts";
 import { handleAppError, resolveAppError } from "../../lib/errors";
 import { purchaseOrUpgradeTier } from "../../lib/membership";
 import { useConnectWallet } from "../../lib/useConnectWallet";
+import PaymentTokenToggle from "./PaymentTokenToggle";
+import type { PaymentToken } from "../../lib/tokens";
 import {
   SIGNUP_REGION_OPTIONS,
   type SignupRegion,
@@ -69,6 +71,7 @@ export default function SignupOverlays() {
   const [pendingTier, setPendingTier] = useState<string | null>(null);
   const [purchasePhase, setPurchasePhase] = useState<SignupPurchasePhase | null>(null);
   const [purchaseStatus, setPurchaseStatus] = useState<SignupPurchaseStatus>({ state: "idle" });
+  const [paymentToken, setPaymentToken] = useState<PaymentToken>("USDT");
   const [step2Errors, setStep2Errors] = useState<SignupStep2Errors>({});
   const [registerFormError, setRegisterFormError] = useState("");
   const [fullName, setFullName] = useState("");
@@ -167,7 +170,7 @@ export default function SignupOverlays() {
       try {
         await ensureAuth();
 
-        const result = await purchaseOrUpgradeTier(tierName, "USDT", {
+        const result = await purchaseOrUpgradeTier(tierName, paymentToken, {
           onAwaitingWallet: () => {
             setPurchasePhase("wallet");
             setPurchaseStatus({ state: "wallet", tier: tierName });
@@ -182,7 +185,7 @@ export default function SignupOverlays() {
         setPurchaseStatus({
           state: "success",
           tier: result.tier,
-          message: `${result.tier} membership activated. Redirecting to your network...`,
+          message: `${result.tier} membership activated (${result.amountLabel}). Redirecting to your network...`,
         });
         closeSignupFlow();
         window.setTimeout(() => {
@@ -200,7 +203,7 @@ export default function SignupOverlays() {
         }
       }
     },
-    []
+    [paymentToken]
   );
 
   const signupTierButtonLabel = (tierName: string) => {
@@ -541,6 +544,12 @@ export default function SignupOverlays() {
                 Choose a Membership tier that aligns with your capital deployment requirements and network expansion
                 objectives. All tiers include full terminal access.
               </div>
+              <PaymentTokenToggle
+                className="su-payment-token"
+                value={paymentToken}
+                onChange={setPaymentToken}
+                disabled={!!pendingTier}
+              />
               {purchaseStatus.state !== "idle" && (
                 <div
                   className={`su-purchase-status${
@@ -711,7 +720,7 @@ export default function SignupOverlays() {
             <div className="ms-line">
               <span className="ms-line-lbl">Payment Amount</span>
               <span className="ms-line-val" id="msAmt">
-                2,500 USDT
+                —
               </span>
             </div>
             <div className="ms-line">
