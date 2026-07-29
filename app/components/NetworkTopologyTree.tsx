@@ -60,9 +60,9 @@ function rootPlaceholder(rank = "Unranked"): RawNodeDatum {
 }
 
 const CARD_SIZE: Record<number, { w: number; h: number; variant: "lg" | "sm" | "mini" }> = {
-  1: { w: 112, h: 46, variant: "lg" },
-  2: { w: 56, h: 34, variant: "sm" },
-  3: { w: 52, h: 30, variant: "mini" },
+  1: { w: 118, h: 52, variant: "lg" },
+  2: { w: 78, h: 44, variant: "sm" },
+  3: { w: 72, h: 40, variant: "mini" },
 };
 
 function TopoUserCard({ attrs, level }: { attrs: TopoAttributes; level: number }) {
@@ -75,7 +75,7 @@ function TopoUserCard({ attrs, level }: { attrs: TopoAttributes; level: number }
       <div className={`topo-node-card topo-node-card--${variant}`}>
         <div className="topo-node-card-user">{attrs.username}</div>
         <div className="topo-node-card-addr">{attrs.addr}</div>
-        <div className="topo-node-card-mem">{attrs.mem?.toUpperCase()}</div>
+        <div className="topo-node-card-badge">{attrs.mem?.toUpperCase()}</div>
       </div>
     </foreignObject>
   );
@@ -87,14 +87,12 @@ function TopoRootNode({ attrs }: { attrs: TopoAttributes }) {
       <circle r={22} className="topo-root-halo" />
       <circle r={9} className="topo-root-core" />
       <circle r={14} className="topo-root-pulse" />
-      <text y={26} textAnchor="middle" className="topo-root-label">
-        You
-      </text>
-      {attrs.rank ? (
-        <text y={38} textAnchor="middle" className="topo-root-rank">
-          {attrs.rank}
-        </text>
-      ) : null}
+      <foreignObject x={-60} y={26} width={120} height={40} className="topo-node-fo">
+        <div className="topo-root-labels">
+          <div className="topo-root-label">You</div>
+          {attrs.rank ? <div className="topo-root-rank">{attrs.rank}</div> : null}
+        </div>
+      </foreignObject>
     </g>
   );
 }
@@ -199,9 +197,9 @@ export default function NetworkTopologyTree({
             zoomable
             draggable
             scaleExtent={{ min: 0.3, max: 3 }}
-            nodeSize={{ x: 130, y: 88 }}
-            separation={{ siblings: 1.05, nonSiblings: 1.2 }}
-            depthFactor={90}
+            nodeSize={{ x: 140, y: 96 }}
+            separation={{ siblings: 1.08, nonSiblings: 1.25 }}
+            depthFactor={96}
             dimensions={dimensions}
             svgClassName="topo-tree-svg"
             dataKey={treeData?.username ?? "placeholder"}
