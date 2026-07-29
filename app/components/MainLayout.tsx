@@ -1,208 +1,57 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
-import { formatEther } from "viem";
 import SignupOverlays from "./SignupOverlays";
-import SignupCard from "./SignupCard";
 import NotificationSystem from "./NotificationSystem";
 import DepositModal from "./DepositModal";
 import { clearStoredAuth } from "../../lib/api";
 import { handleAppError } from "../../lib/errors";
 import { useDashboardData, useClaimCommissions, useLeadershipStatus, usePointsSummary } from "../../lib/rewards";
-import { formatClaimableByToken } from "../../lib/tokens";
 import type { StandardToastData } from "../../lib/notification-data";
-
-const MOBILE_MQ = "(max-width: 900px)";
-
-type ActivityKind = "bid" | "sale" | "other";
-type ActivityTab = "all" | "bids" | "sales";
-
-type ActivityTemplate = {
-  icon: string;
-  name: string;
-  action: string;
-  val: string;
-  pos: boolean;
-  kind: ActivityKind;
-};
-
-type ActivityEntry = ActivityTemplate & {
-  id: string;
-  ts: number;
-  fresh: boolean;
-};
-
-const ACTIVITY_TEMPLATES: ActivityTemplate[] = [
-  { icon: "🐧", name: "Pudgy Penguin #3362", action: "DEPOSITED", val: "2.4 ETH", pos: true, kind: "other" },
-  { icon: "🦧", name: "BAYC #9112", action: "LISTED", val: "$19,400", pos: true, kind: "sale" },
-  { icon: "👾", name: "CryptoPunk #7804", action: "SOLD", val: "$91,000", pos: true, kind: "sale" },
-  { icon: "🐧", name: "Pudgy Penguin #1021", action: "BID PLACED", val: "3.1 ETH", pos: true, kind: "bid" },
-  { icon: "🦧", name: "BAYC #5678", action: "RENEWED", val: "+14% APY", pos: true, kind: "other" },
-  { icon: "🎨", name: "Normie #2265", action: "SOLD", val: "$4,200", pos: true, kind: "sale" },
-  { icon: "👾", name: "CryptoPunk #3100", action: "BID PLACED", val: "$110,000", pos: true, kind: "bid" },
-  { icon: "⚡", name: "Kaito Genesis #441", action: "LISTED", val: "1.4 ETH", pos: false, kind: "sale" },
-  { icon: "🦧", name: "BAYC #1142", action: "WITHDRAWN", val: "3.2 ETH", pos: false, kind: "other" },
-  { icon: "🐧", name: "Pudgy Penguin #884", action: "BID PLACED", val: "2.7 ETH", pos: true, kind: "bid" },
-  { icon: "🎨", name: "Bored Ape Yacht Club #3362", action: "BID PLACED", val: "2.5 ETH", pos: true, kind: "bid" },
-  { icon: "💎", name: "Pudgy Penguins #8721", action: "SALE", val: "4.2 ETH", pos: true, kind: "sale" },
-  { icon: "🔥", name: "Azuki #5234", action: "BID DECLINED", val: "3.1 ETH", pos: false, kind: "bid" },
-  { icon: "⚡", name: "Doodles #1523", action: "POOL FUNDED", val: "1.8 ETH", pos: true, kind: "other" },
-  { icon: "🎯", name: "CloneX #9841", action: "BID PLACED", val: "5.5 ETH", pos: true, kind: "bid" },
-  { icon: "💫", name: "Moonbirds #2341", action: "SALE", val: "6.7 ETH", pos: true, kind: "sale" },
-];
-
-let activityIdCounter = 0;
-
-function nextActivityId() {
-  activityIdCounter += 1;
-  return `act-${activityIdCounter}`;
-}
-
-function seedActivityLog(): ActivityEntry[] {
-  return Array.from({ length: 7 }, (_, index) => {
-    const template = ACTIVITY_TEMPLATES[index % ACTIVITY_TEMPLATES.length];
-    return {
-      ...template,
-      id: nextActivityId(),
-      ts: Date.now() - (index * 47 + 22) * 1000,
-      fresh: false,
-    };
-  });
-}
-
-function formatActivityTimeAgo(ts: number): string {
-  const seconds = Math.floor((Date.now() - ts) / 1000);
-  if (seconds < 60) return `${Math.max(1, seconds)}s`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-  return `${Math.floor(seconds / 3600)}h`;
-}
-
-function activityAccentColor(action: string, pos: boolean): string {
-  if (/LISTED|SOLD|SALE/.test(action)) return "var(--green)";
-  if (/BID|WITHDRAWN/.test(action)) return "var(--t4)";
-  return pos ? "var(--green)" : "var(--red)";
-}
-
-function filterActivityByTab(entries: ActivityEntry[], tab: ActivityTab): ActivityEntry[] {
-  if (tab === "bids") return entries.filter((entry) => entry.kind === "bid");
-  if (tab === "sales") return entries.filter((entry) => entry.kind === "sale");
-  return entries;
-}
-
-function pickActivityTemplate(tab: ActivityTab): ActivityTemplate {
-  const pool =
-    tab === "bids"
-      ? ACTIVITY_TEMPLATES.filter((entry) => entry.kind === "bid")
-      : tab === "sales"
-        ? ACTIVITY_TEMPLATES.filter((entry) => entry.kind === "sale")
-        : ACTIVITY_TEMPLATES;
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-
-function buildNavBarPath(width: number, notchX: number, hasNotch: boolean) {
-  const h = 64;
-  const cr = 0;
-  if (!hasNotch || width <= 0) {
-    return `M 0 0 L ${width} 0 L ${width} ${h} L 0 ${h} Z`;
-  }
-
-  const nw = 40;
-  const nd = 32;
-  const cx = Math.max(nw + 12, Math.min(width - nw - 12, notchX));
-
-  return [
-    `M 0 ${cr}`,
-    `L ${cx - nw - 6} 0`,
-    `C ${cx - nw + 4} 0 ${cx - nw * 0.55} 3 ${cx - nw * 0.35} ${nd * 0.45}`,
-    `C ${cx - 14} ${nd * 0.95} ${cx - 5} ${nd} ${cx} ${nd}`,
-    `C ${cx + 5} ${nd} ${cx + 14} ${nd * 0.95} ${cx + nw * 0.35} ${nd * 0.45}`,
-    `C ${cx + nw * 0.55} 3 ${cx + nw - 4} 0 ${cx + nw + 6} 0`,
-    `L ${width} 0`,
-    `L ${width} ${h}`,
-    `L 0 ${h}`,
-    "Z",
-  ].join(" ");
-}
+import type { MainLayoutProps } from "./layout/types";
+import { MOBILE_MQ } from "./layout/constants";
+import { resolveCurrentPage, shortenAddress } from "./layout/utils";
+import { useActivityFeed } from "./layout/hooks/useActivityFeed";
+import { useMobileHomeSlots } from "./layout/hooks/useMobileHomeSlots";
+import { useMobileNavNotch } from "./layout/hooks/useMobileNavNotch";
+import RightRail from "./layout/rail/RightRail";
+import MobileHomeRailCard from "./layout/rail/MobileHomeRailCard";
+import PlatformActivity from "./layout/rail/PlatformActivity";
+import TopNavBar from "./layout/shell/TopNavBar";
+import WalletPanel from "./layout/shell/WalletPanel";
+import BottomNav from "./layout/shell/BottomNav";
+import LayoutFooter from "./layout/shell/LayoutFooter";
 
 declare global {
   interface Window {
     showToast?: (data: StandardToastData) => void;
     openDepositModal?: (assetName?: string, floorEth?: string) => void;
     closeDepositModal?: () => void;
+    reconnectWallet?: () => void;
   }
 }
 
-function shortenAddress(address?: string) {
-  if (!address) return "";
-  return `${address.slice(0, 6)}...${address.slice(-3)}`;
-}
-
-function formatRankSubtitle(rank?: string | null) {
-  if (!rank || rank === "None") return "Unregistered";
-  return rank
-    .split(/\s+/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-}
-
-const PRIVACY_EYE_ON = (
-  <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
-    <path
-      d="M1.5 10S4.5 4 10 4s8.5 6 8.5 6-3 6-8.5 6-8.5-6-8.5-6z"
-      stroke="currentColor"
-      strokeWidth="1.4"
-    />
-    <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.4" />
-  </svg>
-);
-
-const PRIVACY_EYE_OFF = (
-  <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
-    <path
-      d="M2 10S5 4.5 10 4.5c1.3 0 2.5.3 3.6.9M18 10s-3 5.5-8 5.5c-1.3 0-2.5-.3-3.6-.9"
-      stroke="currentColor"
-      strokeWidth="1.4"
-      strokeLinecap="round"
-    />
-    <path d="M8.2 8.2a2.5 2.5 0 0 0 3.6 3.6" stroke="currentColor" strokeWidth="1.4" />
-    <path d="M3.5 3.5l13 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-  </svg>
-);
-
-interface MainLayoutProps {
-  children: React.ReactNode;
-  sbTransY?: number;
-  sbOpacity?: number;
-  railTransX?: number;
-  railOpacity?: number;
-}
-
-export default function MainLayout({ 
-  children, 
-  sbTransY = 0, 
-  sbOpacity = 1, 
-  railTransX = 0, 
-  railOpacity = 1 
+export default function MainLayout({
+  children,
+  sbTransY = 0,
+  sbOpacity = 1,
+  railTransX = 0,
+  railOpacity = 1,
 }: MainLayoutProps) {
   const pathname = usePathname();
   const { address, isConnected: walletConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const { data: balanceData } = useBalance({ address, query: { enabled: !!address } });
-  const WALLET_ADDRESS = shortenAddress(address);
+  const walletAddressLabel = shortenAddress(address);
   const { summary, refetchSummary } = useDashboardData();
   const { data: pointsSummary } = usePointsSummary();
   const { data: leadershipStatus } = useLeadershipStatus();
   const claimCommissions = useClaimCommissions();
+
   const [claimBusy, setClaimBusy] = useState(false);
-  const [activeTab, setActiveTab] = useState<ActivityTab>("all");
-  const [activityLog, setActivityLog] = useState<ActivityEntry[]>(() => seedActivityLog());
-  const [activityTimeTick, setActivityTimeTick] = useState(0);
-  const activeTabRef = useRef<ActivityTab>("all");
   const [isDark, setIsDark] = useState(true);
   const [walletPanelOpen, setWalletPanelOpen] = useState(false);
   const [notifPanelOpen, setNotifPanelOpen] = useState(false);
@@ -213,28 +62,24 @@ export default function MainLayout({
   const [railOpen, setRailOpen] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
   const [portalMounted, setPortalMounted] = useState(false);
-  const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
-  const profileSlotRef = useRef<HTMLDivElement | null>(null);
-  const activitySlotRef = useRef<HTMLDivElement | null>(null);
-  const [activityAnchor, setActivityAnchor] = useState<HTMLElement | null>(null);
+
   const bottomNavRef = useRef<HTMLDivElement | null>(null);
   const navBarPathRef = useRef<SVGPathElement | null>(null);
-  
-  // Determine current page from pathname
-  const currentPage =
-    pathname === "/"
-      ? "home"
-      : pathname.startsWith("/pool/")
-        ? "pooldetail"
-        : pathname.slice(1);
+
+  const currentPage = resolveCurrentPage(pathname);
   const hideRightRail = currentPage === "network" || currentPage === "webinar";
   const showMobileHomeRail = currentPage === "home" && walletConnected && !hideRightRail && isMobileView;
   const showMobileHomeActivity = currentPage === "home" && !hideRightRail && isMobileView;
   const hideMobileRailToggle = isMobileView;
 
-  const maskBalance = (value: string) => (balancesHidden ? "••••••" : value);
+  const { activeTab, setActiveTab, filteredActivity } = useActivityFeed();
+  const { profileAnchor, activityAnchor } = useMobileHomeSlots(showMobileHomeRail, showMobileHomeActivity);
 
+  useMobileNavNotch(bottomNavRef, navBarPathRef, pathname, currentPage);
+
+  const maskBalance = useCallback((value: string) => (balancesHidden ? "••••••" : value), [balancesHidden]);
   const closeRail = useCallback(() => setRailOpen(false), []);
+
   const triggerNavHaptic = useCallback(() => {
     try {
       if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
@@ -244,6 +89,7 @@ export default function MainLayout({
       // Haptics unavailable or blocked in this environment.
     }
   }, []);
+
   const onBottomNavClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
       if ((event.target as HTMLElement).closest(".si")) {
@@ -252,13 +98,13 @@ export default function MainLayout({
     },
     [triggerNavHaptic],
   );
+
   const toggleRail = useCallback(() => {
     setWalletPanelOpen(false);
     setNotifPanelOpen(false);
     setRailOpen((open) => !open);
   }, []);
 
-  // Load theme and privacy preference from localStorage
   useEffect(() => {
     try {
       const savedTheme = localStorage.getItem("hntrTheme");
@@ -282,211 +128,10 @@ export default function MainLayout({
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
-  // Close rail drawer when leaving mobile breakpoint or changing page
   useEffect(() => {
     setRailOpen(false);
   }, [pathname]);
 
-  useEffect(() => {
-    activeTabRef.current = activeTab;
-  }, [activeTab]);
-
-  useEffect(() => {
-    let cancelled = false;
-    let timer: number | undefined;
-
-    const pushActivity = () => {
-      const template = pickActivityTemplate(activeTabRef.current);
-      setActivityLog((entries) => [
-        {
-          ...template,
-          id: nextActivityId(),
-          ts: Date.now(),
-          fresh: true,
-        },
-        ...entries.map((entry) => ({ ...entry, fresh: false })),
-      ].slice(0, 20));
-    };
-
-    const scheduleNext = () => {
-      timer = window.setTimeout(() => {
-        if (cancelled) return;
-        pushActivity();
-        scheduleNext();
-      }, 2800 + Math.random() * 2200);
-    };
-
-    timer = window.setTimeout(() => {
-      if (cancelled) return;
-      pushActivity();
-      scheduleNext();
-    }, 3200);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, []);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setActivityTimeTick((tick) => tick + 1);
-      setActivityLog((entries) => entries.map((entry) => ({ ...entry, fresh: false })));
-    }, 15000);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const filteredActivity = useMemo(
-    () => filterActivityByTab(activityLog, activeTab).slice(0, 7),
-    [activityLog, activeTab, activityTimeTick],
-  );
-
-  useEffect(() => {
-    const updateActiveNotch = () => {
-      const nav = bottomNavRef.current;
-      const path = navBarPathRef.current;
-      if (!nav || !path || !window.matchMedia(MOBILE_MQ).matches) return;
-
-      const barWidth = nav.clientWidth;
-      const active = nav.querySelector<HTMLElement>(".mobile-nav-track .si.active");
-      const svg = nav.querySelector<SVGSVGElement>(".mobile-nav-shape");
-
-      if (svg && barWidth > 0) {
-        svg.setAttribute("viewBox", `0 0 ${barWidth} 64`);
-      }
-
-      if (!active) {
-        nav.style.removeProperty("--nav-notch-x");
-        path.setAttribute("d", buildNavBarPath(barWidth, barWidth / 2, false));
-        return;
-      }
-
-      const navRect = nav.getBoundingClientRect();
-      const activeRect = active.getBoundingClientRect();
-      const x = activeRect.left + activeRect.width / 2 - navRect.left;
-      nav.style.setProperty("--nav-notch-x", `${x}px`);
-      path.setAttribute("d", buildNavBarPath(barWidth, x, true));
-    };
-
-    updateActiveNotch();
-    window.addEventListener("resize", updateActiveNotch);
-    const mq = window.matchMedia(MOBILE_MQ);
-    mq.addEventListener("change", updateActiveNotch);
-
-    return () => {
-      window.removeEventListener("resize", updateActiveNotch);
-      mq.removeEventListener("change", updateActiveNotch);
-    };
-  }, [pathname, currentPage]);
-
-  // Mount mobile profile + stats inline after home banner
-  useEffect(() => {
-    if (!showMobileHomeRail) {
-      setProfileAnchor(null);
-      profileSlotRef.current?.remove();
-      profileSlotRef.current = null;
-      document.querySelectorAll(".mobile-profile-slot").forEach((el) => {
-        if (!el.closest("#panel-home")) el.remove();
-      });
-      return;
-    }
-
-    let cancelled = false;
-    let attempts = 0;
-    let timer: number | undefined;
-
-    const place = () => {
-      if (cancelled) return;
-      const panel = document.getElementById("panel-home");
-      const anchor = panel?.querySelector(".pbar") as HTMLElement | null;
-      if (!anchor) {
-        if (attempts++ < 20) {
-          timer = window.setTimeout(place, 50);
-        } else {
-          setProfileAnchor(null);
-        }
-        return;
-      }
-
-      let slot = profileSlotRef.current;
-      if (!slot) {
-        slot = document.createElement("div");
-        slot.className = "mobile-profile-slot";
-        profileSlotRef.current = slot;
-      }
-
-      if (slot.previousElementSibling !== anchor) {
-        anchor.insertAdjacentElement("afterend", slot);
-      }
-      setProfileAnchor(slot);
-    };
-
-    place();
-    return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
-    };
-  }, [showMobileHomeRail]);
-
-  // Mount platform activity at end of home feed (before footer)
-  useEffect(() => {
-    if (!showMobileHomeActivity) {
-      setActivityAnchor(null);
-      activitySlotRef.current?.remove();
-      activitySlotRef.current = null;
-      document.querySelectorAll(".mobile-activity-slot").forEach((el) => {
-        if (!el.closest("#panel-home")) el.remove();
-      });
-      return;
-    }
-
-    let cancelled = false;
-    let attempts = 0;
-    let timer: number | undefined;
-
-    const place = () => {
-      if (cancelled) return;
-      const feed = document.getElementById("feed-home");
-      const footer = feed?.querySelector(".home-footer") as HTMLElement | null;
-      if (!feed || !footer) {
-        if (attempts++ < 20) {
-          timer = window.setTimeout(place, 50);
-        } else {
-          setActivityAnchor(null);
-        }
-        return;
-      }
-
-      let slot = activitySlotRef.current;
-      if (!slot) {
-        slot = document.createElement("div");
-        slot.className = "mobile-activity-slot";
-        activitySlotRef.current = slot;
-      }
-
-      if (slot.nextElementSibling !== footer) {
-        footer.insertAdjacentElement("beforebegin", slot);
-      }
-      setActivityAnchor(slot);
-    };
-
-    place();
-    return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
-    };
-  }, [showMobileHomeActivity]);
-
-  useEffect(() => {
-    return () => {
-      profileSlotRef.current?.remove();
-      profileSlotRef.current = null;
-      activitySlotRef.current?.remove();
-      activitySlotRef.current = null;
-    };
-  }, []);
-
-  // Escape closes rail drawer
   useEffect(() => {
     if (!railOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -496,21 +141,14 @@ export default function MainLayout({
     return () => document.removeEventListener("keydown", onKey);
   }, [railOpen]);
 
-  // Update body classes
   useEffect(() => {
     document.body.dataset.page = currentPage;
     document.body.classList.toggle("wallet-connected", walletConnected);
     document.body.classList.toggle("balances-hidden", balancesHidden);
     document.body.classList.toggle("rail-drawer-open", railOpen);
-    
-    if (isDark) {
-      document.body.classList.add("dark");
-    } else {
-      document.body.classList.remove("dark");
-    }
+    document.body.classList.toggle("dark", isDark);
   }, [isDark, currentPage, walletConnected, balancesHidden, railOpen]);
 
-  // Close wallet / notification panels when clicking outside
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -554,9 +192,11 @@ export default function MainLayout({
   useEffect(() => {
     window.openDepositModal = openDepositModal;
     window.closeDepositModal = closeDepositModal;
+    window.reconnectWallet = () => {};
     return () => {
       delete window.openDepositModal;
       delete window.closeDepositModal;
+      delete window.reconnectWallet;
     };
   }, [openDepositModal, closeDepositModal]);
 
@@ -575,7 +215,7 @@ export default function MainLayout({
 
   const disconnectWallet = () => {
     setWalletPanelOpen(false);
-    const disconnectedLabel = WALLET_ADDRESS;
+    const disconnectedLabel = walletAddressLabel;
     clearStoredAuth();
     disconnect();
     window.showToast?.({
@@ -603,17 +243,15 @@ export default function MainLayout({
     });
   };
 
-  // Legacy script-8.js calls window.reconnectWallet() after closing the membership
-  // success modal. With a real wallet connection the wallet was never disconnected
-  // during purchase, so this is now a no-op kept only for backward compatibility.
-  const reconnectWallet = useCallback(() => {}, []);
-
-  useEffect(() => {
-    window.reconnectWallet = reconnectWallet;
-    return () => {
-      delete window.reconnectWallet;
-    };
-  }, [reconnectWallet]);
+  const toggleTheme = () => {
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+    try {
+      localStorage.setItem("hntrTheme", newIsDark ? "dark" : "light");
+    } catch (e) {
+      console.error("Failed to save theme:", e);
+    }
+  };
 
   const handleClaimCommissions = async () => {
     if (claimBusy) return;
@@ -633,828 +271,102 @@ export default function MainLayout({
     }
   };
 
-  // const lockedNavClick = (e: React.MouseEvent) => {
-  //   if (!walletConnected) {
-  //     e.preventDefault();
-  //     openSignup();
-  //   }
-  // };
+  const hntrPoints = pointsSummary?.hntrPoints ?? 0;
 
-  // Toggle theme function
-  const toggleTheme = () => {
-    const newIsDark = !isDark;
-    setIsDark(newIsDark);
-    try {
-      localStorage.setItem("hntrTheme", newIsDark ? "dark" : "light");
-    } catch (e) {
-      console.error("Failed to save theme:", e);
-    }
+  const railProps = {
+    walletConnected,
+    railOpen,
+    isMobileView,
+    railTransX,
+    railOpacity,
+    summary,
+    hntrPoints,
+    leadershipStatus,
+    claimBusy,
+    balancesHidden,
+    activeTab,
+    filteredActivity,
+    maskBalance,
+    onTogglePrivacy: togglePrivacy,
+    onClaimCommissions: handleClaimCommissions,
+    onTabChange: setActiveTab,
   };
-
-  const renderProfileCard = () => {
-    const progress = summary?.progress;
-    const progressPct = progress?.percent ?? 0;
-    return (
-      <div className="r-div rail-profile-block">
-        <div className="rp">
-          <div className="rav">👤</div>
-          <div>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <div className="rn">{summary?.username || "Unregistered"}</div>
-            </div>
-            <div className="rt">{summary?.rank || "None"}</div>
-          </div>
-          <button
-            className={`privacy-eye${balancesHidden ? " off" : ""}`}
-            type="button"
-            onClick={togglePrivacy}
-            aria-label={balancesHidden ? "Show balances" : "Hide balances"}
-            title={balancesHidden ? "Show balances" : "Hide balances"}
-          >
-            {balancesHidden ? PRIVACY_EYE_OFF : PRIVACY_EYE_ON}
-          </button>
-        </div>
-        <div className="rpb-wrap">
-          <div className="rph">
-            <div className="rpl">Current Progress</div>
-            <div className="rpp">{progressPct}%</div>
-          </div>
-          <div className="rpb">
-            <div className="rpf" style={{ width: `${progressPct}%` }} />
-          </div>
-          <div className="rpls">
-            <span>{progress?.currentRank || "None"}</span>
-            <span>{progress?.nextRank || "Max Rank"}</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderMobileProfileBlock = () => {
-    const progress = summary?.progress;
-    const progressPct = progress?.percent ?? 0;
-    const rankLabel = summary?.rank || "None";
-    const rankBadge = rankLabel.toLowerCase().includes("elite") ? "ELITE" : null;
-
-    return (
-      <div className="r-div rail-profile-block mobile-rail-profile">
-        <div className="rp mobile-rp">
-          <div className="rav mobile-rav">👤</div>
-          <div className="mobile-rp-meta">
-            <div className="mobile-rp-name-row">
-              <div className="rn mobile-rn">{summary?.username || "Unregistered"}</div>
-              {rankBadge ? <span className="mobile-rank-badge">{rankBadge}</span> : null}
-            </div>
-            <div className="rt mobile-rt">{formatRankSubtitle(rankLabel)}</div>
-          </div>
-          <button
-            className={`privacy-eye mobile-privacy-eye${balancesHidden ? " off" : ""}`}
-            type="button"
-            onClick={togglePrivacy}
-            aria-label={balancesHidden ? "Show balances" : "Hide balances"}
-            title={balancesHidden ? "Show balances" : "Hide balances"}
-          >
-            {balancesHidden ? PRIVACY_EYE_OFF : PRIVACY_EYE_ON}
-          </button>
-          <Link href="/membership" className="mobile-upgrade-btn">
-            UPGRADE
-          </Link>
-        </div>
-        <div className="rpb-wrap mobile-rpb-wrap">
-          <div className="rph mobile-rph">
-            <div className="rpl mobile-rpl">Current Progress</div>
-            <div className="rpp mobile-rpp">{progressPct}%</div>
-          </div>
-          <div className="rpb mobile-rpb">
-            <div className="rpf mobile-rpf" style={{ width: `${progressPct}%` }} />
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderMobileStatsRow = () => (
-    <div className="r-div mobile-rail-stats-block">
-      <div className="rs2">
-        <div className="rsb mobile-rsb">
-          <div className="rsbl">Total Rewarded</div>
-          <div className="rsbv">
-            {maskBalance(`$${(summary?.totalRewarded ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
-          </div>
-        </div>
-        <div className="rsb mobile-rsb">
-          <div className="rsbl">HNTR Points</div>
-          <div className="rsbv">
-            {maskBalance((pointsSummary?.hntrPoints ?? 0).toLocaleString())}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderStatsRow = () => (
-    <div className="r-div mobile-rail-stats-block">
-      <div className="rs2">
-        <div className="rsb">
-          <div className="rsbl">Total Rewarded</div>
-          <div className="rsbv">
-            {maskBalance(`$${(summary?.totalRewarded ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
-          </div>
-          <div className="rsbc">{summary?.networkSize ?? 0} network members</div>
-        </div>
-        <div className="rsb">
-          <div className="rsbl" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            HNTR Points
-            <span className="info-i" data-tip="250 points per $1 spent on membership, 10 points per $1 commission earned.">
-              i
-            </span>
-          </div>
-          <div className="rsbv">
-            {maskBalance((pointsSummary?.hntrPoints ?? 0).toLocaleString())}
-          </div>
-          <div className="rsbg">Lifetime</div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderMobileRewardCards = () => {
-    const poolRewardsAmount = leadershipStatus?.estimatedPayoutUSD ?? 0;
-    const hasPoolRewards = !!(leadershipStatus?.hasShares && poolRewardsAmount > 0);
-    const claimableByTokenLabel = formatClaimableByToken(summary?.tokens);
-
-    return (
-      <>
-        <div className="rrc mobile-rrc">
-          <div
-            className="rrc-icon-row"
-            style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "8px" }}
-          >
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-              <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.3" />
-              <path
-                d="M4.6 7l1.6 1.6L9.4 5.4"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <div className="rrctype">Referral Commission</div>
-          </div>
-          <div className="rrcv mobile-rrcv">
-            {maskBalance(`$${(summary?.claimableNow ?? 0).toFixed(2)}`)}
-          </div>
-          {claimableByTokenLabel ? (
-            <div className="rrcd" style={{ marginTop: "4px", marginBottom: "8px" }}>
-              {claimableByTokenLabel}
-            </div>
-          ) : null}
-          <button
-            className="cbtn"
-            disabled={claimBusy || !(summary?.claimableNow && summary.claimableNow > 0)}
-            onClick={handleClaimCommissions}
-            title={
-              claimBusy
-                ? "Claim in progress…"
-                : summary?.claimableNow && summary.claimableNow > 0
-                  ? "Claim your commissions now"
-                  : "Nothing to claim yet"
-            }
-          >
-            {claimBusy ? "CLAIMING…" : "CLAIM"}
-          </button>
-        </div>
-        <div className="rrc mobile-rrc r-div">
-          <div
-            className="rrc-icon-row"
-            style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "8px" }}
-          >
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-              <rect x="2.5" y="5" width="9" height="6.5" rx="1" stroke="currentColor" strokeWidth="1.3" />
-              <path
-                d="M4.5 5V3.7a2.5 2.5 0 0 1 5 0V5"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-              />
-            </svg>
-            <div className="rrctype">Pool Rewards</div>
-          </div>
-          <div className="rrcv mobile-rrcv">
-            {maskBalance(`$${poolRewardsAmount.toFixed(2)}`)}
-          </div>
-          <button
-            className="cbtn"
-            disabled={!hasPoolRewards}
-            title={
-              hasPoolRewards
-                ? "Pool rewards are distributed monthly from the leadership pool"
-                : "Reach Hunter rank or above to earn pool rewards"
-            }
-          >
-            CLAIM
-          </button>
-        </div>
-      </>
-    );
-  };
-
-  const renderRewardCards = () => {
-    const poolRewardsAmount = leadershipStatus?.estimatedPayoutUSD ?? 0;
-    const hasPoolRewards = !!(leadershipStatus?.hasShares && poolRewardsAmount > 0);
-    const claimableByTokenLabel = formatClaimableByToken(summary?.tokens);
-
-    return (
-    <>
-      <div className="rrc" style={{ marginBottom: "8px" }}>
-        <div className="rrct">
-          <div className="rrc-icon-row" style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-              <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.2" />
-              <path
-                d="M4 6l1.5 1.5L8 4"
-                stroke="currentColor"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <div className="rrctype">Referral Commission</div>
-          </div>
-        </div>
-        <div className="rrcd">Claimable now from your direct referral network</div>
-        {claimableByTokenLabel ? (
-          <div className="rrcd" style={{ marginTop: "2px", color: "var(--t3)" }}>
-            {claimableByTokenLabel}
-          </div>
-        ) : null}
-        <div className="rrcb">
-          <div className="rrcv">{maskBalance(`$${(summary?.claimableNow ?? 0).toFixed(2)}`)}</div>
-          <button
-            className="cbtn"
-            disabled={claimBusy || !(summary?.claimableNow && summary.claimableNow > 0)}
-            onClick={handleClaimCommissions}
-            title={
-              claimBusy
-                ? "Claim in progress…"
-                : summary?.claimableNow && summary.claimableNow > 0
-                  ? "Claim your commissions now"
-                  : "Nothing to claim yet — commissions appear here as your network purchases memberships."
-            }
-          >
-            {claimBusy ? "CLAIMING…" : "CLAIM"}
-          </button>
-        </div>
-      </div>
-      <div className="rrc r-div">
-        <div className="rrct">
-          <div className="rrc-icon-row" style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-              <rect x="1.5" y="4" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="1.2" />
-              <path d="M4 4V3a2 2 0 0 1 4 0v1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-            </svg>
-            <div className="rrctype">Pool Rewards</div>
-          </div>
-        </div>
-        <div className="rrcd">Proportional distribution from NFT strategy pools</div>
-        <div className="rrcb">
-          <div className="rrcv">{maskBalance(`$${poolRewardsAmount.toFixed(2)}`)}</div>
-          <button
-            className="cbtn"
-            disabled={!hasPoolRewards}
-            title={
-              hasPoolRewards
-                ? "Pool rewards are distributed monthly from the leadership pool"
-                : "Reach Hunter rank or above to earn pool rewards"
-            }
-          >
-            CLAIM
-          </button>
-        </div>
-      </div>
-    </>
-    );
-  };
-
-  const renderRewardTiers = () => (
-    <>
-      <div className="rrtl">Active Rewards Tiers</div>
-      {renderRewardCards()}
-    </>
-  );
-
-  const renderPlatformActivity = (inline = false) => (
-    <>
-      {inline ? (
-        <div className="mobile-activity-head">
-          <div className="ratl">Platform Activity</div>
-          <div className="mobile-activity-live">
-            <span className="mobile-activity-live-dot" aria-hidden="true" />
-            LIVE
-          </div>
-        </div>
-      ) : (
-        <div className="ratl">Platform Activity</div>
-      )}
-      <div className={inline ? "mobile-activity-tabs" : "atabs"}>
-        <button
-          type="button"
-          className={`at ${activeTab === "all" ? "active" : ""}`}
-          onClick={() => setActiveTab("all")}
-        >
-          All Feeds
-        </button>
-        <button
-          type="button"
-          className={`at ${activeTab === "bids" ? "active" : ""}`}
-          onClick={() => setActiveTab("bids")}
-        >
-          Bids
-        </button>
-        <button
-          type="button"
-          className={`at ${activeTab === "sales" ? "active" : ""}`}
-          onClick={() => setActiveTab("sales")}
-        >
-          Sales
-        </button>
-      </div>
-      <div id={inline ? "mobileActivityFeed" : "activityFeed"} className={inline ? "mobile-activity-feed" : undefined}>
-        <AnimatePresence mode="popLayout" initial={false}>
-          {filteredActivity.map((entry) => (
-            <motion.div
-              key={entry.id}
-              layout
-              initial={{ opacity: 0, y: -14, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.98 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className={`arow${entry.fresh ? " arow-new" : ""}`}
-            >
-              <div className="adot">{entry.icon}</div>
-              <div className="ainf">
-                <div className="an">{entry.name}</div>
-                <div className="aa" style={{ color: activityAccentColor(entry.action, entry.pos) }}>
-                  {entry.action} · {entry.val}
-                </div>
-              </div>
-              <div className="atm">{formatActivityTimeAgo(entry.ts)}</div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-      <a className="vact">View Activity</a>
-    </>
-  );
-
-  const renderMobileHomeInline = () => (
-    <div className="mobile-home-rail-card">
-      {renderMobileProfileBlock()}
-      {renderMobileStatsRow()}
-      <div className="mobile-rail-rewards-grid">{renderMobileRewardCards()}</div>
-    </div>
-  );
-
-  const renderRightRail = () => (
-    <div
-      id="app-right-rail"
-      className={`rail${railOpen ? " rail-open" : ""}${isMobileView ? " mobile-rail-drawer" : ""}`}
-      style={
-        isMobileView
-          ? undefined
-          : {
-              transform: railOpen ? undefined : `translateX(${railTransX}%)`,
-              opacity: railOpacity,
-            }
-      }
-      onClick={(e) => e.stopPropagation()}
-    >
-      {!walletConnected ? (
-        <SignupCard />
-      ) : (
-        <>
-          {renderProfileCard()}
-          {renderStatsRow()}
-          {renderRewardTiers()}
-        </>
-      )}
-
-      {renderPlatformActivity()}
-    </div>
-  );
 
   return (
     <div className="app-shell-root">
-      {/* Navigation Bar */}
-      <div className="nav">
-        <div
-          className="nav-brand"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            cursor: "pointer"
-          }}
-        >
-          <span
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "28px",
-              height: "28px",
-              borderRadius: "7px",
-              background: "#0c0c0e",
-              boxShadow: "0 1px 2px rgba(0,0,0,.18)"
-            }}
-          >
-            <img
-              src="/assets/images/logoMark.png"
-              alt="HNTR"
-              style={{
-                width: "15px",
-                height: "auto",
-                display: "block"
-              }}
-            />
-          </span>
-          <span
-            style={{
-              marginLeft: "9px",
-              fontFamily: "var(--fd)",
-              fontWeight: 700,
-              fontSize: "15px",
-              letterSpacing: ".18em"
-            }}
-          >
-            HNTR
-          </span>
-        </div>
-        <div className="nav-r">
-          <Link
-            href="/webinar"
-            className={`nav-btn nav-live${currentPage === "webinar" ? " active" : ""}`}
-            title="Live Webinar"
-            style={{ cursor: "pointer", position: "relative" }}
-          >
-            <span className="rec-dot" />
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <rect x="1.5" y="3" width="10" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-              <path
-                d="M11.5 7.2l3-1.8v5.2l-3-1.8V7.2z"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
-          <div className="nav-btn" id="navThemeToggle" title="Light / Dark" onClick={toggleTheme} style={{ cursor: "pointer" }}>
-            <svg id="themeIcon" width="14" height="14" viewBox="0 0 16 16" fill="none">
-              {isDark ? (
-                <path
-                  d="M13 10.5A5.5 5.5 0 0 1 6.5 4a5.5 5.5 0 0 0 0 8.5A5.5 5.5 0 0 0 13 10.5z"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinejoin="round"
-                />
-              ) : (
-                <>
-                  <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.4" />
-                  <path
-                    d="M8 1.5v1.3M8 13.2v1.3M1.5 8h1.3M13.2 8h1.3M3.4 3.4l.9.9M11.7 11.7l.9.9M12.6 3.4l-.9.9M4.3 11.7l-.9.9"
-                    stroke="currentColor"
-                    strokeWidth="1.4"
-                    strokeLinecap="round"
-                  />
-                </>
-              )}
-            </svg>
-          </div>
-          {!hideRightRail && !hideMobileRailToggle && (
-            <div
-              className={`nav-btn rail-toggle-btn${railOpen ? " active" : ""}`}
-              title={railOpen ? "Close panel" : "Open panel"}
-              onClick={toggleRail}
-              role="button"
-              tabIndex={0}
-              aria-expanded={railOpen}
-              aria-controls="app-right-rail"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  toggleRail();
-                }
-              }}
-              style={{ cursor: "pointer" }}
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                {railOpen ? (
-                  <path
-                    d="M4 4l8 8M12 4L4 12"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                ) : (
-                  <>
-                    <rect x="2" y="2.5" width="5" height="11" rx="1.2" stroke="currentColor" strokeWidth="1.4" />
-                    <path d="M10 4.5h4M10 8h4M10 11.5h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                  </>
-                )}
-              </svg>
-            </div>
-          )}
-          <div
-            className="nav-btn"
-            data-btn="notif"
-            onClick={toggleNotifPanel}
-            style={{ cursor: "pointer", position: "relative" }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                toggleNotifPanel();
-              }
-            }}
-          >
-            <div className="notif-badge" />
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M8 2a3.5 3.5 0 0 1 3.5 3.5c0 3.5 1.5 4.5 1.5 4.5H3s1.5-1 1.5-4.5A3.5 3.5 0 0 1 8 2z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M6.5 12.5a1.5 1.5 0 0 0 3 0"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-          <div
-            className={`conn-pill${walletConnected ? "" : " disconnected"}`}
-            id="connPill"
-            onClick={toggleWalletPanel}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                toggleWalletPanel();
-              }
-            }}
-          >
-            <div className={`conn-dot${walletConnected ? "" : " red"}`} id="connDot" />
-            <span id="connLabel">{walletConnected ? WALLET_ADDRESS : "CONNECT"}</span>
-          </div>
-        </div>
-      </div>
+      <TopNavBar
+        isDark={isDark}
+        walletConnected={walletConnected}
+        walletAddressLabel={walletAddressLabel}
+        railOpen={railOpen}
+        hideRightRail={hideRightRail}
+        hideMobileRailToggle={hideMobileRailToggle}
+        onToggleTheme={toggleTheme}
+        onToggleRail={toggleRail}
+        onToggleNotifPanel={toggleNotifPanel}
+        onToggleWalletPanel={toggleWalletPanel}
+      />
 
-      <div className={`wallet-panel${walletPanelOpen ? " open" : ""}`} id="walletPanel">
-        <div className="wallet-panel-top">
-          <div className="wallet-panel-lbl">Connected Wallet</div>
-          <div className="wallet-address-row">
-            <div className="wallet-dot" />
-            <div className="wallet-address">{WALLET_ADDRESS}</div>
-          </div>
-        </div>
-        <div className="wallet-panel-balance">
-          <div className="wallet-balance-lbl">Total Balance</div>
-          <div className="wallet-balance-val">
-            {balanceData ? Number(formatEther(balanceData.value)).toFixed(4) : "0.0000"}{" "}
-            <span style={{ fontSize: "14px", color: "var(--t2)" }}>{balanceData?.symbol || "ETH"}</span>
-          </div>
-          <div className="wallet-balance-usd">Sepolia testnet balance</div>
-        </div>
-        <div className="wallet-panel-footer">
-          <button className="wallet-disconnect-btn" type="button" onClick={disconnectWallet}>
-            DISCONNECT
-          </button>
-        </div>
-      </div>
+      <WalletPanel
+        open={walletPanelOpen}
+        walletAddressLabel={walletAddressLabel}
+        balanceValue={balanceData?.value}
+        balanceSymbol={balanceData?.symbol}
+        onDisconnect={disconnectWallet}
+      />
 
       <NotificationSystem panelOpen={notifPanelOpen} />
 
       {!hideRightRail && !isMobileView && (
-        <div
-          className={`rail-backdrop${railOpen ? " open" : ""}`}
-          onClick={closeRail}
-          aria-hidden={!railOpen}
-        />
+        <div className={`rail-backdrop${railOpen ? " open" : ""}`} onClick={closeRail} aria-hidden={!railOpen} />
       )}
 
-      {/* Main Shell */}
       <div className="shell">
-        {/* Left Sidebar */}
-        <div
-          ref={bottomNavRef}
-          className={`sb mobile-bottom-nav`}
-          role="navigation"
-          aria-label="Main navigation"
-          onClick={onBottomNavClick}
-          style={{
-            transform: `translateY(${sbTransY}%)`,
-            opacity: sbOpacity,
-          }}
-        >
-          <div className="mobile-nav-bar" aria-hidden="true">
-            <svg className="mobile-nav-shape" viewBox="0 0 360 64" preserveAspectRatio="none" aria-hidden="true">
-              <path ref={navBarPathRef} d={buildNavBarPath(360, 180, false)} />
-            </svg>
-          </div>
-          <div className="mobile-nav-shell">
-            <div className="mobile-nav-dock">
-          <div className="mobile-nav-track">
-          <Link href="/" className={`si ${currentPage === "home" ? "active" : ""}`} data-page="home">
-            <div className="si-icon">
-              <svg viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M2 6.5L8 2l6 4.5V14H10v-3H6v3H2V6.5z"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <span className="si-label">Home</span>
-          </Link>
-          
-          <Link href="/marketplace" className={`si ${currentPage === "marketplace" ? "active" : ""}`} data-page="marketplace">
-            <div className="si-icon">
-              <svg viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M2 6.5h12M3.5 6.5V13h9V6.5"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M1.5 4l1 2.5h11l1-2.5H1.5z"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M6.5 6.5V13M9.5 6.5V13"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-            <span className="si-label">Market</span>
-          </Link>
-          
-          <Link href="/pools" className={`si ${currentPage === "pools" ? "active" : ""}`} data-page="pools">
-            <div className="si-icon">
-              <svg viewBox="0 0 16 16" fill="none">
-                <polyline
-                  points="2,11 5,7.5 8,9 11,5.5 14,3"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <rect x="2" y="12" width="2.5" height="2" rx=".5" fill="currentColor" opacity=".5" />
-                <rect x="5.5" y="10" width="2.5" height="4" rx=".5" fill="currentColor" opacity=".5" />
-                <rect x="9" y="7" width="2.5" height="7" rx=".5" fill="currentColor" opacity=".5" />
-                <rect x="12.5" y="5" width="2" height="9" rx=".5" fill="currentColor" opacity=".5" />
-              </svg>
-            </div>
-            <span className="si-label">Strategies</span>
-          </Link>
-          
-          <Link
-            href="/collection"
-            className={`si ${currentPage === "collection" ? "active" : ""}`}
-            // className={`si ${currentPage === "collection" ? "active" : ""}${!walletConnected ? " locked" : ""}`}
-            data-page="collection"
-            // onClick={lockedNavClick}
-            // aria-disabled={!walletConnected}
-          >
-            <div className="si-icon">
-              <svg viewBox="0 0 16 16" fill="none">
-                <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.5" fill="currentColor" />
-                <rect x="9" y="1.5" width="5.5" height="5.5" rx="1.5" fill="currentColor" opacity=".4" />
-                <rect x="1.5" y="9" width="5.5" height="5.5" rx="1.5" fill="currentColor" opacity=".4" />
-                <rect x="9" y="9" width="5.5" height="5.5" rx="1.5" fill="currentColor" opacity=".4" />
-              </svg>
-            </div>
-            <span className="si-label">MY NFTs</span>
-            {/* {!walletConnected && (
-              <span className="si-lock">
-                <svg viewBox="0 0 14 14" fill="none">
-                  <rect x="2.5" y="6" width="9" height="6" rx="1" stroke="currentColor" strokeWidth="1.3" />
-                  <path d="M4.5 6V4.3a2.5 2.5 0 0 1 5 0V6" stroke="currentColor" strokeWidth="1.3" />
-                </svg>
-              </span>
-            )} */}
-          </Link>
-          
-          <Link href="/membership" className={`si si-mobile-extra ${currentPage === "membership" ? "active" : ""}`} data-page="membership">
-            <div className="si-icon">
-              <svg viewBox="0 0 16 16" fill="none">
-                <rect x="1.5" y="4" width="13" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-                <path d="M1.5 7.5h13" stroke="currentColor" strokeWidth="1.4" />
-                <path d="M4.5 10.5h3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                <circle cx="11.5" cy="10.5" r="1" fill="currentColor" />
-              </svg>
-            </div>
-            <span className="si-label">Membership</span>
-          </Link>
-          
-          <Link
-            href="/network"
-            className={`si ${currentPage === "network" ? "active" : ""}`}
-            // className={`si ${currentPage === "network" ? "active" : ""}${!walletConnected ? " locked" : ""}`}
-            data-page="network"
-            // onClick={lockedNavClick}
-            // aria-disabled={!walletConnected}
-          >
-            <div className="si-icon">
-              <svg viewBox="0 0 16 16" fill="none">
-                <circle cx="8" cy="5.5" r="3" stroke="currentColor" strokeWidth="1.4" />
-                <path
-                  d="M2.5 14c0-2.485 2.462-4.5 5.5-4.5s5.5 2.015 5.5 4.5"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-            <span className="si-label">Network</span>
-            {/* {!walletConnected && (
-              <span className="si-lock">
-                <svg viewBox="0 0 14 14" fill="none">
-                  <rect x="2.5" y="6" width="9" height="6" rx="1" stroke="currentColor" strokeWidth="1.3" />
-                  <path d="M4.5 6V4.3a2.5 2.5 0 0 1 5 0V6" stroke="currentColor" strokeWidth="1.3" />
-                </svg>
-              </span>
-            )} */}
-          </Link>
-          
-          <div className="si-bot si-mobile-extra">
-            <div className="si-sep" />
-            <Link href="/learn" className={`si ${currentPage === "learn" ? "active" : ""}`} data-page="learn">
-              <div className="si-icon">
-                <svg viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M8 3.2C6.7 2.3 4.9 2 2.8 2.1c-.4 0-.8.4-.8.8v8.3c0 .5.4.9.9.8 2-.1 3.6.2 4.7 1 .3.2.5.2.8 0 1.1-.8 2.7-1.1 4.7-1 .5.1.9-.3.9-.8V2.9c0-.4-.4-.8-.8-.8-2.1-.1-3.9.2-5.2 1.1z"
-                    stroke="currentColor"
-                    strokeWidth="1.3"
-                    strokeLinejoin="round"
-                  />
-                  <path d="M8 3.4v9.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-                </svg>
-              </div>
-              <span className="si-label">Learn</span>
-            </Link>
-            <div className="si">
-              <div className="si-icon">
-                <svg viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.4" />
-                  <path d="M8 10.5v.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                  <path
-                    d="M8 5.5a2 2 0 0 1 2 2c0 1.2-2 2-2 2"
-                    stroke="currentColor"
-                    strokeWidth="1.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <span className="si-label">Support</span>
-            </div>
-          </div>
-          </div>
-            </div>
-          </div>
-        </div>
+        <BottomNav
+          currentPage={currentPage}
+          sbTransY={sbTransY}
+          sbOpacity={sbOpacity}
+          bottomNavRef={bottomNavRef}
+          navBarPathRef={navBarPathRef}
+          onBottomNavClick={onBottomNavClick}
+        />
 
-        {/* Content Area */}
         <div className="content">
           <div className="page-panel active" id={`panel-${currentPage}`}>
             {children}
-
-            {/* Right Rail — desktop inline; mobile portaled to body */}
-            {!hideRightRail && !isMobileView && renderRightRail()}
+            {!hideRightRail && !isMobileView && <RightRail {...railProps} />}
           </div>
         </div>
       </div>
 
       {profileAnchor &&
         showMobileHomeRail &&
-        createPortal(renderMobileHomeInline(), profileAnchor)}
+        createPortal(
+          <MobileHomeRailCard
+            summary={summary}
+            hntrPoints={hntrPoints}
+            leadershipStatus={leadershipStatus}
+            claimBusy={claimBusy}
+            balancesHidden={balancesHidden}
+            maskBalance={maskBalance}
+            onTogglePrivacy={togglePrivacy}
+            onClaimCommissions={handleClaimCommissions}
+          />,
+          profileAnchor,
+        )}
 
       {activityAnchor &&
         showMobileHomeActivity &&
         createPortal(
-          <div className="mobile-home-activity">{renderPlatformActivity(true)}</div>,
-          activityAnchor
+          <div className="mobile-home-activity">
+            <PlatformActivity
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              entries={filteredActivity}
+              inline
+            />
+          </div>,
+          activityAnchor,
         )}
 
       <SignupOverlays />
@@ -1462,17 +374,13 @@ export default function MainLayout({
       {portalMounted &&
         isMobileView &&
         !hideRightRail &&
-        !(currentPage === "home") &&
+        currentPage !== "home" &&
         createPortal(
           <>
-            <div
-              className={`rail-backdrop${railOpen ? " open" : ""}`}
-              onClick={closeRail}
-              aria-hidden={!railOpen}
-            />
-            {renderRightRail()}
+            <div className={`rail-backdrop${railOpen ? " open" : ""}`} onClick={closeRail} aria-hidden={!railOpen} />
+            <RightRail {...railProps} />
           </>,
-          document.body
+          document.body,
         )}
 
       <DepositModal
@@ -1481,20 +389,8 @@ export default function MainLayout({
         floorEth={depositFloorEth}
         onClose={closeDepositModal}
       />
-      
-      {/* Footer */}
-      <div className="vault-footer">
-        <div>© 2024 HNTR . ART .</div>
-        <div style={{ color: "var(--green)", display: "flex", alignItems: "center", gap: "5px" }}>
-          <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "var(--green)" }} />
-          ● TERMINAL STATUS: OPTIMAL
-        </div>
-        <div className="footer-links">
-          <span className="footer-link">TERMS OF SERVICE</span>
-          <span className="footer-link">PRIVACY POLICY</span>
-          <span className="footer-link">RISK DISCLOSURE</span>
-        </div>
-      </div>
+
+      <LayoutFooter />
     </div>
   );
 }

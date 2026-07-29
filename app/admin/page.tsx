@@ -146,24 +146,24 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 sm:space-y-10">
       <NotificationPortal notifications={notifications} />
 
       <section>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold tracking-tight text-white/90">Platform Metrics</h2>
-          <div className="text-xs text-gray-500 font-medium bg-[#111] px-3 py-1 rounded-full border border-[#222]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white/90">Platform Metrics</h2>
+          <div className="self-start sm:self-auto text-[10px] sm:text-xs text-gray-500 font-medium bg-[#111] px-2.5 sm:px-3 py-1 rounded-full border border-[#222]">
             {metricsLoading ? "Loading..." : "Live Statistics"}
           </div>
         </div>
         {metricsLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="bg-[#111] border border-[#222] p-6 rounded-2xl h-28 animate-pulse" />
+              <div key={i} className="bg-[#111] border border-[#222] p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl h-20 sm:h-24 lg:h-28 animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
             {metricCards.map((m, i) => (
               <AdminCard key={i} {...m} />
             ))}
@@ -537,25 +537,31 @@ function WalletsTabContent({ notify }: { notify: (type: "success" | "error" | "i
         ))}
       </div>
 
-      <AdminModal isOpen={ledgerOpen} onClose={() => setLedgerOpen(false)} title={`Ledger: ${ledgerWallet?.name || "Wallet"}`}>
+      <AdminModal
+        isOpen={ledgerOpen}
+        onClose={() => setLedgerOpen(false)}
+        title={`Ledger: ${ledgerWallet?.name || "Wallet"}`}
+        size="xl"
+      >
         <div className="space-y-4">
-          <div className="flex gap-4 text-xs">
-            <div className="flex-1 bg-[#1a1a1a] border border-[#222] rounded-xl p-3">
-              <div className="text-gray-500 font-bold uppercase tracking-wider mb-1">Inflow</div>
-              <div className="text-green-500 font-bold text-lg">+{formatUsd(ledgerTotals.inflow)}</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="bg-[#1a1a1a] border border-[#222] rounded-xl p-3 sm:p-4">
+              <div className="text-gray-500 text-[11px] font-bold uppercase tracking-wider mb-1">Inflow</div>
+              <div className="text-green-500 font-bold text-lg sm:text-xl">+{formatUsd(ledgerTotals.inflow)}</div>
             </div>
-            <div className="flex-1 bg-[#1a1a1a] border border-[#222] rounded-xl p-3">
-              <div className="text-gray-500 font-bold uppercase tracking-wider mb-1">Outflow</div>
-              <div className="text-white font-bold text-lg">-{formatUsd(ledgerTotals.outflow)}</div>
+            <div className="bg-[#1a1a1a] border border-[#222] rounded-xl p-3 sm:p-4">
+              <div className="text-gray-500 text-[11px] font-bold uppercase tracking-wider mb-1">Outflow</div>
+              <div className="text-white font-bold text-lg sm:text-xl">-{formatUsd(ledgerTotals.outflow)}</div>
             </div>
           </div>
           {ledgerSource ? (
-            <div className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">
+            <div className="text-[11px] text-gray-500 uppercase tracking-wider font-bold">
               Source: {ledgerSource}
             </div>
           ) : null}
           <AdminTable
             headers={["Date", "Dir", "Token", "Amount", "Counterparty", "TX"]}
+            minWidth={860}
             pagination={ledgerPagination}
             onPageChange={(p) => ledgerWallet && loadLedger(ledgerWallet, p, ledgerLimit)}
             onPageSizeChange={(size) => {
@@ -565,29 +571,43 @@ function WalletsTabContent({ notify }: { notify: (type: "success" | "error" | "i
           >
             {ledgerLoading ? (
               <tr>
-                <td colSpan={6} className="px-6 py-6 text-center text-gray-500 text-sm">Loading ledger...</td>
+                <td colSpan={6} className="px-4 py-6 text-center text-gray-400 text-sm">
+                  Loading ledger...
+                </td>
               </tr>
             ) : ledgerRows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-6 text-center text-gray-500 text-sm">No ledger entries</td>
+                <td colSpan={6} className="px-4 py-6 text-center text-gray-400 text-sm">
+                  No ledger entries
+                </td>
               </tr>
             ) : (
               ledgerRows.map((row) => (
                 <tr key={row.id} className="hover:bg-[#1a1a1a]">
-                  <td className="px-4 py-3 text-xs text-gray-500">{new Date(row.timestamp).toLocaleString()}</td>
-                  <td className={`px-4 py-3 text-xs font-bold ${row.direction === "IN" ? "text-green-500" : "text-[#f50]"}`}>
+                  <td className="px-4 py-3 text-sm text-gray-300 whitespace-nowrap">
+                    {new Date(row.timestamp).toLocaleString()}
+                  </td>
+                  <td
+                    className={`px-4 py-3 text-sm font-bold whitespace-nowrap ${
+                      row.direction === "IN" ? "text-green-500" : "text-[#f50]"
+                    }`}
+                  >
                     {row.direction}
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-400">{row.token}</td>
-                  <td className={`px-4 py-3 text-sm font-bold ${row.direction === "IN" ? "text-green-500" : "text-white"}`}>
+                  <td className="px-4 py-3 text-sm text-gray-300 whitespace-nowrap">{row.token}</td>
+                  <td
+                    className={`px-4 py-3 text-sm font-bold whitespace-nowrap ${
+                      row.direction === "IN" ? "text-green-500" : "text-white"
+                    }`}
+                  >
                     {row.direction === "IN" ? "+" : "-"}
                     {formatUsd(row.amount)}
                   </td>
-                  <td className="px-4 py-3 text-[10px] font-mono text-gray-500">
+                  <td className="px-4 py-3 text-xs font-mono text-gray-400 whitespace-nowrap">
                     {row.counterparty ? `${row.counterparty.slice(0, 6)}…${row.counterparty.slice(-4)}` : "—"}
                   </td>
-                  <td className="px-4 py-3 text-[10px] font-mono text-gray-500">
-                    {row.txHash ? `${row.txHash.slice(0, 8)}…` : "—"}
+                  <td className="px-4 py-3 text-xs font-mono text-gray-400 whitespace-nowrap">
+                    {row.txHash ? `${row.txHash.slice(0, 10)}…${row.txHash.slice(-6)}` : "—"}
                   </td>
                 </tr>
               ))

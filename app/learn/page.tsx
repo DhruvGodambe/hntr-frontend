@@ -8,8 +8,18 @@ export default function LearnPage() {
 
   useLayoutEffect(() => {
     document.body.dataset.page = "learn";
+
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type !== "learn-sidebar") return;
+      document.body.classList.toggle("learn-sidebar-open", Boolean(event.data.open));
+    };
+
+    window.addEventListener("message", onMessage);
+
     return () => {
       delete document.body.dataset.page;
+      document.body.classList.remove("learn-sidebar-open");
+      window.removeEventListener("message", onMessage);
     };
   }, []);
 

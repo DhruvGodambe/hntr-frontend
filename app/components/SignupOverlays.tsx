@@ -6,18 +6,23 @@ import { api, ApiError } from "../../lib/api";
 import { ensureAuth } from "../../lib/auth";
 import { TIERS } from "../../lib/contracts";
 import { handleAppError, resolveAppError } from "../../lib/errors";
-import { purchaseOrUpgradeTier } from "../../lib/membership";
+import { purchaseOrUpgradeTier, useMembershipQuote } from "../../lib/membership";
 import { useConnectWallet } from "../../lib/useConnectWallet";
 import PaymentTokenToggle from "./PaymentTokenToggle";
+import MembershipPaySummary from "./MembershipPaySummary";
+import SignupPhoneInput from "./SignupPhoneInput";
 import type { PaymentToken } from "../../lib/tokens";
 import {
   SIGNUP_REGION_OPTIONS,
   type SignupRegion,
+  type SignupCountryCode,
   type SignupStep2Errors,
-  phonePlaceholderForRegion,
-  sanitizePhoneInput,
+  defaultCountryForRegion,
+  formatPhoneE164,
   mapRegistrationApiError,
   validateSignupStep2,
+  validateUsername,
+  validatePhone,
 } from "../../lib/signup-validation";
 
 function setModalBodyLock(locked: boolean) {
@@ -72,12 +77,17 @@ export default function SignupOverlays() {
   const [purchasePhase, setPurchasePhase] = useState<SignupPurchasePhase | null>(null);
   const [purchaseStatus, setPurchaseStatus] = useState<SignupPurchaseStatus>({ state: "idle" });
   const [paymentToken, setPaymentToken] = useState<PaymentToken>("USDT");
+  const [selectedSignupTier, setSelectedSignupTier] = useState<string | null>(null);
   const [step2Errors, setStep2Errors] = useState<SignupStep2Errors>({});
   const [registerFormError, setRegisterFormError] = useState("");
+  const [sponsorVerified, setSponsorVerified] = useState(false);
+  const [sponsorChecking, setSponsorChecking] = useState(false);
   const [fullName, setFullName] = useState("");
   const [region, setRegion] = useState<SignupRegion | "">("");
+  const [country, setCountry] = useState<SignupCountryCode | "">("");
   const [phone, setPhone] = useState("");
   const purchaseBusyRef = useRef(false);
+  const paymentTokenRef = useRef<PaymentToken>("USDT");
   const skipStep2Ref = useRef(false);
   const [isProfileRegistered, setIsProfileRegistered] = useState(false);
 
@@ -96,6 +106,41 @@ export default function SignupOverlays() {
     });
   }, []);
 
+  const mapSponsorValidationError = useCallback((error: unknown): string => {
+    const { fieldErrors, formError } = mapRegistrationApiError(error);
+    return fieldErrors.sponsor ?? formError ?? "Unable to verify sponsor. Please try again.";
+  }, []);
+
+  const verifySponsor = useCallback(async (rawSponsor: string): Promise<boolean> => {
+    const sponsor = rawSponsor.trim().replace(/^@/, "");
+    const formatError = validateUsername(sponsor, "Sponsor username");
+    if (formatError) {
+      setSponsorVerified(false);
+      setStep2Errors({ sponsor: formatError });
+      setRegisterFormError(formatError);
+      return false;
+    }
+
+    setSponsorChecking(true);
+    setRegisterFormError("");
+    try {
+      await api.get<{ username: string; tier: string }>(
+        `/api/users/sponsor/${encodeURIComponent(sponsor)}/validate`,
+      );
+      setSponsorVerified(true);
+      clearStep2Error("sponsor");
+      return true;
+    } catch (error) {
+      const message = mapSponsorValidationError(error);
+      setSponsorVerified(false);
+      setStep2Errors({ sponsor: message });
+      setRegisterFormError(message);
+      return false;
+    } finally {
+      setSponsorChecking(false);
+    }
+  }, [clearStep2Error, mapSponsorValidationError]);
+
   const usernameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
 
@@ -111,6 +156,29 @@ export default function SignupOverlays() {
       // no-op: referral prefill is a convenience, not required
     }
   }, []);
+
+  useEffect(() => {
+    if (sponsorLocked && sponsorUsername.trim()) {
+      void verifySponsor(sponsorUsername);
+    }
+  }, [sponsorLocked, sponsorUsername, verifySponsor]);
+
+  useEffect(() => {
+    paymentTokenRef.current = paymentToken;
+  }, [paymentToken]);
+
+  const signupQuoteQuery = useMembershipQuote(
+    selectedSignupTier,
+    paymentToken,
+    !!selectedSignupTier && !pendingTier,
+  );
+
+  useEffect(() => {
+    if (purchaseStatus.state === "error") {
+      setPurchaseStatus({ state: "idle" });
+    }
+    setSelectedSignupTier(null);
+  }, [paymentToken]);
 
   useEffect(() => {
     const scriptId = "signup-flow-script";
@@ -133,6 +201,8 @@ export default function SignupOverlays() {
       window.openSignup = () => {
         skipStep2Ref.current = false;
         setIsProfileRegistered(false);
+        setSponsorVerified(false);
+        setSponsorChecking(false);
         nativeOpenSignup?.();
       };
 
@@ -161,16 +231,37 @@ export default function SignupOverlays() {
   const handleSignupTierSelect = useCallback(
     async (tierName: string) => {
       if (purchaseBusyRef.current) return;
+
+      if (selectedSignupTier !== tierName) {
+        setSelectedSignupTier(tierName);
+        setPurchaseStatus({ state: "idle" });
+        return;
+      }
+
+      if (signupQuoteQuery.data?.insufficientBalance) {
+        const resolved = resolveAppError(
+          {
+            code: "INSUFFICIENT_BALANCE",
+            message: `Insufficient ${paymentTokenRef.current} balance. You need ${signupQuoteQuery.data.amountDueFormatted} ${paymentTokenRef.current} to purchase ${tierName}.`,
+          },
+          "Purchase failed",
+        );
+        setPurchaseStatus({ state: "error", message: resolved.sub });
+        window.showToast?.({ title: resolved.title, sub: resolved.sub, link: "" });
+        return;
+      }
+
       purchaseBusyRef.current = true;
       setPendingTier(tierName);
       setPurchasePhase(null);
       setPurchaseStatus({ state: "loading", tier: tierName });
 
       let succeeded = false;
+      const token = paymentTokenRef.current;
       try {
         await ensureAuth();
 
-        const result = await purchaseOrUpgradeTier(tierName, paymentToken, {
+        const result = await purchaseOrUpgradeTier(tierName, token, {
           onAwaitingWallet: () => {
             setPurchasePhase("wallet");
             setPurchaseStatus({ state: "wallet", tier: tierName });
@@ -192,9 +283,9 @@ export default function SignupOverlays() {
           window.location.assign("/network");
         }, 700);
       } catch (error) {
-        const message = resolveAppError(error, "Purchase failed").sub;
-        setPurchaseStatus({ state: "error", message });
-        notifyError("Purchase failed", error);
+        const resolved = resolveAppError(error, "Purchase failed");
+        setPurchaseStatus({ state: "error", message: resolved.sub });
+        notifyError(resolved.title, error);
       } finally {
         purchaseBusyRef.current = false;
         if (!succeeded) {
@@ -203,13 +294,19 @@ export default function SignupOverlays() {
         }
       }
     },
-    [paymentToken]
+    [selectedSignupTier, signupQuoteQuery.data]
   );
 
   const signupTierButtonLabel = (tierName: string) => {
-    if (pendingTier !== tierName) return "Select";
-    if (purchasePhase === "loading") return "Loading...";
-    if (purchasePhase === "wallet") return "Confirm in wallet";
+    if (pendingTier === tierName) {
+      if (purchasePhase === "loading") return "Loading...";
+      if (purchasePhase === "wallet") return "Confirm in wallet";
+    }
+    if (selectedSignupTier === tierName) {
+      if (signupQuoteQuery.isLoading) return "Checking...";
+      if (signupQuoteQuery.data?.insufficientBalance) return "Insufficient balance";
+      return `Purchase with ${paymentToken}`;
+    }
     return "Select";
   };
 
@@ -263,8 +360,14 @@ export default function SignupOverlays() {
   };
 
   const handleContinueRegistration = async () => {
-    if (registerBusy) return;
+    if (registerBusy || sponsorChecking) return;
     const sponsor = sponsorUsername.trim().replace(/^@/, "");
+
+    if (!sponsorVerified) {
+      const verified = await verifySponsor(sponsor);
+      if (!verified) return;
+    }
+
     const username = usernameRef.current?.value.trim() ?? "";
     const email = emailRef.current?.value.trim() ?? "";
 
@@ -273,6 +376,7 @@ export default function SignupOverlays() {
       username,
       fullName,
       region,
+      country,
       phone,
       email,
     });
@@ -295,7 +399,7 @@ export default function SignupOverlays() {
         username,
         walletAddress: address,
         email,
-        phone: phone.trim(),
+        phone: formatPhoneE164(phone, country),
         sponsorUsername: sponsor,
       });
       setCurrentUsername(username);
@@ -311,6 +415,8 @@ export default function SignupOverlays() {
       setRegisterBusy(false);
     }
   };
+
+  const step2FieldsLocked = !sponsorVerified || sponsorChecking || registerBusy;
 
   return (
     <>
@@ -413,91 +519,131 @@ export default function SignupOverlays() {
               <div className="su-field">
                 <label className="su-lbl">Sponsor</label>
                 <input
-                  className={`su-input${step2Errors.sponsor ? " is-error" : ""}`}
+                  className={`su-input${step2Errors.sponsor ? " is-error" : ""}${sponsorVerified ? " is-valid" : ""}`}
                   value={sponsorUsername}
                   placeholder="sponsor_username"
-                  disabled={sponsorLocked}
+                  disabled={sponsorLocked || sponsorChecking || registerBusy}
                   required
                   aria-invalid={!!step2Errors.sponsor}
                   onChange={(e) => {
                     setSponsorUsername(e.target.value.replace(/^@/, "").replace(/\s/g, ""));
+                    setSponsorVerified(false);
                     clearStep2Error("sponsor");
                   }}
+                  onBlur={() => {
+                    if (sponsorUsername.trim()) {
+                      void verifySponsor(sponsorUsername);
+                    }
+                  }}
                 />
+                {sponsorChecking && <p className="su-field-hint">Verifying sponsor...</p>}
+                {!sponsorChecking && sponsorVerified && !step2Errors.sponsor && (
+                  <p className="su-field-hint is-success">Sponsor verified. You can complete your profile.</p>
+                )}
+                {!sponsorChecking && !sponsorVerified && !step2Errors.sponsor && (
+                  <p className="su-field-hint">Enter your sponsor username to verify eligibility before continuing.</p>
+                )}
                 {step2Errors.sponsor && <p className="su-field-error">{step2Errors.sponsor}</p>}
-              </div>
-              <div className="su-field">
-                <label className="su-lbl">Username</label>
-                <input
-                  className={`su-input${step2Errors.username ? " is-error" : ""}`}
-                  id="suUsername"
-                  ref={usernameRef}
-                  placeholder="e.g. ALPHA"
-                  required
-                  aria-invalid={!!step2Errors.username}
-                  onChange={(e) => {
-                    e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]/g, "");
-                    clearStep2Error("username");
-                  }}
-                />
-                {step2Errors.username && <p className="su-field-error">{step2Errors.username}</p>}
-              </div>
-              <div className="su-field">
-                <label className="su-lbl">Full Name</label>
-                <input
-                  className={`su-input${step2Errors.fullName ? " is-error" : ""}`}
-                  placeholder="Enter as shown on identification"
-                  value={fullName}
-                  required
-                  aria-invalid={!!step2Errors.fullName}
-                  onChange={(e) => {
-                    setFullName(e.target.value.replace(/[^a-zA-Z\s'.-]/g, ""));
-                    clearStep2Error("fullName");
-                  }}
-                />
-                {step2Errors.fullName && <p className="su-field-error">{step2Errors.fullName}</p>}
               </div>
               <div className="su-field su-row">
                 <div>
-                  <label className="su-lbl">Nationality</label>
-                  <select
-                    className={`su-select${step2Errors.region ? " is-error" : ""}`}
-                    value={region}
-                    required
-                    aria-invalid={!!step2Errors.region}
-                    onChange={(e) => {
-                      const nextRegion = e.target.value as SignupRegion | "";
-                      setRegion(nextRegion);
-                      clearStep2Error("region");
-                      if (phone) clearStep2Error("phone");
-                    }}
-                  >
-                    <option value="">Select Region</option>
-                    {SIGNUP_REGION_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  {step2Errors.region && <p className="su-field-error">{step2Errors.region}</p>}
-                </div>
-                <div>
-                  <label className="su-lbl">Phone Number</label>
+                  <label className="su-lbl">Username</label>
                   <input
-                    className={`su-input${step2Errors.phone ? " is-error" : ""}`}
-                    value={phone}
-                    placeholder={phonePlaceholderForRegion(region)}
-                    inputMode="tel"
-                    autoComplete="tel"
+                    className={`su-input${step2Errors.username ? " is-error" : ""}`}
+                    id="suUsername"
+                    ref={usernameRef}
+                    placeholder="e.g. ALPHA"
                     required
-                    aria-invalid={!!step2Errors.phone}
+                    disabled={step2FieldsLocked}
+                    aria-invalid={!!step2Errors.username}
                     onChange={(e) => {
-                      setPhone(sanitizePhoneInput(e.target.value));
-                      clearStep2Error("phone");
+                      e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]/g, "");
+                      clearStep2Error("username");
                     }}
                   />
-                  {step2Errors.phone && <p className="su-field-error">{step2Errors.phone}</p>}
+                  {step2Errors.username && <p className="su-field-error">{step2Errors.username}</p>}
                 </div>
+                <div>
+                  <label className="su-lbl">Full Name</label>
+                  <input
+                    className={`su-input${step2Errors.fullName ? " is-error" : ""}`}
+                    placeholder="Enter as shown on identification"
+                    value={fullName}
+                    required
+                    disabled={step2FieldsLocked}
+                    aria-invalid={!!step2Errors.fullName}
+                    onChange={(e) => {
+                      setFullName(e.target.value.replace(/[^a-zA-Z\s'.-]/g, ""));
+                      clearStep2Error("fullName");
+                    }}
+                  />
+                  {step2Errors.fullName && <p className="su-field-error">{step2Errors.fullName}</p>}
+                </div>
+              </div>
+              <div className="su-field">
+                <div className="su-row">
+                  <div>
+                    <label className="su-lbl">Nationality Region</label>
+                    <select
+                      className={`su-select${step2Errors.region ? " is-error" : ""}`}
+                      value={region}
+                      required
+                      disabled={step2FieldsLocked}
+                      aria-invalid={!!step2Errors.region}
+                      onChange={(e) => {
+                        const nextRegion = e.target.value as SignupRegion | "";
+                        setRegion(nextRegion);
+                        setCountry(defaultCountryForRegion(nextRegion));
+                        setPhone("");
+                        clearStep2Error("region");
+                        clearStep2Error("country");
+                        clearStep2Error("phone");
+                      }}
+                    >
+                      <option value="">Select Region</option>
+                      {SIGNUP_REGION_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    {step2Errors.region && <p className="su-field-error">{step2Errors.region}</p>}
+                  </div>
+                  <div>
+                    <label className="su-lbl">Phone Number</label>
+                    <SignupPhoneInput
+                      region={region}
+                      country={country}
+                      value={phone}
+                      disabled={step2FieldsLocked || !region}
+                      hasError={!!step2Errors.phone || !!step2Errors.country}
+                      onChange={(next) => {
+                        setPhone(next);
+                        clearStep2Error("phone");
+                      }}
+                      onCountryChange={(nextCountry) => {
+                        setCountry(nextCountry);
+                        setPhone("");
+                        clearStep2Error("country");
+                        clearStep2Error("phone");
+                      }}
+                      onBlur={() => {
+                        if (!phone.trim()) return;
+                        const phoneError = validatePhone(phone, country, region);
+                        if (phoneError) {
+                          setStep2Errors((prev) => ({ ...prev, phone: phoneError }));
+                        }
+                      }}
+                    />
+                    {step2Errors.country && !step2Errors.phone && (
+                      <p className="su-field-error">{step2Errors.country}</p>
+                    )}
+                    {step2Errors.phone && <p className="su-field-error">{step2Errors.phone}</p>}
+                  </div>
+                </div>
+                {region && !step2Errors.phone && !step2Errors.country && (
+                  <p className="su-field-hint">Choose your country and enter a valid mobile number.</p>
+                )}
               </div>
               <div className="su-field">
                 <label className="su-lbl">Email Address</label>
@@ -508,13 +654,19 @@ export default function SignupOverlays() {
                   placeholder="institutional@gmail.com"
                   autoComplete="email"
                   inputMode="email"
+                  disabled={step2FieldsLocked}
                   aria-invalid={!!step2Errors.email}
                   onChange={() => clearStep2Error("email")}
                 />
                 {step2Errors.email && <p className="su-field-error">{step2Errors.email}</p>}
               </div>
-              <button className="su-primary" type="button" onClick={handleContinueRegistration} disabled={registerBusy}>
-                {registerBusy ? "Registering..." : <>Continue&nbsp;&nbsp;→</>}
+              <button
+                className="su-primary"
+                type="button"
+                onClick={handleContinueRegistration}
+                disabled={registerBusy || sponsorChecking}
+              >
+                {registerBusy ? "Registering..." : sponsorChecking ? "Verifying sponsor..." : <>Continue&nbsp;&nbsp;→</>}
               </button>
             </div>
             <div className="su-foot">
@@ -550,6 +702,15 @@ export default function SignupOverlays() {
                 onChange={setPaymentToken}
                 disabled={!!pendingTier}
               />
+              <MembershipPaySummary
+                token={paymentToken}
+                tierName={selectedSignupTier}
+                quote={signupQuoteQuery.data}
+                isLoading={signupQuoteQuery.isLoading}
+                isError={signupQuoteQuery.isError}
+                error={signupQuoteQuery.error}
+                className="su-payment-summary"
+              />
               {purchaseStatus.state !== "idle" && (
                 <div
                   className={`su-purchase-status${
@@ -562,9 +723,9 @@ export default function SignupOverlays() {
                   role="status"
                 >
                   {purchaseStatus.state === "wallet" &&
-                    `Confirm the ${purchaseStatus.tier} membership transaction in your wallet.`}
+                    `Confirm the ${purchaseStatus.tier} membership transaction in your wallet (${paymentToken}).`}
                   {purchaseStatus.state === "loading" &&
-                    `Processing your ${purchaseStatus.tier} membership purchase...`}
+                    `Processing your ${purchaseStatus.tier} membership purchase with ${paymentToken}...`}
                   {purchaseStatus.state === "success" && purchaseStatus.message}
                   {purchaseStatus.state === "error" && purchaseStatus.message}
                 </div>
@@ -637,8 +798,11 @@ export default function SignupOverlays() {
                       </div>
                       <button
                         type="button"
-                        className="su-tier-btn"
-                        disabled={!!pendingTier}
+                        className={`su-tier-btn${selectedSignupTier === tier.name ? " purchase" : ""}`}
+                        disabled={
+                          !!pendingTier ||
+                          (selectedSignupTier === tier.name && signupQuoteQuery.data?.insufficientBalance === true)
+                        }
                         onClick={() => handleSignupTierSelect(tier.name)}
                       >
                         {signupTierButtonLabel(tier.name)}

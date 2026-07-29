@@ -9,11 +9,15 @@ body[data-page="learn"] {
   padding: 0 !important;
 }
 
+body.dark[data-page="learn"] {
+  background: #0f0f11 !important;
+}
+
 .learn-back {
   position: fixed;
   top: 18px;
   right: 20px;
-  z-index: 4010;
+  z-index: 1100;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -29,6 +33,13 @@ body[data-page="learn"] {
   letter-spacing: 0.02em;
   color: #0c0c0e;
   cursor: pointer;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+body.learn-sidebar-open .learn-back {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .learn-frame {
@@ -38,6 +49,19 @@ body[data-page="learn"] {
   border: 0;
   display: block;
   background: #faf9f5;
+  position: relative;
+  z-index: 1000;
+}
+
+body.dark[data-page="learn"] .learn-back {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #141416;
+  color: #f4f4f5;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+body.dark[data-page="learn"] .learn-frame {
+  background: #0f0f11;
 }
 
 @media (max-width: 900px) {

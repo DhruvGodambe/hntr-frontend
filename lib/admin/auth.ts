@@ -6,6 +6,7 @@ export interface StoredAdminAuth {
   token: string;
   expiresAt: number;
   role: "admin";
+  username: string;
 }
 
 export function getStoredAdminAuth(): StoredAdminAuth | null {
@@ -18,7 +19,10 @@ export function getStoredAdminAuth(): StoredAdminAuth | null {
       window.localStorage.removeItem(ADMIN_TOKEN_KEY);
       return null;
     }
-    return parsed;
+    return {
+      ...parsed,
+      username: parsed.username || "admin",
+    };
   } catch {
     return null;
   }

@@ -155,11 +155,11 @@ export type OverdueClaimFilter = "all" | "never" | "overdue_30d";
 
 async function adminRequest<T = unknown>(
   path: string,
-  options: { method?: string; body?: unknown; auth?: boolean } = {},
+  options: { method?: string; body?: unknown; auth?: boolean; headers?: Record<string, string> } = {},
 ): Promise<T> {
-  const { method = "GET", body, auth = true } = options;
+  const { method = "GET", body, auth = true, headers: extraHeaders } = options;
 
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { ...(extraHeaders ?? {}) };
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
   if (auth) {
@@ -203,15 +203,30 @@ function qs(params: Record<string, string | number | undefined>) {
 }
 
 export const adminApi = {
-  login: async (password: string): Promise<StoredAdminAuth> => {
-    const data = await adminRequest<{ token: string; expiresAt: number; role: "admin" }>(
+  login: async (username: string, password: string): Promise<StoredAdminAuth> => {
+    const data = await adminRequest<{ token: string; expiresAt: number; role: "admin"; username: string }>(
       "/api/admin/auth/login",
-      { method: "POST", body: { password }, auth: false },
+      { method: "POST", body: { username, password }, auth: false },
     );
-    const auth: StoredAdminAuth = { token: data.token, expiresAt: data.expiresAt, role: "admin" };
+    const auth: StoredAdminAuth = {
+      token: data.token,
+      expiresAt: data.expiresAt,
+      role: "admin",
+      username: data.username,
+    };
     setStoredAdminAuth(auth);
     return auth;
   },
+
+  register: async (username: string, password: string, setupSecret?: string) =>
+    adminRequest<{ id: string; username: string }>("/api/admin/auth/register", {
+      method: "POST",
+      body: { username, password },
+      auth: false,
+      headers: setupSecret ? { "x-admin-setup-secret": setupSecret } : undefined,
+    }),
+
+  me: () => adminRequest<{ id: string; username: string; lastLoginAt?: string | null }>("/api/admin/auth/me"),
 
   logout: () => clearStoredAdminAuth(),
 

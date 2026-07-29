@@ -23,13 +23,20 @@
     max-width: 88vw !important;
     height: 100vh !important;
     height: 100dvh !important;
-    z-index: 2000 !important;
+    z-index: 9000 !important;
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     box-shadow: none;
     border-right: 1px solid var(--border) !important;
     padding-top: calc(20px + env(safe-area-inset-top, 0px)) !important;
     padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-right: calc(14px + env(safe-area-inset-right, 0px)) !important;
+  }
+
+  aside > div:first-child {
+    position: relative;
+    z-index: 1;
+    padding-right: 4px !important;
   }
 
   body.learn-sidebar-open aside {
@@ -44,7 +51,7 @@
   .learn-sidebar-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 1999;
+    z-index: 8990;
     background: rgba(0, 0, 0, 0.45);
     opacity: 0;
     pointer-events: none;
@@ -60,20 +67,41 @@
     position: fixed;
     top: calc(12px + env(safe-area-inset-top, 0px));
     left: calc(12px + env(safe-area-inset-left, 0px));
-    z-index: 1500;
-    display: flex;
+    z-index: 9100;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     width: 40px;
     height: 40px;
     padding: 0;
-    border: 1px solid var(--border);
+    border: 1px solid #ececec;
     border-radius: 10px;
-    background: var(--panel);
-    color: var(--strong);
+    background: #ffffff;
+    color: #0a0a0a;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
     cursor: pointer;
     font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body[data-learn-theme="dark"] .learn-nav-toggle,
+  [data-theme="dark"] .learn-nav-toggle {
+    background: #1a1a1d !important;
+    color: #ffffff !important;
+    border-color: #404048 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55) !important;
+  }
+
+  body[data-learn-theme="dark"] .learn-nav-toggle svg path,
+  [data-theme="dark"] .learn-nav-toggle svg path {
+    stroke: #ffffff !important;
+  }
+
+  body[data-learn-theme="light"] .learn-nav-toggle,
+  [data-theme="light"] .learn-nav-toggle {
+    background: #ffffff !important;
+    color: #0a0a0a !important;
+    border-color: #ececec !important;
   }
 
   .learn-nav-toggle[hidden],

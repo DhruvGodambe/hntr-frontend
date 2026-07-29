@@ -979,6 +979,10 @@ body.dark .upgrade-btn:hover{background:#fff}
 .ref-qr-copy{width:100%;min-width:0;text-align:left}
 .ref-qr-title{font-family:var(--fd);font-size:13px;font-weight:700;margin-bottom:6px;color:var(--t4);line-height:1.25}
 .ref-qr-desc{font-size:10px;color:var(--t1);line-height:1.55}
+.ref-locked{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:14px;flex:1;min-height:0;padding:4px 0}
+.ref-locked-msg{font-size:11px;color:var(--t1);line-height:1.55;margin:0}
+.ref-locked-btn{height:34px;padding:0 14px;border-radius:6px;border:none;background:var(--accent);color:#fff;font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:.15s}
+.ref-locked-btn:hover{filter:brightness(1.06)}
 #qrCanvas{image-rendering:pixelated;border-radius:4px}
 @keyframes nodePulse{0%,100%{opacity:1}50%{opacity:.7}}
 @keyframes nodeAppear{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
@@ -1007,6 +1011,9 @@ body.dark .upgrade-btn:hover{background:#fff}
 .txh-table tr:last-child td{border-bottom:none}
 .txh-table tr:hover td{background:var(--e3)}
 .txh-dt{font-family:var(--fm);font-size:10px;color:var(--t2)}
+.txh-dt-cell{display:flex;flex-direction:column;gap:2px;line-height:1.35;white-space:nowrap}
+.txh-dt-date{font-family:var(--fn);font-size:11px;color:var(--t4);font-weight:500}
+.txh-dt-time{font-family:var(--fm);font-size:9px;color:var(--t2);letter-spacing:.02em}
 .txh-type{display:inline-flex;align-items:center;height:20px;padding:0 8px;background:var(--e3);border-radius:3px;font-family:var(--fm);font-size:8px;letter-spacing:.07em;color:var(--t1);font-weight:500}
 .txh-source{font-size:10px;color:var(--t2)}
 .txh-amount{font-family:var(--fm);font-size:11px;font-weight:700;color:var(--green);text-align:right}
@@ -4416,6 +4423,12 @@ body{color:var(--t3);font-family:var(--fn);font-size:12px;line-height:1.5;displa
 body.dark .payment-token-btn.active{background:#F2EFEA;color:#0a0a0b}
 .payment-token-btn:disabled{opacity:.45;cursor:not-allowed}
 .su-payment-token{margin:0 0 14px;justify-content:center}
+.su-payment-summary{margin:-6px 0 14px;text-align:center}
+.membership-pay-summary{margin:0 0 16px;font-size:11px;line-height:1.55;color:var(--t1)}
+.membership-pay-summary.is-neutral{color:var(--t2)}
+.membership-pay-summary.is-ready{color:var(--sage,#5E6B55)}
+.membership-pay-summary.is-error{color:#c45c4a}
+body.dark .membership-pay-summary.is-error{color:#e08a7a}
 
 /* TIER CARDS */
 .tiers-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px}
@@ -6442,6 +6455,9 @@ body.dark #signupOverlay{background:rgba(0,0,0,.6);}
 .su2-sub{font-family:var(--fn);font-size:12.5px;color:var(--t2);margin-bottom:24px;}
 .su-field{margin-bottom:18px;}
 .su-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.su-row > div{min-width:0;}
+.su-field .su-row{align-items:start;}
+.su-field .su-row .su-phone-field{min-height:46px;}
 .su-lbl{display:block;font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:.15em;color:var(--t2);text-transform:uppercase;margin-bottom:8px;}
 .su-input,.su-select{width:100%;font-family:var(--fn);font-size:13px;color:var(--t4);background:var(--e2);border:1px solid var(--bd2);border-radius:5px;padding:12px 14px;outline:none;transition:border-color .15s,box-shadow .15s;}
 .su-input::placeholder{color:var(--t1);}
@@ -6450,7 +6466,49 @@ body.dark #signupOverlay{background:rgba(0,0,0,.6);}
 .su-input.is-error,.su-select.is-error{border-color:rgba(180,35,24,.55);box-shadow:0 0 0 3px rgba(180,35,24,.1);}
 .su-input.is-error:focus,.su-select.is-error:focus{border-color:rgba(180,35,24,.7);box-shadow:0 0 0 3px rgba(180,35,24,.14);}
 .su-field-error{margin-top:6px;font-family:var(--fm);font-size:11px;line-height:1.45;color:#b42318;}
+.su-field-hint{margin-top:6px;font-family:var(--fm);font-size:11px;line-height:1.45;color:var(--t2);}
+.su-field-hint.is-success{color:#15803d;}
+.su-input.is-valid{border-color:#15803d;}
 body.dark .su-field-error{color:#fca5a5;}
+body.dark .su-field-hint{color:var(--t3);}
+body.dark .su-field-hint.is-success{color:#86efac;}
+.su-phone-field{display:flex;align-items:stretch;width:100%;gap:8px;background:var(--e2);border:1px solid var(--bd2);border-radius:5px;padding:4px 6px 4px 4px;transition:border-color .15s,box-shadow .15s;}
+.su-phone-field:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--sage-faint);}
+.su-phone-field.is-error{border-color:rgba(180,35,24,.55);box-shadow:0 0 0 3px rgba(180,35,24,.1);}
+.su-phone-field .PhoneInputInput{border:none!important;box-shadow:none!important;background:transparent!important;padding:8px 10px!important;min-width:0;}
+.su-phone-field .PhoneInputInput:focus{box-shadow:none!important;}
+.su-phone-field .PhoneInputCountry{margin-right:4px;}
+.su-phone-field .PhoneInputCountrySelect{
+  font-family:var(--fn);
+  font-size:12px;
+  color:#111;
+  color-scheme:light;
+  background:transparent;
+  border:none;
+  outline:none;
+  cursor:pointer;
+  opacity:0;
+}
+.su-phone-field .PhoneInputCountrySelect option,
+.su-phone-field .PhoneInputCountrySelect optgroup{
+  color:#111;
+  background:#fff;
+}
+body.dark .su-phone-field .PhoneInputCountrySelect{
+  color:#111;
+}
+body.dark .su-phone-field .PhoneInputCountrySelect option,
+body.dark .su-phone-field .PhoneInputCountrySelect optgroup{
+  color:#111;
+  background:#fff;
+}
+.su-phone-field .PhoneInputCountrySelectArrow{
+  opacity:.65;
+  border-color:var(--t4);
+}
+.su-phone-field .PhoneInputCountryIcon{border-radius:2px;overflow:hidden;}
+.su-phone-field:has(.PhoneInputInput:disabled){background:var(--e4);opacity:.92;}
+body.dark .su-input.is-valid{border-color:#86efac;}
 .su-form-errors{margin:0 0 16px;padding:10px 12px;border-radius:5px;font-family:var(--fm);font-size:11px;line-height:1.45;color:#b42318;background:rgba(180,35,24,.08);border:0.5px solid rgba(180,35,24,.24);}
 body.dark .su-form-errors{color:#fca5a5;background:rgba(240,112,111,.12);border-color:rgba(240,112,111,.28);}
 .su-select{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'><path d='M2.5 4.5L6 8l3.5-3.5' stroke='%23888' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;}

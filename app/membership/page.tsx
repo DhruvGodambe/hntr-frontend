@@ -13,11 +13,13 @@ import {
   getAmountDueUsd,
   getTierIndex,
   canPurchaseOrUpgradeTier,
+  useMembershipQuote,
 } from "../../lib/membership";
 import { useDashboardData } from "../../lib/rewards";
 import { COMMISSION_LEVELS, TIERS } from "../../lib/contracts";
 import { api, ApiError } from "../../lib/api";
 import PaymentTokenToggle from "../components/PaymentTokenToggle";
+import MembershipPaySummary from "../components/MembershipPaySummary";
 import type { PaymentToken } from "../../lib/tokens";
 
 declare global {
@@ -57,6 +59,7 @@ export default function MembershipPage() {
 
   const currentTier = summary?.tier && summary.tier !== "None" ? summary.tier : null;
   const currentTierIndex = getTierIndex(currentTier);
+  const quoteQuery = useMembershipQuote(selectedTier, paymentToken, !!selectedTier && !pendingTier);
 
   useEffect(() => {
     setSelectedTier(null);
@@ -134,6 +137,15 @@ export default function MembershipPage() {
     try {
       const ready = await ensureReadyToPurchase(walletAddress);
       if (!ready) return;
+
+      if (quoteQuery.data?.insufficientBalance) {
+        window.showToast?.({
+          title: "Insufficient balance",
+          sub: `Add more ${quoteQuery.data.tokenSymbol} or switch to ${paymentToken === "USDT" ? "USDC" : "USDT"}.`,
+          link: "",
+        });
+        return;
+      }
 
       const result = await purchaseOrUpgradeTier(tierName, paymentToken, {
         onAwaitingWallet: () => setPurchasePhase("wallet"),
@@ -214,6 +226,14 @@ export default function MembershipPage() {
             onChange={setPaymentToken}
             disabled={!!pendingTier}
           />
+          <MembershipPaySummary
+            token={paymentToken}
+            tierName={selectedTier}
+            quote={quoteQuery.data}
+            isLoading={quoteQuery.isLoading}
+            isError={quoteQuery.isError}
+            error={quoteQuery.error}
+          />
           <div className="tiers-grid">
             {TIERS.map((tier, idx) => {
               const tierIndex = idx + 1;
@@ -224,7 +244,11 @@ export default function MembershipPage() {
               const isPending = pendingTier === tier.name;
               const isHighlighted = isSelected;
               const amountDue = getAmountDueUsd(tier.name, currentTier);
-              const disabled = !!pendingTier || isCurrent || isLower;
+              const disabled =
+                !!pendingTier ||
+                isCurrent ||
+                isLower ||
+                (isSelected && quoteQuery.data?.insufficientBalance === true);
               const hasExtra = tier.name === "Diamond";
               const buttonLabel = tierButtonLabel(tier.name, {
                 isCurrent,
@@ -310,6 +334,8 @@ export default function MembershipPage() {
                         ? "Downgrades are not allowed"
                         : isCurrent
                         ? "This is your current membership"
+                        : isSelected && quoteQuery.data?.insufficientBalance
+                        ? `Insufficient ${quoteQuery.data.tokenSymbol} balance`
                         : undefined
                     }
                   >

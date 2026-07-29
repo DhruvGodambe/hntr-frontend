@@ -83,8 +83,15 @@ const STRATEGY_POOLS = [
   },
 ] as const;
 
-/** Intro canvas + typewriter only on desktop / larger viewports */
-const INTRO_DESKTOP_MQ = "(min-width: 901px)";
+const INTRO_MOBILE_MQ = "(max-width: 900px)";
+
+function getIntroCanvasRadius() {
+  return window.matchMedia(INTRO_MOBILE_MQ).matches ? "12px" : "14px 0 0 14px";
+}
+
+function getIntroCanvasStartRadius() {
+  return window.matchMedia(INTRO_MOBILE_MQ).matches ? 12 : 14;
+}
 
 declare global {
   interface Window {
@@ -299,7 +306,9 @@ export default function HomePage() {
   const [progress, setProgress] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [marketTimeFrame, setMarketTimeFrame] = useState<MarketTimeFrame>("24H");
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches
+  );
   const [sliderLayout, setSliderLayout] = useState({
     viewportWidth: 0,
     contentWidth: 0,
@@ -499,23 +508,6 @@ export default function HomePage() {
   const heroRadiusRef = useRef(10);
   const introEnabledRef = useRef(false);
 
-  const skipIntroForMobile = () => {
-    setIntroEnabled(false);
-    introEnabledRef.current = false;
-    setIntro(false);
-    setProgress(1);
-    targetRef.current = 1;
-    autoPlayRef.current = false;
-    document.body.classList.remove("intro-active");
-
-    const cv = document.getElementById("introRevealCv") as HTMLCanvasElement | null;
-    if (cv) {
-      cv.removeAttribute("style");
-      const wrap = document.querySelector(".intro-imgwrap");
-      if (wrap && cv.parentNode !== wrap) wrap.appendChild(cv);
-    }
-  };
-
   const skipIntroComplete = () => {
     introSkippedRef.current = true;
     setIntroEnabled(false);
@@ -547,34 +539,19 @@ export default function HomePage() {
     }
   };
 
-  // Decide intro eligibility before paint (avoids mobile flash)
+  // Decide intro eligibility before paint
   useLayoutEffect(() => {
     if (hasSeenIntro()) {
       skipIntroComplete();
       return;
     }
 
-    const mq = window.matchMedia(INTRO_DESKTOP_MQ);
+    setIntroEnabled(true);
+    introEnabledRef.current = true;
+    document.body.classList.add("intro-active");
+    setIntro(true);
 
-    const apply = () => {
-      if (hasSeenIntro() || introSkippedRef.current) {
-        skipIntroComplete();
-        return;
-      }
-      if (mq.matches) {
-        setIntroEnabled(true);
-        introEnabledRef.current = true;
-        document.body.classList.add("intro-active");
-        setIntro(true);
-      } else {
-        skipIntroForMobile();
-      }
-    };
-
-    apply();
-    mq.addEventListener("change", apply);
     return () => {
-      mq.removeEventListener("change", apply);
       document.body.classList.remove("intro-active");
     };
   }, []);
@@ -945,7 +922,6 @@ export default function HomePage() {
     window.__initReveal = initReveal;
   }, []);
 
-  // Intro canvas only on desktop
   useEffect(() => {
     if (!introEnabled) return;
 
@@ -1066,7 +1042,7 @@ export default function HomePage() {
     cv.style.top = fromRect.top + "px";
     cv.style.width = fromRect.width + "px";
     cv.style.height = fromRect.height + "px";
-    cv.style.borderRadius = "14px 0 0 14px";
+    cv.style.borderRadius = getIntroCanvasRadius();
     cv.style.zIndex = "940";
     cv.style.opacity = "1";
     
@@ -1185,10 +1161,11 @@ export default function HomePage() {
     cv.style.height = lerp(F.height, L.height, e) + "px";
     
     // Interpolate border radius - start from intro wrapper's radius, end at hero radius
+    const startRadius = getIntroCanvasStartRadius();
     if (p < 0.1) {
-      cv.style.borderRadius = "14px 0 0 14px";
+      cv.style.borderRadius = getIntroCanvasRadius();
     } else {
-      const radius = lerp(14, targetRadius, borderEase);
+      const radius = lerp(startRadius, targetRadius, borderEase);
       cv.style.borderRadius = radius + "px";
     }
     
@@ -1320,7 +1297,10 @@ export default function HomePage() {
   const p = introSkippedRef.current || !introEnabled ? 1 : progress;
   const introOpacity = 1 - seg(p, 0.06, 0.5);
   const leftOpacity = 1 - seg(p, 0, 0.42);
-  const leftTransX = -26 * seg(p, 0, 0.42);
+  const leftExit = -26 * seg(p, 0, 0.42);
+  const leftTransform = isMobile
+    ? `translateY(${leftExit * 0.5}px)`
+    : `translateX(${leftExit}px)`;
   const hintOpacity = p < 0.04 ? 1 : 1 - seg(p, 0.04, 0.32);
   const sbTransY = (1 - seg(p, 0, 0.9)) * 112;
   const sbOpacity = seg(p, 0, 0.9);
@@ -1358,7 +1338,7 @@ export default function HomePage() {
             className="intro-left"
             style={{
               opacity: leftOpacity,
-              transform: `translateX(${leftTransX}px)`
+              transform: leftTransform
             }}
           >
             <h1 className="intro-title">
@@ -1380,7 +1360,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="intro-scrollhint" style={{ opacity: hintOpacity }}>
-          Scroll to explore ↓
+          {isMobile ? "Swipe up to explore ↑" : "Scroll to explore ↓"}
         </div>
       </div>
       )}

@@ -9,9 +9,11 @@ import {
 } from "wagmi/actions";
 import { config } from "./wagmi";
 import { erc20Abi, hntrMembershipAbi, TOKEN_ADDRESSES, TIERS, type TierName } from "./contracts";
-import { api } from "./api";
+import { api, ApiError } from "./api";
 import { ensureAuth } from "./auth";
 import { getAddress, maxUint256 } from "viem";
+import { useQuery } from "@tanstack/react-query";
+import { useAccount } from "wagmi";
 import type { PaymentToken } from "./tokens";
 
 export type { TierName };
@@ -22,6 +24,11 @@ export function getTierIndex(tierName: string | null | undefined): number {
   if (!tierName || tierName === "None" || tierName === "NONE") return 0;
   const idx = TIERS.findIndex((t) => t.name.toLowerCase() === tierName.toLowerCase());
   return idx >= 0 ? idx + 1 : 0;
+}
+
+/** True when the user owns any paid membership tier (not None). */
+export function hasActiveMembership(tierName: string | null | undefined): boolean {
+  return getTierIndex(tierName) > 0;
 }
 
 export function getTierPriceUsd(tierName: string | null | undefined): number {
@@ -74,10 +81,45 @@ export interface MembershipQuote {
   insufficientBalance: boolean;
 }
 
+export function assertPaymentTokenConfigured(tokenSymbol: PaymentToken): void {
+  const address = TOKEN_ADDRESSES[tokenSymbol];
+  if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+    throw new MembershipFlowError(
+      "UNSUPPORTED_TOKEN",
+      `${tokenSymbol} payments are not configured for this environment. Try ${tokenSymbol === "USDT" ? "USDC" : "USDT"} instead.`,
+    );
+  }
+}
+
 export async function getMembershipQuote(tierName: string, tokenSymbol: PaymentToken = "USDT"): Promise<MembershipQuote> {
+  assertPaymentTokenConfigured(tokenSymbol);
   await ensureAuth();
-  return api.get<MembershipQuote>(`/api/membership/quote?tier=${encodeURIComponent(tierName)}&token=${tokenSymbol}`, {
-    auth: true,
+  try {
+    return await api.get<MembershipQuote>(
+      `/api/membership/quote?tier=${encodeURIComponent(tierName)}&token=${tokenSymbol}`,
+      { auth: true },
+    );
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new MembershipFlowError("QUOTE_FAILED", getMembershipQuoteErrorMessage(error, tokenSymbol));
+  }
+}
+
+function getMembershipQuoteErrorMessage(error: unknown, tokenSymbol: PaymentToken): string {
+  if (error instanceof Error && error.message) return error.message;
+  return `Could not load a ${tokenSymbol} quote. Check your wallet connection and try again.`;
+}
+
+/** Live quote for a tier + stablecoin (balance, approval, amount due). */
+export function useMembershipQuote(tierName: string | null, tokenSymbol: PaymentToken, enabled = true) {
+  const { address, isConnected } = useAccount();
+
+  return useQuery({
+    queryKey: ["membership-quote", address, tierName, tokenSymbol],
+    queryFn: () => getMembershipQuote(tierName!, tokenSymbol),
+    enabled: enabled && isConnected && !!address && !!tierName,
+    staleTime: 8_000,
+    retry: 1,
   });
 }
 
@@ -125,6 +167,8 @@ export async function purchaseOrUpgradeTier(
   tokenSymbol: PaymentToken = "USDT",
   progress?: PurchaseProgressHandlers,
 ): Promise<PurchaseResult> {
+  assertPaymentTokenConfigured(tokenSymbol);
+
   const account = getAccount(config);
   if (!account.address) {
     throw new MembershipFlowError("CONNECT_WALLET", "Connect your wallet first.");
@@ -135,7 +179,7 @@ export async function purchaseOrUpgradeTier(
   if (quote.insufficientBalance) {
     throw new MembershipFlowError(
       "INSUFFICIENT_BALANCE",
-      `You need ${quote.amountDueFormatted} ${quote.tokenSymbol} in your wallet to ${quote.isUpgrade ? "upgrade to" : "purchase"} ${tierName}.`,
+      `Insufficient ${tokenSymbol} balance. You need ${quote.amountDueFormatted} ${tokenSymbol} in your wallet to ${quote.isUpgrade ? "upgrade to" : "purchase"} ${tierName}.`,
     );
   }
 
@@ -152,18 +196,27 @@ export async function purchaseOrUpgradeTier(
       progress?.onWalletAccepted?.();
       await waitForTransactionReceipt(config, { hash: approveHash });
     } catch (err) {
-      throw toMembershipWalletError(err, "Token approval failed.");
+      throw toMembershipWalletError(err, `${tokenSymbol} approval failed.`, tokenSymbol);
     }
   }
 
   // Fetch the signed auth as late as possible (after any approve), so the
   // deadline still has headroom when the wallet opens the purchase prompt.
   const endpoint = quote.isUpgrade ? "/api/membership/upgrade" : "/api/membership/purchase";
-  const prepared = await api.post<PreparedMembershipTx>(
-    endpoint,
-    { tier: tierName, token: tokenSymbol },
-    { auth: true },
-  );
+  let prepared: PreparedMembershipTx;
+  try {
+    prepared = await api.post<PreparedMembershipTx>(
+      endpoint,
+      { tier: tierName, token: tokenSymbol },
+      { auth: true },
+    );
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new MembershipFlowError(
+      "PREPARE_FAILED",
+      getMembershipQuoteErrorMessage(error, tokenSymbol),
+    );
+  }
 
   if (
     !prepared.signature ||
@@ -240,7 +293,7 @@ export async function purchaseOrUpgradeTier(
       ...(gas !== undefined ? { gas } : {}),
     });
   } catch (err) {
-    throw toMembershipWalletError(err, "Membership purchase failed.");
+    throw toMembershipWalletError(err, `${tokenSymbol} membership purchase failed.`, tokenSymbol);
   }
   progress?.onWalletAccepted?.();
   await waitForTransactionReceipt(config, { hash: txHash });
@@ -253,7 +306,11 @@ export async function purchaseOrUpgradeTier(
   };
 }
 
-function toMembershipWalletError(err: unknown, fallback: string): MembershipFlowError {
+function toMembershipWalletError(
+  err: unknown,
+  fallback: string,
+  tokenSymbol?: string,
+): MembershipFlowError {
   const anyErr = err as {
     code?: string | number;
     shortMessage?: string;
@@ -284,7 +341,12 @@ function toMembershipWalletError(err: unknown, fallback: string): MembershipFlow
     lower.includes("insufficient balance") ||
     lower.includes("exceeds the balance")
   ) {
-    return new MembershipFlowError("INSUFFICIENT_BALANCE", message);
+    const tokenHint = tokenSymbol ? ` Add more ${tokenSymbol} or switch payment token.` : "";
+    return new MembershipFlowError("INSUFFICIENT_BALANCE", `${message}${tokenHint}`);
+  }
+  if (lower.includes("transfer amount exceeds balance")) {
+    const tokenHint = tokenSymbol ? ` Your wallet does not have enough ${tokenSymbol}.` : "";
+    return new MembershipFlowError("INSUFFICIENT_BALANCE", `${message}${tokenHint}`);
   }
   return new MembershipFlowError("WALLET_ERROR", message);
 }

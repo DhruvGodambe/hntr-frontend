@@ -2,14 +2,22 @@ import React, { useEffect, useState } from "react";
 
 export function AdminCard({ title, value, subValue, icon }: { title: string, value: string | number, subValue?: string, icon?: string }) {
   return (
-    <div className="bg-[#111] border border-[#222] p-6 rounded-2xl shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-gray-400 text-xs font-semibold uppercase tracking-wider">{title}</span>
-        {icon && <span className="text-xl opacity-50">{icon}</span>}
+    <div className="bg-[#111] border border-[#222] p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl shadow-sm min-w-0">
+      <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3 lg:mb-4">
+        <span className="text-gray-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wide leading-snug">
+          {title}
+        </span>
+        {icon && <span className="text-sm sm:text-lg lg:text-xl opacity-50 shrink-0">{icon}</span>}
       </div>
-      <div className="flex flex-col">
-        <span className="text-3xl font-bold tracking-tight">{value}</span>
-        {subValue && <span className="text-sm text-green-500 mt-1 font-medium">{subValue}</span>}
+      <div className="flex flex-col min-w-0">
+        <span className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight leading-none break-words">
+          {value}
+        </span>
+        {subValue && (
+          <span className="text-[10px] sm:text-xs lg:text-sm text-green-500 mt-1 sm:mt-1.5 font-medium leading-snug">
+            {subValue}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -23,6 +31,7 @@ export function AdminTable({
   onPageChange,
   onPageSizeChange,
   pageSizeOptions = [10, 20, 50],
+  minWidth = 720,
 }: {
   headers: string[];
   children: React.ReactNode;
@@ -31,20 +40,27 @@ export function AdminTable({
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (limit: number) => void;
   pageSizeOptions?: number[];
+  minWidth?: number;
 }) {
   return (
     <div className="bg-[#111] border border-[#222] rounded-2xl overflow-hidden shadow-sm">
       {title && (
-        <div className="px-6 py-4 border-b border-[#222]">
+        <div className="px-4 sm:px-6 py-4 border-b border-[#222]">
           <h3 className="font-semibold text-white">{title}</h3>
         </div>
       )}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
+      <div
+        className="overflow-x-auto overscroll-x-contain"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        <table className="w-full text-left" style={{ minWidth }}>
           <thead>
             <tr className="bg-[#1a1a1a] border-b border-[#222]">
               {headers.map((h, i) => (
-                <th key={i} className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                <th
+                  key={i}
+                  className="px-4 py-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap"
+                >
                   {h}
                 </th>
               ))}
@@ -149,26 +165,53 @@ export function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export function AdminModal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose: () => void, title: string, children: React.ReactNode }) {
+export function AdminModal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = "md",
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  size?: "sm" | "md" | "lg" | "xl";
+}) {
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "unset";
-    return () => { document.body.style.overflow = "unset"; };
+    return () => {
+      document.body.style.overflow = "unset";
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
+  const sizeClasses = {
+    sm: "max-w-md",
+    md: "max-w-lg",
+    lg: "max-w-2xl",
+    xl: "max-w-4xl",
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-[#111] border border-[#222] rounded-2xl shadow-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#222] flex items-center justify-between">
-          <h3 className="font-bold text-lg">{title}</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">✕</button>
+      <div
+        className={`relative w-full ${sizeClasses[size]} max-h-[92dvh] sm:max-h-[90vh] my-auto flex flex-col bg-[#111] border border-[#222] rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden`}
+      >
+        <div className="px-4 sm:px-6 py-4 border-b border-[#222] flex items-center justify-between gap-4 flex-shrink-0 bg-[#111]">
+          <h3 className="font-bold text-base sm:text-lg leading-snug pr-2">{title}</h3>
+          <button
+            onClick={onClose}
+            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-white hover:bg-[#1a1a1a] transition-colors"
+            aria-label="Close modal"
+          >
+            ✕
+          </button>
         </div>
-        <div className="p-6">
-          {children}
-        </div>
+        <div className="p-4 sm:p-6 overflow-y-auto overflow-x-hidden flex-1 min-h-0">{children}</div>
       </div>
     </div>
   );

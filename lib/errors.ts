@@ -96,13 +96,20 @@ export function resolveAppError(
 
   if (isInsufficientFunds(message, code)) {
     return {
-      title: "Insufficient funds",
-      sub: message || "Add more tokens to your wallet and try again.",
+      title: "Insufficient balance",
+      sub: message || "Add more USDT or USDC to your wallet, or switch payment token.",
       code: code || "INSUFFICIENT_BALANCE",
     };
   }
 
   switch (code) {
+    case "INSUFFICIENT_BALANCE":
+    case "INSUFFICIENT_FUNDS":
+      return {
+        title: "Insufficient balance",
+        sub: message || "Add more USDT or USDC to your wallet, or switch payment token.",
+        code: code || "INSUFFICIENT_BALANCE",
+      };
     case "USER_NOT_REGISTERED":
       return {
         title: "Complete sign up first",
@@ -159,6 +166,19 @@ export function resolveAppError(
         sub: message || "Choose USDT or USDC and try again.",
         code,
       };
+    case "QUOTE_FAILED":
+    case "PREPARE_FAILED":
+      return {
+        title: "Payment setup failed",
+        sub: message || "Could not prepare your membership payment. Try again or switch token.",
+        code,
+      };
+    case "COMPANY_WALLET_NOT_CONFIGURED":
+      return {
+        title: "Purchases unavailable",
+        sub: message || "Membership purchases are temporarily unavailable. Please try again later.",
+        code,
+      };
     case "SIMULATION_FAILED":
     case "INVALID_PREPARED_TX":
     case "WALLET_ERROR":
@@ -191,6 +211,13 @@ export function resolveAppError(
 
   // Heuristics for common wallet / contract failures without a typed code.
   const lower = message.toLowerCase();
+  if (lower.includes("insufficient") && (lower.includes("usdt") || lower.includes("usdc") || lower.includes("balance"))) {
+    return {
+      title: "Insufficient balance",
+      sub: message,
+      code: code || "INSUFFICIENT_BALANCE",
+    };
+  }
   if (lower.includes("downgrade") || lower.includes("strictly higher")) {
     return { title: "Cannot downgrade", sub: message, code };
   }

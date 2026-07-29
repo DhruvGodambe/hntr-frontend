@@ -20,6 +20,7 @@ import {
   type NetworkTreeNode,
 } from "../../lib/rewards";
 import { formatClaimableByToken, formatTokenLabel } from "../../lib/tokens";
+import { hasActiveMembership } from "../../lib/membership";
 
 declare global {
   interface Window {
@@ -44,15 +45,31 @@ const TX_TYPE_LABEL: Record<TransactionEntry["type"], string> = {
   ACHIEVEMENT_BONUS: "Rank Bonus",
 };
 
+function formatTxDateParts(iso: string | null): { date: string; time: string } | null {
+  if (!iso) return null;
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  return {
+    date: parsed.toLocaleString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      timeZone: "UTC",
+    }),
+    time: `${parsed.toLocaleString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "UTC",
+    })} UTC`,
+  };
+}
+
 function formatTxDate(iso: string | null) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("en-US", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const parts = formatTxDateParts(iso);
+  if (!parts) return "—";
+  return `${parts.date} · ${parts.time}`;
 }
 
 function getTxSource(tx: TransactionEntry) {
@@ -137,7 +154,7 @@ function getPageNumbers(current: number, total: number) {
 export default function NetworkPage() {
   const router = useRouter();
   const [profileFlipped, setProfileFlipped] = useState(false);
-  const { summary, refetchSummary, isFetching } = useDashboardData();
+  const { summary, refetchSummary, isFetching, isConnected } = useDashboardData();
   const { data: txData } = useTransactionHistory(100);
   const { data: treeData } = useNetworkTree(summary?.username);
   const { data: leadershipStatus } = useLeadershipStatus();
@@ -325,10 +342,14 @@ export default function NetworkPage() {
     setSiteOrigin(window.location.origin);
   }, []);
 
+  const canShareReferral = Boolean(
+    isConnected && summary?.username && hasActiveMembership(summary.tier),
+  );
+
   const referralLink = useMemo(() => {
-    if (!siteOrigin || !summary?.username) return "";
+    if (!canShareReferral || !siteOrigin || !summary?.username) return "";
     return `${siteOrigin}/?ref=${summary.username}`;
-  }, [siteOrigin, summary?.username]);
+  }, [canShareReferral, siteOrigin, summary?.username]);
 
   const drawReferralQR = useCallback(async () => {
     const canvas = document.getElementById("qrCanvas") as HTMLCanvasElement | null;
@@ -369,17 +390,24 @@ export default function NetworkPage() {
   }, [drawReferralQR]);
 
   const referralLinkDisplay = useMemo(() => {
-    if (!summary?.username) return "Connect your wallet to get your link";
-    if (!siteOrigin) return "Connect your wallet to get your link";
+    if (!canShareReferral || !summary?.username || !siteOrigin) return "";
     const host = siteOrigin.replace(/^https?:\/\//, "").replace(/^www\./, "");
     const full = `${host}/?ref=${summary.username}`;
     if (full.length <= 42) return full;
     return `${full.slice(0, 22)}…${full.slice(-4)}`;
-  }, [siteOrigin, summary?.username]);
+  }, [canShareReferral, siteOrigin, summary?.username]);
 
   const copyRef = () => {
-    if (!summary?.username) {
-      window.showToast?.({ title: "No referral link yet", sub: "Finish signing up to get your link.", link: "" });
+    if (!canShareReferral) {
+      if (!isConnected || !summary?.username) {
+        window.showToast?.({ title: "No referral link yet", sub: "Connect your wallet to get your link.", link: "" });
+      } else {
+        window.showToast?.({
+          title: "Membership required",
+          sub: "Purchase a membership to unlock your referral link.",
+          link: "",
+        });
+      }
       return;
     }
     navigator.clipboard.writeText(referralLink);
@@ -830,31 +858,52 @@ export default function NetworkPage() {
 
             <div className="ref-card">
               <div className="ref-title">Referral Link</div>
-              <div className="ref-link-row">
-                <div className="ref-link-box" title={referralLink || "Connect your wallet to get your link"}>
-                  {referralLinkDisplay}
-                </div>
-                <button type="button" className="ref-copy-btn" onClick={copyRef} aria-label="Copy referral link">
-                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-                    <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5"></rect>
-                    <path
-                      d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    ></path>
-                  </svg>
-                </button>
-              </div>
-              <div className="ref-qr-row">
-                <canvas id="qrCanvas" className="ref-qr-canvas" width="128" height="128"></canvas>
-                <div className="ref-qr-copy">
-                  <div className="ref-qr-title">Scan to invite</div>
-                  <div className="ref-qr-desc">
-                    Share your link and earn instant commission on every hunter&apos;s pool volume.
+              {canShareReferral ? (
+                <>
+                  <div className="ref-link-row">
+                    <div className="ref-link-box" title={referralLink}>
+                      {referralLinkDisplay}
+                    </div>
+                    <button type="button" className="ref-copy-btn" onClick={copyRef} aria-label="Copy referral link">
+                      <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                        <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5"></rect>
+                        <path
+                          d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        ></path>
+                      </svg>
+                    </button>
                   </div>
+                  <div className="ref-qr-row">
+                    <canvas id="qrCanvas" className="ref-qr-canvas" width="128" height="128"></canvas>
+                    <div className="ref-qr-copy">
+                      <div className="ref-qr-title">Scan to invite</div>
+                      <div className="ref-qr-desc">
+                        Share your link and earn instant commission on every hunter&apos;s pool volume.
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="ref-locked">
+                  <p className="ref-locked-msg">
+                    {!isConnected || !summary?.username
+                      ? "Connect your wallet to access referral tools."
+                      : "Purchase a membership to unlock your referral link and start inviting hunters."}
+                  </p>
+                  {isConnected && summary?.username && !hasActiveMembership(summary.tier) && (
+                    <button
+                      type="button"
+                      className="ref-locked-btn"
+                      onClick={() => router.push("/membership")}
+                    >
+                      Get Membership
+                    </button>
+                  )}
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -940,7 +989,7 @@ export default function NetworkPage() {
               <table className="txh-table">
                 <thead>
                   <tr>
-                    <th>Date / Time</th>
+                    <th>Date &amp; time (UTC)</th>
                     <th>Type</th>
                     <th>Source</th>
                     <th>Source User</th>
@@ -966,7 +1015,18 @@ export default function NetworkPage() {
                     const statusLabel = tx.status === "PENDING" ? "Pending" : tx.status === "FAILED" ? "Failed" : "Confirmed";
                     return (
                       <tr key={`${tx.txHash || tx.type}-${i}`}>
-                        <td>{formatTxDate(tx.timestamp)}</td>
+                        <td>
+                          {(() => {
+                            const parts = formatTxDateParts(tx.timestamp);
+                            if (!parts) return "—";
+                            return (
+                              <div className="txh-dt-cell">
+                                <span className="txh-dt-date">{parts.date}</span>
+                                <span className="txh-dt-time">{parts.time}</span>
+                              </div>
+                            );
+                          })()}
+                        </td>
                         <td>{TX_TYPE_LABEL[tx.type] || tx.type}</td>
                         <td>{getTxSource(tx)}</td>
                         <td>{formatSourceUser(tx)}</td>

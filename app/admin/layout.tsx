@@ -38,6 +38,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [adminUsername, setAdminUsername] = useState("Administrator");
 
   useEffect(() => {
     clearStoredAuth();
@@ -48,6 +49,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       setIsAuthenticated(false);
     } else {
       setIsAuthenticated(true);
+      if (auth?.username) setAdminUsername(auth.username);
     }
   }, [pathname, router]);
 
@@ -121,10 +123,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
             <div className="hidden sm:flex items-center gap-3 pl-1">
               <div className="w-8 h-8 rounded-full bg-[#f50]/10 border border-[#f50]/20 flex items-center justify-center">
-                <span className="text-xs font-bold text-[#f50]">A</span>
+                <span className="text-xs font-bold text-[#f50]">{adminUsername.slice(0, 1).toUpperCase()}</span>
               </div>
               <div className="hidden md:block leading-tight">
-                <div className="text-xs font-semibold text-white">Administrator</div>
+                <div className="text-xs font-semibold text-white">{adminUsername}</div>
                 <div className="text-[10px] text-gray-500">{currentPage}</div>
               </div>
             </div>
@@ -194,7 +196,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         ) : null}
       </header>
 
-      <main className="flex-1 overflow-auto p-6 sm:p-8 max-w-[1600px] mx-auto w-full">{children}</main>
+      <main className="flex-1 overflow-auto px-4 pt-3 pb-6 sm:px-8 sm:pt-8 sm:pb-8 max-w-[1600px] mx-auto w-full">{children}</main>
     </div>
   );
 }
