@@ -4786,6 +4786,8 @@ body.dark .to.active { background: var(--olive) !important; color: var(--cream) 
 body.dark .pg-btn.active, body.dark .txh-pg.active { background: var(--olive) !important; color: var(--t4) !important; }
 body.dark .gi.active { background: var(--olive) !important; color: var(--t4) !important; }
 body.dark .topo-vbtn.active { background: var(--accent, #ec7a2c) !important; color: #F2EFEA !important; }
+body.dark .topo-tree-link,
+body.dark .topo-tree-svg path.rd3t-link { stroke: #ffffff !important; }
 body.dark .at.active { color: var(--sage); border-bottom-color: var(--sage); }
 
 /* progress */
