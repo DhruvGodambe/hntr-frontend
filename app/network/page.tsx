@@ -1,6 +1,7 @@
 "use client";
 
 import MainLayout from "../components/MainLayout";
+import NetworkTopologyTree from "../components/NetworkTopologyTree";
 import PageHeroBanner from "../components/PageHeroBanner";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
@@ -17,16 +18,13 @@ import {
   formatTokenAmount,
   formatVolume,
   type TransactionEntry,
-  type NetworkTreeNode,
 } from "../../lib/rewards";
 import { formatClaimableByToken, formatTokenLabel } from "../../lib/tokens";
 import { hasActiveMembership } from "../../lib/membership";
 
 declare global {
   interface Window {
-    drawNetworkTree?: () => void;
     drawQR?: () => void;
-    __networkTreeData?: NetworkTreeNode | null;
   }
 }
 
@@ -156,7 +154,7 @@ export default function NetworkPage() {
   const [profileFlipped, setProfileFlipped] = useState(false);
   const { summary, refetchSummary, isFetching, isConnected } = useDashboardData();
   const { data: txData } = useTransactionHistory(100);
-  const { data: treeData } = useNetworkTree(summary?.username);
+  const { data: treeData, isLoading: treeLoading } = useNetworkTree(summary?.username);
   const { data: leadershipStatus } = useLeadershipStatus();
   const { data: achievementStatus } = useAchievementStatus();
   const claimCommissions = useClaimCommissions();
@@ -292,49 +290,6 @@ export default function NetworkPage() {
     achievementStatus?.message ||
     "No rank bonus yet — reach Scout or above to unlock one-time achievement bonuses.";
   const claimableByTokenLabel = formatClaimableByToken(summary?.tokens);
-
-  useEffect(() => {
-    const topoScriptId = "net-topo-script";
-    document.getElementById(topoScriptId)?.remove();
-
-    const topoScript = document.createElement("script");
-    topoScript.id = topoScriptId;
-    topoScript.src = `/assets/js/network-topo.js?${Date.now()}`;
-    topoScript.async = true;
-    topoScript.onload = () => {
-      setTimeout(() => {
-        window.drawNetworkTree?.();
-        window.drawQR?.();
-      }, 120);
-    };
-    document.body.appendChild(topoScript);
-
-    const onResize = () => window.drawNetworkTree?.();
-    window.addEventListener("resize", onResize);
-
-    const onTopoClick = (e: MouseEvent) => {
-      const btn = (e.target as HTMLElement).closest(".topo-vbtn");
-      if (!btn) return;
-      btn.closest(".topo-view-btns")?.querySelectorAll(".topo-vbtn").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      window.drawNetworkTree?.();
-    };
-    document.addEventListener("click", onTopoClick);
-
-    return () => {
-      topoScript.remove();
-      window.removeEventListener("resize", onResize);
-      document.removeEventListener("click", onTopoClick);
-    };
-  }, []);
-
-  // Feed the real downline tree to the (vanilla-JS) topology renderer whenever it
-  // changes, and redraw. Set to null while there's no username yet so the canvas
-  // shows a "loading" placeholder instead of stale/synthetic data.
-  useEffect(() => {
-    window.__networkTreeData = treeData ?? null;
-    window.drawNetworkTree?.();
-  }, [treeData]);
 
   const [siteOrigin, setSiteOrigin] = useState("");
 
@@ -843,17 +798,11 @@ export default function NetworkPage() {
                   <button className="topo-vbtn">Node View</button>
                 </div>
               </div>
-              <div className="topo-canvas" id="topoCanvas">
-                <svg id="topoSvg" width="100%" height="100%"></svg>
-                <div className="topo-status">
-                  <span>
-                    System Status: <strong>Mapping Active</strong>
-                  </span>
-                  <span>
-                    Latency: <strong id="topoLatency">14ms</strong>
-                  </span>
-                </div>
-              </div>
+              <NetworkTopologyTree
+                treeData={treeData ?? null}
+                isLoading={Boolean(summary?.username) && treeLoading}
+                rootRank={summary?.rank || "Unranked"}
+              />
             </div>
 
             <div className="ref-card">
