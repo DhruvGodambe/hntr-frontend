@@ -536,9 +536,9 @@ export default function NetworkPage() {
                   <div className="net-divider"></div>
                   <div className="net-perf-grid">
                     {[
-                      { name: "COMPETITIVE", leg: summary?.legs.competitive[0] },
-                      { name: "COMPETITIVE", leg: summary?.legs.competitive[1] },
-                      { name: "WEAKEST", leg: summary?.legs.weakest, muted: true },
+                      { name: "LEG (40% CAP)", leg: summary?.legs.competitive[0] },
+                      { name: "LEG (40% CAP)", leg: summary?.legs.competitive[1] },
+                      { name: "OTHER LEGS", leg: summary?.legs.weakest, muted: true },
                     ].map((col, i) => {
                       const pct = col.leg?.percent ?? 0;
                       return (
