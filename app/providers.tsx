@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { WagmiProvider } from "wagmi";
+import { sepolia } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider } from "connectkit";
 import { config } from "../lib/wagmi";
+import HntrAvatar from "./components/HntrAvatar";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -19,6 +21,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             hideTooltips: false,
             embedGoogleFonts: false,
             enforceSupportedChains: true,
+            // Default users onto Sepolia; mainnet stays in config only for ENS lookups.
+            initialChainId: sepolia.id,
+            truncateLongENSAddress: true,
+            customAvatar: HntrAvatar,
           }}
           customTheme={{
             "--ck-font-family": "var(--fm, inherit)",

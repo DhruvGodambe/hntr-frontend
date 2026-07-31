@@ -1,10 +1,13 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { formatEther } from "viem";
 
 type WalletPanelProps = {
   open: boolean;
   walletAddressLabel: string;
+  walletAvatar?: ReactNode;
+  ensName?: string | null;
   balanceValue?: bigint;
   balanceSymbol?: string;
   onDisconnect: () => void;
@@ -13,6 +16,8 @@ type WalletPanelProps = {
 export default function WalletPanel({
   open,
   walletAddressLabel,
+  walletAvatar,
+  ensName,
   balanceValue,
   balanceSymbol,
   onDisconnect,
@@ -22,8 +27,17 @@ export default function WalletPanel({
       <div className="wallet-panel-top">
         <div className="wallet-panel-lbl">Connected Wallet</div>
         <div className="wallet-address-row">
-          <div className="wallet-dot" />
-          <div className="wallet-address">{walletAddressLabel}</div>
+          {walletAvatar ? (
+            <span className="wallet-avatar" aria-hidden>
+              {walletAvatar}
+            </span>
+          ) : (
+            <div className="wallet-dot" />
+          )}
+          <div className="wallet-identity">
+            <div className="wallet-address">{walletAddressLabel}</div>
+            {ensName ? <div className="wallet-ens-hint">ENS verified</div> : null}
+          </div>
         </div>
       </div>
       <div className="wallet-panel-balance">

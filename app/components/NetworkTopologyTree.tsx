@@ -34,8 +34,9 @@ function shortAddr(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
-function toTreeDatum(node: NetworkTreeNode, depth = 0): RawNodeDatum {
+function toTreeDatum(node: NetworkTreeNode, depth = 0, maxDepth = 12): RawNodeDatum {
   const isRoot = depth === 0;
+  const canExpand = depth < maxDepth;
   return {
     name: isRoot ? "You" : node.username,
     attributes: {
@@ -45,9 +46,10 @@ function toTreeDatum(node: NetworkTreeNode, depth = 0): RawNodeDatum {
       mem: node.tier || "None",
       rank: node.rank || "Unranked",
     },
-    children: node.children?.length
-      ? node.children.map((child) => toTreeDatum(child, depth + 1))
-      : undefined,
+    children:
+      canExpand && node.children?.length
+        ? node.children.map((child) => toTreeDatum(child, depth + 1, maxDepth))
+        : undefined,
   };
 }
 
@@ -145,14 +147,30 @@ export default function NetworkTopologyTree({
   const hasDownline = hasRealData && Array.isArray(treeData.children) && treeData.children.length > 0;
 
   const data = useMemo(() => {
-    if (treeData) return toTreeDatum(treeData);
+    if (treeData) return toTreeDatum(treeData, 0, maxDepth);
     return rootPlaceholder(rootRank);
-  }, [treeData, rootRank]);
+  }, [treeData, rootRank, maxDepth]);
 
-  const centerTree = useCallback((width: number) => {
-    setTranslate({ x: width / 2, y: 50 });
-    setZoom(1);
-  }, []);
+  const layout = useMemo(() => getTreeLayout(maxDepth), [maxDepth]);
+
+  const fitTree = useCallback(
+    (width: number, height: number) => {
+      if (width <= 0) return;
+      // Root sits near the top; leave room for maxDepth generations of cards.
+      const contentHeight = 56 + maxDepth * layout.depthFactor + 72;
+      const fitZoom = Math.min(1, Math.max(0.3, (height - 24) / contentHeight));
+      setZoom(fitZoom);
+      setTranslate({ x: width / 2, y: 44 });
+    },
+    [layout.depthFactor, maxDepth],
+  );
+
+  const centerTree = useCallback(
+    (width: number) => {
+      fitTree(width, dimensions.height || 320);
+    },
+    [dimensions.height, fitTree],
+  );
 
   useEffect(() => {
     const el = containerRef.current;
@@ -161,8 +179,8 @@ export default function NetworkTopologyTree({
     const updateDimensions = () => {
       const { width, height } = el.getBoundingClientRect();
       if (width <= 0) return;
-      setDimensions({ width, height: Math.max(height, 320) });
-      setTranslate((prev) => (prev.x === 0 && prev.y === 50 ? { x: width / 2, y: 50 } : prev));
+      const nextHeight = Math.max(height, maxDepth >= 6 ? 420 : 320);
+      setDimensions({ width, height: nextHeight });
     };
 
     updateDimensions();
@@ -173,11 +191,11 @@ export default function NetworkTopologyTree({
       observer.disconnect();
       window.removeEventListener("resize", updateDimensions);
     };
-  }, []);
+  }, [maxDepth]);
 
   useEffect(() => {
-    if (dimensions.width > 0) centerTree(dimensions.width);
-  }, [treeData, maxDepth, dimensions.width, centerTree]);
+    if (dimensions.width > 0) fitTree(dimensions.width, dimensions.height);
+  }, [treeData, maxDepth, dimensions.width, dimensions.height, fitTree]);
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -196,12 +214,11 @@ export default function NetworkTopologyTree({
     return "topo-tree-link";
   }, []);
 
-  const layout = useMemo(() => getTreeLayout(maxDepth), [maxDepth]);
-
   const showEmptyMessage = !isLoading && (!hasRealData || !hasDownline);
+  const canvasMinHeight = maxDepth >= 9 ? 520 : maxDepth >= 6 ? 420 : 320;
 
   return (
-    <div className="topo-canvas" id="topoCanvas">
+    <div className="topo-canvas" id="topoCanvas" style={{ minHeight: canvasMinHeight }}>
       <div className="topo-tree-inner" ref={containerRef}>
         {dimensions.width > 0 ? (
           <Tree
@@ -216,7 +233,7 @@ export default function NetworkTopologyTree({
             collapsible={false}
             zoomable
             draggable
-            scaleExtent={{ min: 0.3, max: 3 }}
+            scaleExtent={{ min: 0.25, max: 3 }}
             nodeSize={layout.nodeSize}
             separation={layout.separation}
             depthFactor={layout.depthFactor}

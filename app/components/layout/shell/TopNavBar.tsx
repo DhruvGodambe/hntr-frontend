@@ -1,11 +1,13 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { HiBell, HiMoon, HiSun, HiViewColumns, HiXMark } from "react-icons/hi2";
 
 type TopNavBarProps = {
   isDark: boolean;
   walletConnected: boolean;
   walletAddressLabel: string;
+  walletAvatar?: ReactNode;
   railOpen: boolean;
   hideRightRail: boolean;
   hideMobileRailToggle: boolean;
@@ -19,6 +21,7 @@ export default function TopNavBar({
   isDark,
   walletConnected,
   walletAddressLabel,
+  walletAvatar,
   railOpen,
   hideRightRail,
   hideMobileRailToggle,
@@ -125,8 +128,16 @@ export default function TopNavBar({
             }
           }}
         >
-          <div className={`conn-dot${walletConnected ? "" : " red"}`} id="connDot" />
-          <span id="connLabel">{walletConnected ? walletAddressLabel : "CONNECT"}</span>
+          {walletConnected && walletAvatar ? (
+            <span className="conn-avatar" aria-hidden>
+              {walletAvatar}
+            </span>
+          ) : (
+            <div className={`conn-dot${walletConnected ? "" : " red"}`} id="connDot" />
+          )}
+          <span id="connLabel" className={walletConnected ? "conn-label" : undefined}>
+            {walletConnected ? walletAddressLabel : "CONNECT"}
+          </span>
         </div>
       </div>
     </div>

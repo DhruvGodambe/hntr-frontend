@@ -4,16 +4,18 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
+import { Avatar } from "connectkit";
 import SignupOverlays from "./SignupOverlays";
 import NotificationSystem from "./NotificationSystem";
 import DepositModal from "./DepositModal";
 import { clearStoredAuth } from "../../lib/api";
 import { handleAppError } from "../../lib/errors";
 import { useDashboardData, useClaimCommissions, useLeadershipStatus, usePointsSummary } from "../../lib/rewards";
+import { useEnsIdentity } from "../../lib/useEnsIdentity";
 import type { StandardToastData } from "../../lib/notification-data";
 import type { MainLayoutProps } from "./layout/types";
 import { MOBILE_MQ } from "./layout/constants";
-import { resolveCurrentPage, shortenAddress } from "./layout/utils";
+import { resolveCurrentPage } from "./layout/utils";
 import { useActivityFeed } from "./layout/hooks/useActivityFeed";
 import { useMobileHomeSlots } from "./layout/hooks/useMobileHomeSlots";
 import { useMobileNavNotch } from "./layout/hooks/useMobileNavNotch";
@@ -45,7 +47,15 @@ export default function MainLayout({
   const { address, isConnected: walletConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const { data: balanceData } = useBalance({ address, query: { enabled: !!address } });
-  const walletAddressLabel = shortenAddress(address);
+  const { label: walletAddressLabel, ensName } = useEnsIdentity(address);
+  const navAvatar =
+    walletConnected && address ? (
+      <Avatar address={address} name={ensName ?? undefined} size={18} radius={5} />
+    ) : null;
+  const panelAvatar =
+    walletConnected && address ? (
+      <Avatar address={address} name={ensName ?? undefined} size={28} radius={7} />
+    ) : null;
   const { summary, refetchSummary } = useDashboardData();
   const { data: pointsSummary } = usePointsSummary();
   const { data: leadershipStatus } = useLeadershipStatus();
@@ -298,6 +308,7 @@ export default function MainLayout({
         isDark={isDark}
         walletConnected={walletConnected}
         walletAddressLabel={walletAddressLabel}
+        walletAvatar={navAvatar}
         railOpen={railOpen}
         hideRightRail={hideRightRail}
         hideMobileRailToggle={hideMobileRailToggle}
@@ -310,6 +321,8 @@ export default function MainLayout({
       <WalletPanel
         open={walletPanelOpen}
         walletAddressLabel={walletAddressLabel}
+        walletAvatar={panelAvatar}
+        ensName={ensName}
         balanceValue={balanceData?.value}
         balanceSymbol={balanceData?.symbol}
         onDisconnect={disconnectWallet}
