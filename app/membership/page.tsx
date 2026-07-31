@@ -21,13 +21,14 @@ import { api, ApiError } from "../../lib/api";
 import PaymentTokenToggle from "../components/PaymentTokenToggle";
 import MembershipPaySummary from "../components/MembershipPaySummary";
 import type { PaymentToken } from "../../lib/tokens";
+import type { StandardToastData } from "../../lib/notification-data";
 
 declare global {
   interface Window {
     __resources?: Record<string, string>;
     openSignup?: () => void;
     suGoto?: (n: number) => void;
-    showToast?: (data: { title: string; sub: string; link: string }) => void;
+    showToast?: (data: StandardToastData) => void;
   }
 }
 
