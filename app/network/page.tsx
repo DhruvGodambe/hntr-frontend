@@ -916,10 +916,7 @@ export default function NetworkPage() {
                     </select>
                   </label>
                   <div className="topo-view-btns">
-                    <button type="button" className="topo-vbtn active">
-                      2D Plane
-                    </button>
-                    <button type="button" className="topo-vbtn">
+                    <button type="button" className="topo-vbtn active" aria-current="true">
                       Node View
                     </button>
                   </div>
@@ -967,7 +964,7 @@ export default function NetworkPage() {
                 <div className="ref-locked">
                   <p className="ref-locked-msg">
                     {!isConnected || !summary?.username
-                      ? "Connect your wallet to access referral tools."
+                      ? "Membership plan is required to access referral tools."
                       : "Purchase a membership to unlock your referral link and start inviting hunters."}
                   </p>
                   {isConnected && summary?.username && !hasActiveMembership(summary.tier) && (
