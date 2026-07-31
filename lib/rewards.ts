@@ -294,13 +294,25 @@ export function usePointsSummary() {
   });
 }
 
+/** Allowed downline depths for the topology tree visualization. */
+export const NETWORK_TREE_DEPTH_OPTIONS = [3, 6, 9, 12] as const;
+export type NetworkTreeDepth = (typeof NETWORK_TREE_DEPTH_OPTIONS)[number];
+
+export function networkTreeQueryKey(username: string, depth: NetworkTreeDepth) {
+  return ["network-tree", username, depth] as const;
+}
+
+export function fetchNetworkTree(username: string, depth: NetworkTreeDepth) {
+  return api.get<{ tree: NetworkTreeNode }>(`/api/network/${username}/tree?depth=${depth}`);
+}
+
 /** Real downline tree (up to `depth` levels) for the Topology Matrix Mapping visualization. */
-export function useNetworkTree(username: string | null | undefined, depth = 3) {
+export function useNetworkTree(username: string | null | undefined, depth: NetworkTreeDepth = 3) {
   return useQuery({
-    queryKey: ["network-tree", username, depth],
-    queryFn: () => api.get<{ tree: NetworkTreeNode }>(`/api/network/${username}/tree?depth=${depth}`),
+    queryKey: networkTreeQueryKey(username ?? "", depth),
+    queryFn: () => fetchNetworkTree(username!, depth),
     enabled: !!username,
-    staleTime: 30_000,
+    staleTime: 0,
     select: (data) => data.tree,
   });
 }

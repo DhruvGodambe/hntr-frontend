@@ -4,6 +4,7 @@ import MainLayout from "../components/MainLayout";
 import NetworkTopologyTree from "../components/NetworkTopologyTree";
 import PageHeroBanner from "../components/PageHeroBanner";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { useRouter } from "nextjs-toploader/app";
 import { handleAppError } from "../../lib/errors";
@@ -17,14 +18,21 @@ import {
   formatPoolWalletBalances,
   formatTokenAmount,
   formatVolume,
+  NETWORK_TREE_DEPTH_OPTIONS,
+  fetchNetworkTree,
+  networkTreeQueryKey,
+  type NetworkTreeDepth,
   type TransactionEntry,
 } from "../../lib/rewards";
 import { formatClaimableByToken, formatTokenLabel } from "../../lib/tokens";
 import { hasActiveMembership } from "../../lib/membership";
+import { useConnectWallet } from "../../lib/useConnectWallet";
+import type { StandardToastData } from "../../lib/notification-data";
 
 declare global {
   interface Window {
     drawQR?: () => void;
+    showToast?: (data: StandardToastData) => void;
   }
 }
 
@@ -151,13 +159,21 @@ function getPageNumbers(current: number, total: number) {
 
 export default function NetworkPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [profileFlipped, setProfileFlipped] = useState(false);
   const { summary, refetchSummary, isFetching, isConnected } = useDashboardData();
   const { data: txData } = useTransactionHistory(100);
-  const { data: treeData, isLoading: treeLoading } = useNetworkTree(summary?.username);
+  const [treeDepth, setTreeDepth] = useState<NetworkTreeDepth>(3);
+  const {
+    data: treeData,
+    isLoading: treeLoading,
+    isFetching: treeFetching,
+  } = useNetworkTree(summary?.username, treeDepth);
   const { data: leadershipStatus } = useLeadershipStatus();
   const { data: achievementStatus } = useAchievementStatus();
   const claimCommissions = useClaimCommissions();
+  const { connectWallet } = useConnectWallet();
+  const [connectBusy, setConnectBusy] = useState(false);
   const [claimBusy, setClaimBusy] = useState(false);
   const [txSearch, setTxSearch] = useState("");
   const [txTypeFilter, setTxTypeFilter] = useState<(typeof TX_TYPE_FILTER_OPTIONS)[number]["value"]>("all");
@@ -165,6 +181,42 @@ export default function NetworkPage() {
   const [txFilterOpen, setTxFilterOpen] = useState(false);
   const [txPage, setTxPage] = useState(1);
   const transactions = txData?.transactions || [];
+
+  const handleTreeDepthChange = useCallback(
+    (event: React.ChangeEvent<HTMLSelectElement>) => {
+      const nextDepth = Number(event.target.value) as NetworkTreeDepth;
+      if (!NETWORK_TREE_DEPTH_OPTIONS.includes(nextDepth)) return;
+
+      if (!isConnected) {
+        window.showToast?.({
+          title: "Wallet not connected",
+          sub: "Connect your wallet to load your network tree.",
+          link: "",
+          variant: "error",
+        });
+        return;
+      }
+
+      const username = summary?.username;
+      if (!username) {
+        window.showToast?.({
+          title: "Network unavailable",
+          sub: "Sign in with your wallet to view your downline tree.",
+          link: "",
+          variant: "error",
+        });
+        return;
+      }
+
+      setTreeDepth(nextDepth);
+
+      void queryClient.fetchQuery({
+        queryKey: networkTreeQueryKey(username, nextDepth),
+        queryFn: () => fetchNetworkTree(username, nextDepth),
+      });
+    },
+    [queryClient, summary?.username, isConnected],
+  );
 
   const txSourceOptions = useMemo(() => {
     const sources = new Set<string>();
@@ -355,18 +407,36 @@ export default function NetworkPage() {
   const copyRef = () => {
     if (!canShareReferral) {
       if (!isConnected || !summary?.username) {
-        window.showToast?.({ title: "No referral link yet", sub: "Connect your wallet to get your link.", link: "" });
+        window.showToast?.({
+          title: "No referral link yet",
+          sub: "Connect your wallet to get your link.",
+          link: "",
+          variant: "error",
+        });
       } else {
         window.showToast?.({
           title: "Membership required",
           sub: "Purchase a membership to unlock your referral link.",
           link: "",
+          variant: "error",
         });
       }
       return;
     }
     navigator.clipboard.writeText(referralLink);
     window.showToast?.({ title: "Referral link copied", sub: referralLink, link: "" });
+  };
+
+  const handleConnectWallet = async () => {
+    if (connectBusy || isConnected) return;
+    setConnectBusy(true);
+    try {
+      await connectWallet();
+    } catch (error) {
+      handleAppError(error, "Wallet connection failed");
+    } finally {
+      setConnectBusy(false);
+    }
   };
 
   const handleClaimCommissions = async () => {
@@ -409,6 +479,42 @@ export default function NetworkPage() {
               {isFetching ? "Refreshing…" : "Refresh"}
             </button>
           </PageHeroBanner>
+
+          {!isConnected ? (
+            <div className="net-wallet-banner net-wallet-banner--warning" role="alert">
+              <div className="net-wallet-banner-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M10 7.25v3.5M10 13.5h.01"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M4.2 16h11.6L10 4.5 4.2 16z"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <div className="net-wallet-banner-copy">
+                <div className="net-wallet-banner-title">Connect your wallet to access your network</div>
+                <div className="net-wallet-banner-msg">
+                  View your downline tree, track commissions, claim rewards, and share your referral link after
+                  connecting.
+                </div>
+              </div>
+              <button
+                type="button"
+                className="net-wallet-banner-btn"
+                onClick={() => void handleConnectWallet()}
+                disabled={connectBusy}
+              >
+                {connectBusy ? "Connecting…" : "Connect Wallet"}
+              </button>
+            </div>
+          ) : null}
 
           <div className="net-top-grid">
             <div
@@ -793,15 +899,37 @@ export default function NetworkPage() {
             <div className="topo-card">
               <div className="topo-hdr">
                 <div className="topo-hdr-title">Topology Matrix Mapping</div>
-                <div className="topo-view-btns">
-                  <button className="topo-vbtn active">2D Plane</button>
-                  <button className="topo-vbtn">Node View</button>
+                <div className="topo-hdr-actions">
+                  <label className="topo-depth-field">
+                    <span className="topo-depth-label">Levels</span>
+                    <select
+                      className="topo-depth-select"
+                      value={treeDepth}
+                      onChange={handleTreeDepthChange}
+                      aria-label="Network tree depth"
+                    >
+                      {NETWORK_TREE_DEPTH_OPTIONS.map((depth) => (
+                        <option key={depth} value={depth}>
+                          {depth} Levels
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="topo-view-btns">
+                    <button type="button" className="topo-vbtn active">
+                      2D Plane
+                    </button>
+                    <button type="button" className="topo-vbtn">
+                      Node View
+                    </button>
+                  </div>
                 </div>
               </div>
               <NetworkTopologyTree
                 treeData={treeData ?? null}
-                isLoading={Boolean(summary?.username) && treeLoading}
+                isLoading={Boolean(summary?.username) && (treeLoading || treeFetching)}
                 rootRank={summary?.rank || "Unranked"}
+                maxDepth={treeDepth}
               />
             </div>
 

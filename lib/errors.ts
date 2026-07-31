@@ -257,6 +257,7 @@ export function handleAppError(
       title: resolved.title,
       sub: resolved.sub,
       link: "",
+      variant: "error",
     });
   }
   return resolved;

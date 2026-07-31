@@ -59,16 +59,33 @@ function rootPlaceholder(rank = "Unranked"): RawNodeDatum {
   };
 }
 
-const CARD_SIZE: Record<number, { w: number; h: number; variant: "lg" | "sm" | "mini" }> = {
-  1: { w: 118, h: 52, variant: "lg" },
-  2: { w: 78, h: 44, variant: "sm" },
-  3: { w: 72, h: 40, variant: "mini" },
+const CARD_SIZE: Record<"lg" | "sm" | "mini", { w: number; h: number; variant: "lg" | "sm" | "mini" }> = {
+  lg: { w: 118, h: 52, variant: "lg" },
+  sm: { w: 78, h: 44, variant: "sm" },
+  mini: { w: 68, h: 38, variant: "mini" },
 };
 
-function TopoUserCard({ attrs, level }: { attrs: TopoAttributes; level: number }) {
-  const spec = CARD_SIZE[level];
-  if (!spec) return null;
+function getCardSpec(level: number) {
+  if (level === 1) return CARD_SIZE.lg;
+  if (level === 2) return CARD_SIZE.sm;
+  return CARD_SIZE.mini;
+}
 
+function getTreeLayout(maxDepth: number) {
+  if (maxDepth <= 3) {
+    return { depthFactor: 96, nodeSize: { x: 140, y: 96 }, separation: { siblings: 1.08, nonSiblings: 1.25 } };
+  }
+  if (maxDepth <= 6) {
+    return { depthFactor: 78, nodeSize: { x: 120, y: 72 }, separation: { siblings: 1.05, nonSiblings: 1.15 } };
+  }
+  if (maxDepth <= 9) {
+    return { depthFactor: 64, nodeSize: { x: 100, y: 58 }, separation: { siblings: 1.02, nonSiblings: 1.1 } };
+  }
+  return { depthFactor: 52, nodeSize: { x: 88, y: 48 }, separation: { siblings: 1, nonSiblings: 1.05 } };
+}
+
+function TopoUserCard({ attrs, level }: { attrs: TopoAttributes; level: number }) {
+  const spec = getCardSpec(level);
   const { w, h, variant } = spec;
   return (
     <foreignObject x={-w / 2} y={-h / 2} width={w} height={h} className="topo-node-fo">
@@ -102,20 +119,21 @@ function renderCustomNode({ nodeDatum }: CustomNodeElementProps) {
   const level = Number(attrs.level ?? 0);
 
   if (level === 0) return <TopoRootNode attrs={attrs} />;
-  if (level >= 1 && level <= 3) return <TopoUserCard attrs={attrs} level={level} />;
-  return <circle r={4} className="topo-root-core" />;
+  return <TopoUserCard attrs={attrs} level={level} />;
 }
 
 interface NetworkTopologyTreeProps {
   treeData?: NetworkTreeNode | null;
   isLoading?: boolean;
   rootRank?: string;
+  maxDepth?: number;
 }
 
 export default function NetworkTopologyTree({
   treeData,
   isLoading = false,
   rootRank = "Unranked",
+  maxDepth = 3,
 }: NetworkTopologyTreeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 320 });
@@ -159,7 +177,7 @@ export default function NetworkTopologyTree({
 
   useEffect(() => {
     if (dimensions.width > 0) centerTree(dimensions.width);
-  }, [treeData, dimensions.width, centerTree]);
+  }, [treeData, maxDepth, dimensions.width, centerTree]);
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -177,6 +195,8 @@ export default function NetworkTopologyTree({
     void orientation;
     return "topo-tree-link";
   }, []);
+
+  const layout = useMemo(() => getTreeLayout(maxDepth), [maxDepth]);
 
   const showEmptyMessage = !isLoading && (!hasRealData || !hasDownline);
 
@@ -197,12 +217,12 @@ export default function NetworkTopologyTree({
             zoomable
             draggable
             scaleExtent={{ min: 0.3, max: 3 }}
-            nodeSize={{ x: 140, y: 96 }}
-            separation={{ siblings: 1.08, nonSiblings: 1.25 }}
-            depthFactor={96}
+            nodeSize={layout.nodeSize}
+            separation={layout.separation}
+            depthFactor={layout.depthFactor}
             dimensions={dimensions}
             svgClassName="topo-tree-svg"
-            dataKey={treeData?.username ?? "placeholder"}
+            dataKey={`${treeData?.username ?? "placeholder"}-${maxDepth}`}
           />
         ) : null}
 

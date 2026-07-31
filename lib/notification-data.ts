@@ -2,6 +2,7 @@ export type StandardToastData = {
   title: string;
   sub: string;
   link: string;
+  variant?: "success" | "error";
 };
 
 export type SaleToastData = {

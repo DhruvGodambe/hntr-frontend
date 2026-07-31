@@ -3047,6 +3047,17 @@ body.dark .mkt-filter-tab.active {
     margin-bottom: 14px !important;
   }
 
+  #feed-network .net-wallet-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px !important;
+  }
+
+  #feed-network .net-wallet-banner-btn {
+    width: 100%;
+  }
+
   #feed-network .topo-card {
     background: transparent !important;
     box-shadow: none !important;

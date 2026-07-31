@@ -29,6 +29,18 @@ const CHECK_ICON = (
   </svg>
 );
 
+const ERROR_ICON = (
+  <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+    <path
+      d="M7 4.5v3.25M7 9.75h.01"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+    <circle cx="7" cy="7" r="5.25" stroke="currentColor" strokeWidth="1.4" />
+  </svg>
+);
+
 type ActiveToast =
   | { id: string; kind: "standard"; data: StandardToastData; dismissing: boolean }
   | { id: string; kind: "sale"; data: SaleToastData; dismissing: boolean };
@@ -237,16 +249,18 @@ export default function NotificationSystem({ panelOpen }: NotificationSystemProp
           toast.kind === "standard" ? (
             <div
               key={toast.id}
-              className={`toast${toast.dismissing ? " out" : ""}`}
+              className={`toast${toast.data.variant === "error" ? " toast-error" : ""}${toast.dismissing ? " out" : ""}`}
               style={{ ["--dur" as string]: `${STANDARD_TOAST_DURATION_MS / 1000}s` }}
               onMouseEnter={() => pauseDismiss(toast.id)}
               onMouseLeave={() => resumeDismiss(toast.id, toast.kind)}
             >
-              <div className="toast-icon">{CHECK_ICON}</div>
+              <div className="toast-icon">
+                {toast.data.variant === "error" ? ERROR_ICON : CHECK_ICON}
+              </div>
               <div className="toast-body">
                 <div className="toast-title">{toast.data.title}</div>
                 <div className="toast-sub">{toast.data.sub}</div>
-                <span className="toast-link">{toast.data.link}</span>
+                {toast.data.link ? <span className="toast-link">{toast.data.link}</span> : null}
               </div>
               <button
                 className="toast-close"
