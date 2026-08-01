@@ -6,6 +6,7 @@ import {
   AdminTable,
   StatusBadge,
   AdminModal,
+  TxHashLink,
   useNotifications,
   NotificationPortal,
 } from "@/components/admin/UI";
@@ -606,8 +607,8 @@ function WalletsTabContent({ notify }: { notify: (type: "success" | "error" | "i
                   <td className="px-4 py-3 text-xs font-mono text-gray-400 whitespace-nowrap">
                     {row.counterparty ? `${row.counterparty.slice(0, 6)}…${row.counterparty.slice(-4)}` : "—"}
                   </td>
-                  <td className="px-4 py-3 text-xs font-mono text-gray-400 whitespace-nowrap">
-                    {row.txHash ? `${row.txHash.slice(0, 10)}…${row.txHash.slice(-6)}` : "—"}
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <TxHashLink txHash={row.txHash} start={10} end={6} />
                   </td>
                 </tr>
               ))
@@ -852,7 +853,9 @@ function TransactionsTabContent({ notify }: { notify: (type: "success" | "error"
               <td className="px-6 py-4 text-sm text-white font-mono">
                 {tx.hntrPoints != null ? `+${tx.hntrPoints.toLocaleString()} Pts` : "—"}
               </td>
-              <td className="px-6 py-4 text-xs font-mono text-gray-500">{tx.txHash ? `${tx.txHash.slice(0, 6)}...${tx.txHash.slice(-3)}` : "—"}</td>
+              <td className="px-6 py-4">
+                <TxHashLink txHash={tx.txHash} start={6} end={3} className="text-xs font-mono text-gray-500 hover:text-[#f50] transition-colors" />
+              </td>
               <td className="px-6 py-4">
                 <StatusBadge status={tx.status} />
               </td>

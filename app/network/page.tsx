@@ -33,6 +33,8 @@ declare global {
   interface Window {
     drawQR?: () => void;
     showToast?: (data: StandardToastData) => void;
+    connectWalletForSignup?: () => Promise<void>;
+    openSignup?: () => void;
   }
 }
 
@@ -431,7 +433,12 @@ export default function NetworkPage() {
     if (connectBusy || isConnected) return;
     setConnectBusy(true);
     try {
-      await connectWallet();
+      if (typeof window.connectWalletForSignup === "function") {
+        await window.connectWalletForSignup();
+      } else {
+        await connectWallet();
+        window.openSignup?.();
+      }
     } catch (error) {
       handleAppError(error, "Wallet connection failed");
     } finally {

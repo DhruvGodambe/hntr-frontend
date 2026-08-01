@@ -3110,6 +3110,21 @@ body.dark .mkt-filter-tab.active {
     box-shadow: inset 0 1px 3px rgba(60, 70, 50, 0.05) !important;
   }
 
+  #feed-network .topo-canvas.topo-canvas--depth-6 {
+    min-height: 360px !important;
+    height: 360px !important;
+  }
+
+  #feed-network .topo-canvas.topo-canvas--depth-9 {
+    min-height: 420px !important;
+    height: 420px !important;
+  }
+
+  #feed-network .topo-canvas.topo-canvas--depth-12 {
+    min-height: 480px !important;
+    height: 480px !important;
+  }
+
   #feed-network .ref-card {
     background: var(--card) !important;
     border-radius: 12px !important;

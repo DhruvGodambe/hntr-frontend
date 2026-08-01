@@ -1,5 +1,32 @@
 import React, { useEffect, useState } from "react";
 
+export function TxHashLink({
+  txHash,
+  start = 6,
+  end = 4,
+  className = "text-xs font-mono text-gray-400 hover:text-[#f50] transition-colors",
+}: {
+  txHash: string | null | undefined;
+  start?: number;
+  end?: number;
+  className?: string;
+}) {
+  if (!txHash) {
+    return <span className={className}>—</span>;
+  }
+
+  return (
+    <a
+      href={`https://sepolia.etherscan.io/tx/${txHash}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+    >
+      {`${txHash.slice(0, start)}...${txHash.slice(-end)}`}
+    </a>
+  );
+}
+
 export function AdminCard({ title, value, subValue, icon }: { title: string, value: string | number, subValue?: string, icon?: string }) {
   return (
     <div className="bg-[#111] border border-[#222] p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl shadow-sm min-w-0">
