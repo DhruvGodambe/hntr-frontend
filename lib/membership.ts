@@ -203,7 +203,7 @@ export async function purchaseOrUpgradeTier(
   // Fetch the signed auth as late as possible (after any approve), so the
   // deadline still has headroom when the wallet opens the purchase prompt.
   const endpoint = quote.isUpgrade ? "/api/membership/upgrade" : "/api/membership/purchase";
-  let prepared: PreparedMembershipTx;
+  let prepared: PreparedMembershipTx | undefined;
   try {
     prepared = await api.post<PreparedMembershipTx>(
       endpoint,
@@ -225,6 +225,7 @@ export async function purchaseOrUpgradeTier(
     !Array.isArray(prepared.ranks) ||
     prepared.uplines.length !== prepared.ranks.length
   ) {
+    await failPreparedRelay(prepared.pendingTransactionId, "Incomplete membership authorization");
     throw new MembershipFlowError(
       "INVALID_PREPARED_TX",
       "Backend returned an incomplete membership authorization. Please try again.",
@@ -254,6 +255,7 @@ export async function purchaseOrUpgradeTier(
       account: account.address,
     });
   } catch (err: any) {
+    await failPreparedRelay(prepared.pendingTransactionId, err?.shortMessage || err?.message);
     const reason =
       err?.shortMessage ||
       err?.cause?.reason ||
@@ -293,6 +295,10 @@ export async function purchaseOrUpgradeTier(
       ...(gas !== undefined ? { gas } : {}),
     });
   } catch (err) {
+    await failPreparedRelay(
+      prepared.pendingTransactionId,
+      err instanceof Error ? err.message : "Wallet membership request aborted",
+    );
     throw toMembershipWalletError(err, `${tokenSymbol} membership purchase failed.`, tokenSymbol);
   }
   progress?.onWalletAccepted?.();
@@ -304,6 +310,19 @@ export async function purchaseOrUpgradeTier(
     isUpgrade: quote.isUpgrade,
     amountLabel: `${quote.amountDueFormatted} ${tokenSymbol}`,
   };
+}
+
+async function failPreparedRelay(pendingTransactionId: string | undefined, reason?: string) {
+  if (!pendingTransactionId) return;
+  try {
+    await api.post(
+      "/api/network/relay/fail",
+      { pendingTransactionId, reason: reason || "Wallet request aborted" },
+      { auth: true },
+    );
+  } catch {
+    // best-effort; stale pending recovery still clears locks after timeout
+  }
 }
 
 function toMembershipWalletError(

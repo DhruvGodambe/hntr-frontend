@@ -359,15 +359,32 @@ export function useClaimCommissions() {
         { auth: true },
       );
 
-      const txHash = await writeContract(config, {
-        address: prepared.contractAddress,
-        abi: hntrMembershipAbi,
-        functionName: "withdrawCommissions",
-        args: [prepared.walletAddress as `0x${string}`, prepared.tokenAddress as `0x${string}`],
-      });
-      await waitForTransactionReceipt(config, { hash: txHash });
-
-      results.push({ symbol: token.symbol, txHash });
+      try {
+        const txHash = await writeContract(config, {
+          address: prepared.contractAddress,
+          abi: hntrMembershipAbi,
+          functionName: "withdrawCommissions",
+          args: [prepared.walletAddress as `0x${string}`, prepared.tokenAddress as `0x${string}`],
+        });
+        await waitForTransactionReceipt(config, { hash: txHash });
+        results.push({ symbol: token.symbol, txHash });
+      } catch (err) {
+        // Prepare already wrote a PENDING row; mark it FAILED so admin/UI don't stay stuck
+        // when the user rejects MetaMask or the wallet write fails before broadcast.
+        try {
+          await api.post(
+            "/api/network/relay/fail",
+            {
+              pendingTransactionId: prepared.pendingTransactionId,
+              reason: err instanceof Error ? err.message : "Wallet claim aborted",
+            },
+            { auth: true },
+          );
+        } catch {
+          // best-effort; stale pending recovery still clears locks after timeout
+        }
+        throw err;
+      }
     }
 
     await queryClient.invalidateQueries({ queryKey: ["rewards-summary", address] });
