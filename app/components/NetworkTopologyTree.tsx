@@ -67,23 +67,55 @@ const CARD_SIZE: Record<"lg" | "sm" | "mini", { w: number; h: number; variant: "
   mini: { w: 68, h: 38, variant: "mini" },
 };
 
+const MIN_NODE_GAP = 16;
+const MAX_CARD_WIDTH = Math.max(CARD_SIZE.lg.w, CARD_SIZE.sm.w, CARD_SIZE.mini.w);
+
 function getCardSpec(level: number) {
   if (level === 1) return CARD_SIZE.lg;
   if (level === 2) return CARD_SIZE.sm;
   return CARD_SIZE.mini;
 }
 
-function getTreeLayout(maxDepth: number) {
-  if (maxDepth <= 3) {
-    return { depthFactor: 96, nodeSize: { x: 140, y: 96 }, separation: { siblings: 1.08, nonSiblings: 1.25 } };
-  }
-  if (maxDepth <= 6) {
-    return { depthFactor: 78, nodeSize: { x: 120, y: 72 }, separation: { siblings: 1.05, nonSiblings: 1.15 } };
-  }
-  if (maxDepth <= 9) {
-    return { depthFactor: 64, nodeSize: { x: 100, y: 58 }, separation: { siblings: 1.02, nonSiblings: 1.1 } };
-  }
-  return { depthFactor: 52, nodeSize: { x: 88, y: 48 }, separation: { siblings: 1, nonSiblings: 1.05 } };
+type TreeLayout = {
+  depthFactor: number;
+  nodeSize: { x: number; y: number };
+  separation: { siblings: number; nonSiblings: number };
+};
+
+function getTreeLayout(maxDepth: number): TreeLayout {
+  // Keep horizontal spacing >= card width so nodes never overlap at any depth setting.
+  const nodeSizeX = MAX_CARD_WIDTH + MIN_NODE_GAP;
+  const nodeSizeY = CARD_SIZE.lg.h + 24;
+  const depthFactor =
+    maxDepth <= 3 ? 88 : maxDepth <= 6 ? 76 : maxDepth <= 9 ? 68 : 60;
+
+  return {
+    depthFactor,
+    nodeSize: { x: nodeSizeX, y: nodeSizeY },
+    separation: { siblings: 1.14, nonSiblings: 1.24 },
+  };
+}
+
+function countTreeLeaves(datum: RawNodeDatum): number {
+  if (!datum.children?.length) return 1;
+  return datum.children.reduce((sum, child) => sum + countTreeLeaves(child), 0);
+}
+
+function estimateTreeContentSize(datum: RawNodeDatum, layout: TreeLayout, maxDepth: number) {
+  const leaves = Math.max(1, countTreeLeaves(datum));
+  const width = Math.max(
+    MAX_CARD_WIDTH + 32,
+    leaves * layout.nodeSize.x * layout.separation.siblings,
+  );
+  const height = 72 + Math.max(1, maxDepth) * layout.depthFactor + CARD_SIZE.lg.h + 16;
+  return { width, height, leaves };
+}
+
+function canvasHeightForDepth(maxDepth: number) {
+  if (maxDepth >= 12) return 560;
+  if (maxDepth >= 9) return 480;
+  if (maxDepth >= 6) return 400;
+  return 320;
 }
 
 function TopoUserCard({ attrs, level }: { attrs: TopoAttributes; level: number }) {
@@ -152,24 +184,32 @@ export default function NetworkTopologyTree({
   }, [treeData, rootRank, maxDepth]);
 
   const layout = useMemo(() => getTreeLayout(maxDepth), [maxDepth]);
+  const canvasMinHeight = canvasHeightForDepth(maxDepth);
 
   const fitTree = useCallback(
-    (width: number, height: number) => {
+    (width: number, height: number, datum: RawNodeDatum) => {
       if (width <= 0) return;
-      // Root sits near the top; leave room for maxDepth generations of cards.
-      const contentHeight = 56 + maxDepth * layout.depthFactor + 72;
-      const fitZoom = Math.min(1, Math.max(0.3, (height - 24) / contentHeight));
+      const { width: contentWidth, height: contentHeight } = estimateTreeContentSize(
+        datum,
+        layout,
+        maxDepth,
+      );
+      const padX = 48;
+      const padY = 44;
+      const zoomW = (width - padX) / contentWidth;
+      const zoomH = (height - padY) / contentHeight;
+      const fitZoom = Math.min(1, Math.max(0.18, Math.min(zoomW, zoomH)));
       setZoom(fitZoom);
-      setTranslate({ x: width / 2, y: 44 });
+      setTranslate({ x: width / 2, y: 48 });
     },
-    [layout.depthFactor, maxDepth],
+    [layout, maxDepth],
   );
 
   const centerTree = useCallback(
     (width: number) => {
-      fitTree(width, dimensions.height || 320);
+      fitTree(width, dimensions.height || canvasMinHeight, data);
     },
-    [dimensions.height, fitTree],
+    [canvasMinHeight, data, dimensions.height, fitTree],
   );
 
   useEffect(() => {
@@ -179,7 +219,8 @@ export default function NetworkTopologyTree({
     const updateDimensions = () => {
       const { width, height } = el.getBoundingClientRect();
       if (width <= 0) return;
-      const nextHeight = Math.max(height, maxDepth >= 6 ? 420 : 320);
+      const minHeight = canvasHeightForDepth(maxDepth);
+      const nextHeight = Math.max(height, minHeight);
       setDimensions({ width, height: nextHeight });
     };
 
@@ -194,8 +235,8 @@ export default function NetworkTopologyTree({
   }, [maxDepth]);
 
   useEffect(() => {
-    if (dimensions.width > 0) fitTree(dimensions.width, dimensions.height);
-  }, [treeData, maxDepth, dimensions.width, dimensions.height, fitTree]);
+    if (dimensions.width > 0) fitTree(dimensions.width, dimensions.height, data);
+  }, [treeData, maxDepth, dimensions.width, dimensions.height, fitTree, data]);
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -215,10 +256,14 @@ export default function NetworkTopologyTree({
   }, []);
 
   const showEmptyMessage = !isLoading && (!hasRealData || !hasDownline);
-  const canvasMinHeight = maxDepth >= 9 ? 520 : maxDepth >= 6 ? 420 : 320;
+  const depthClass = `topo-canvas--depth-${maxDepth}`;
 
   return (
-    <div className="topo-canvas" id="topoCanvas" style={{ minHeight: canvasMinHeight }}>
+    <div
+      className={`topo-canvas ${depthClass}`}
+      id="topoCanvas"
+      style={{ minHeight: canvasMinHeight }}
+    >
       <div className="topo-tree-inner" ref={containerRef}>
         {dimensions.width > 0 ? (
           <Tree
@@ -233,7 +278,7 @@ export default function NetworkTopologyTree({
             collapsible={false}
             zoomable
             draggable
-            scaleExtent={{ min: 0.25, max: 3 }}
+            scaleExtent={{ min: 0.15, max: 3 }}
             nodeSize={layout.nodeSize}
             separation={layout.separation}
             depthFactor={layout.depthFactor}
@@ -267,7 +312,7 @@ export default function NetworkTopologyTree({
         <button type="button" className="topo-zoom-btn" onClick={() => setZoom((z) => Math.min(z * 1.25, 3))} aria-label="Zoom in">
           +
         </button>
-        <button type="button" className="topo-zoom-btn" onClick={() => setZoom((z) => Math.max(z * 0.8, 0.3))} aria-label="Zoom out">
+        <button type="button" className="topo-zoom-btn" onClick={() => setZoom((z) => Math.max(z * 0.8, 0.15))} aria-label="Zoom out">
           −
         </button>
         <button

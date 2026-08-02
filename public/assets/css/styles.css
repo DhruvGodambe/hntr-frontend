@@ -982,6 +982,9 @@ body.dark .net-wallet-banner-btn{background:var(--accent,#ec7a2c);color:#F2EFEA}
 .topo-tree-inner svg:active{cursor:grabbing}
 #feed-network #topoSvg text,#feed-network .topo-tree-svg text{fill:var(--t4)}
 #feed-network #topoSvg .topo-text-muted,#feed-network .topo-tree-svg .topo-text-muted{fill:var(--t2)}
+.topo-canvas--depth-6{min-height:400px}
+.topo-canvas--depth-9{min-height:480px}
+.topo-canvas--depth-12{min-height:560px}
 .topo-tree-link{stroke:var(--sage-faint);stroke-width:1.2;fill:none;stroke-linecap:round}
 .topo-root-halo{fill:var(--olive);opacity:.1}
 .topo-root-core{fill:var(--olive)}

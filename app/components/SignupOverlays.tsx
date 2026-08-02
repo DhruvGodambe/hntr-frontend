@@ -57,6 +57,7 @@ declare global {
     closeSignup?: () => void;
     closeMembership?: () => void;
     reconnectWallet?: () => void;
+    connectWalletForSignup?: () => Promise<void>;
     startSignupFx?: (canvas: HTMLCanvasElement | null) => void;
     suGoto?: (n: number) => void;
     msCopyRef?: (btn: HTMLButtonElement) => void;
@@ -89,6 +90,9 @@ export default function SignupOverlays() {
   const purchaseBusyRef = useRef(false);
   const paymentTokenRef = useRef<PaymentToken>("USDT");
   const skipStep2Ref = useRef(false);
+  const verifySponsorRef = useRef<(rawSponsor: string) => Promise<boolean>>(async () => false);
+  const sponsorLockedRef = useRef(sponsorLocked);
+  const sponsorUsernameRef = useRef(sponsorUsername);
   const [isProfileRegistered, setIsProfileRegistered] = useState(false);
 
   const goToSignupStep = useCallback((step: number) => {
@@ -141,6 +145,10 @@ export default function SignupOverlays() {
     }
   }, [clearStep2Error, mapSponsorValidationError]);
 
+  verifySponsorRef.current = verifySponsor;
+  sponsorLockedRef.current = sponsorLocked;
+  sponsorUsernameRef.current = sponsorUsername;
+
   const usernameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
 
@@ -149,7 +157,7 @@ export default function SignupOverlays() {
       const params = new URLSearchParams(window.location.search);
       const ref = params.get("ref");
       if (ref) {
-        setSponsorUsername(ref);
+        setSponsorUsername(ref.replace(/^@/, "").replace(/\s/g, ""));
         setSponsorLocked(true);
       }
     } catch {
@@ -201,8 +209,15 @@ export default function SignupOverlays() {
       window.openSignup = () => {
         skipStep2Ref.current = false;
         setIsProfileRegistered(false);
-        setSponsorVerified(false);
         setSponsorChecking(false);
+        if (sponsorLockedRef.current) {
+          const sponsor = sponsorUsernameRef.current.trim();
+          if (sponsor) {
+            void verifySponsorRef.current(sponsor);
+          }
+        } else {
+          setSponsorVerified(false);
+        }
         nativeOpenSignup?.();
       };
 
@@ -310,7 +325,12 @@ export default function SignupOverlays() {
     return "Select";
   };
 
-  const handleConnectWallet = async () => {
+  const openSignupOverlay = useCallback(() => {
+    document.getElementById("signupOverlay")?.classList.add("open");
+    setModalBodyLock(true);
+  }, []);
+
+  const handleConnectWallet = useCallback(async () => {
     if (connectBusy) return;
     setConnectBusy(true);
     setAwaitingSignature(false);
@@ -341,12 +361,17 @@ export default function SignupOverlays() {
         skipStep2Ref.current = true;
         setIsProfileRegistered(true);
         setPurchaseStatus({ state: "idle" });
+        openSignupOverlay();
         goToSignupStep(3);
       } catch (error) {
         if (error instanceof ApiError && error.statusCode === 404) {
           skipStep2Ref.current = false;
           setIsProfileRegistered(false);
+          openSignupOverlay();
           goToSignupStep(2);
+          if (sponsorLocked && sponsorUsername.trim()) {
+            void verifySponsor(sponsorUsername);
+          }
         } else {
           throw error;
         }
@@ -357,7 +382,14 @@ export default function SignupOverlays() {
       setConnectBusy(false);
       setAwaitingSignature(false);
     }
-  };
+  }, [address, connectBusy, connectWallet, goToSignupStep, isConnected, openSignupOverlay, sponsorLocked, sponsorUsername, verifySponsor]);
+
+  useEffect(() => {
+    window.connectWalletForSignup = handleConnectWallet;
+    return () => {
+      delete window.connectWalletForSignup;
+    };
+  }, [handleConnectWallet]);
 
   const handleContinueRegistration = async () => {
     if (registerBusy || sponsorChecking) return;
@@ -416,7 +448,7 @@ export default function SignupOverlays() {
     }
   };
 
-  const step2FieldsLocked = !sponsorVerified || sponsorChecking || registerBusy;
+  const profileFieldsDisabled = registerBusy;
 
   return (
     <>
@@ -536,12 +568,24 @@ export default function SignupOverlays() {
                     }
                   }}
                 />
-                {sponsorChecking && <p className="su-field-hint">Verifying sponsor...</p>}
+                {sponsorChecking && (
+                  <p className="su-field-hint">
+                    {sponsorLocked ? "Verifying referral sponsor..." : "Verifying sponsor..."}
+                  </p>
+                )}
                 {!sponsorChecking && sponsorVerified && !step2Errors.sponsor && (
-                  <p className="su-field-hint is-success">Sponsor verified. You can complete your profile.</p>
+                  <p className="su-field-hint is-success">
+                    {sponsorLocked
+                      ? "Referral sponsor verified. Complete your profile below."
+                      : "Sponsor verified. You can complete your profile."}
+                  </p>
                 )}
                 {!sponsorChecking && !sponsorVerified && !step2Errors.sponsor && (
-                  <p className="su-field-hint">Enter your sponsor username to verify eligibility before continuing.</p>
+                  <p className="su-field-hint">
+                    {sponsorLocked
+                      ? "Referral sponsor applied from your invite link."
+                      : "Enter your sponsor username to verify eligibility before continuing."}
+                  </p>
                 )}
                 {step2Errors.sponsor && <p className="su-field-error">{step2Errors.sponsor}</p>}
               </div>
@@ -554,7 +598,7 @@ export default function SignupOverlays() {
                     ref={usernameRef}
                     placeholder="e.g. ALPHA"
                     required
-                    disabled={step2FieldsLocked}
+                    disabled={profileFieldsDisabled}
                     aria-invalid={!!step2Errors.username}
                     onChange={(e) => {
                       e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]/g, "");
@@ -570,7 +614,7 @@ export default function SignupOverlays() {
                     placeholder="Enter as shown on identification"
                     value={fullName}
                     required
-                    disabled={step2FieldsLocked}
+                    disabled={profileFieldsDisabled}
                     aria-invalid={!!step2Errors.fullName}
                     onChange={(e) => {
                       setFullName(e.target.value.replace(/[^a-zA-Z\s'.-]/g, ""));
@@ -588,7 +632,7 @@ export default function SignupOverlays() {
                       className={`su-select${step2Errors.region ? " is-error" : ""}`}
                       value={region}
                       required
-                      disabled={step2FieldsLocked}
+                      disabled={profileFieldsDisabled}
                       aria-invalid={!!step2Errors.region}
                       onChange={(e) => {
                         const nextRegion = e.target.value as SignupRegion | "";
@@ -615,7 +659,7 @@ export default function SignupOverlays() {
                       region={region}
                       country={country}
                       value={phone}
-                      disabled={step2FieldsLocked || !region}
+                      disabled={profileFieldsDisabled || !region}
                       hasError={!!step2Errors.phone || !!step2Errors.country}
                       onChange={(next) => {
                         setPhone(next);
@@ -654,7 +698,7 @@ export default function SignupOverlays() {
                   placeholder="institutional@gmail.com"
                   autoComplete="email"
                   inputMode="email"
-                  disabled={step2FieldsLocked}
+                  disabled={profileFieldsDisabled}
                   aria-invalid={!!step2Errors.email}
                   onChange={() => clearStep2Error("email")}
                 />
