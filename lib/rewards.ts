@@ -2,7 +2,8 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
-import { writeContract, waitForTransactionReceipt } from "wagmi/actions";
+import { writeContract, waitForTransactionReceipt, getPublicClient } from "wagmi/actions";
+import { getAddress } from "viem";
 import { api } from "./api";
 import { ensureAuth } from "./auth";
 import { config } from "./wagmi";
@@ -339,38 +340,83 @@ export interface PreparedCommissionClaim {
  * now signs and submits `withdrawCommissions()` directly from their own wallet
  * (the contract requires msg.sender == user). The backend only prepares the call
  * and tracks it via the blockchain listener.
+ *
+ * USDT and USDC are claimed sequentially (one MetaMask prompt each). A pending
+ * lock is per-token so the first claim cannot block the second.
  */
 export function useClaimCommissions() {
   const queryClient = useQueryClient();
   const { address } = useAccount();
 
   return async function claimAll(claimableTokens: TokenBalance[]) {
-    const toClaim = claimableTokens.filter((t) => t.claimable > 0);
+    const toClaim = claimableTokens.filter((t) => t.claimable > 0 && t.address);
     if (toClaim.length === 0) {
       throw new Error("Nothing to claim right now.");
     }
 
     await ensureAuth();
     const results: { symbol: string; txHash: string }[] = [];
-    for (const token of toClaim) {
-      const prepared = await api.post<PreparedCommissionClaim>(
-        "/api/network/claim",
-        { token: token.address },
-        { auth: true },
-      );
+    const failures: { symbol: string; message: string }[] = [];
+    const publicClient = getPublicClient(config);
 
+    for (const token of toClaim) {
+      const tokenAddress = getAddress(token.address as `0x${string}`);
+
+      // Fresh on-chain balance — avoids a second MetaMask prompt for $0 when the
+      // summary snapshot is stale or a prior claim in this loop already drained a token.
+      if (publicClient && address) {
+        try {
+          const live = (await publicClient.readContract({
+            address: getAddress(CONTRACT_ADDRESS),
+            abi: hntrMembershipAbi,
+            functionName: "withdrawableCommissions",
+            args: [getAddress(address), tokenAddress],
+          })) as bigint;
+          if (live === BigInt(0)) {
+            continue;
+          }
+        } catch {
+          // If the preflight read fails, still attempt the claim from the summary.
+        }
+      }
+
+      let prepared: PreparedCommissionClaim;
+      try {
+        prepared = await api.post<PreparedCommissionClaim>(
+          "/api/network/claim",
+          { token: tokenAddress },
+          { auth: true },
+        );
+      } catch (err) {
+        failures.push({
+          symbol: token.symbol,
+          message: err instanceof Error ? err.message : "Failed to prepare claim",
+        });
+        continue;
+      }
+
+      const preparedToken = getAddress(prepared.tokenAddress as `0x${string}`);
       try {
         const txHash = await writeContract(config, {
-          address: prepared.contractAddress,
+          address: getAddress(prepared.contractAddress),
           abi: hntrMembershipAbi,
           functionName: "withdrawCommissions",
-          args: [prepared.walletAddress as `0x${string}`, prepared.tokenAddress as `0x${string}`],
+          args: [getAddress(prepared.walletAddress as `0x${string}`), preparedToken],
         });
+
+        try {
+          await api.post(
+            "/api/network/relay/submit",
+            { pendingTransactionId: prepared.pendingTransactionId, txHash },
+            { auth: true },
+          );
+        } catch {
+          // Listener can still promote the pending row via CommissionWithdrawn.
+        }
+
         await waitForTransactionReceipt(config, { hash: txHash });
         results.push({ symbol: token.symbol, txHash });
       } catch (err) {
-        // Prepare already wrote a PENDING row; mark it FAILED so admin/UI don't stay stuck
-        // when the user rejects MetaMask or the wallet write fails before broadcast.
         try {
           await api.post(
             "/api/network/relay/fail",
@@ -383,12 +429,21 @@ export function useClaimCommissions() {
         } catch {
           // best-effort; stale pending recovery still clears locks after timeout
         }
-        throw err;
+        failures.push({
+          symbol: token.symbol,
+          message: err instanceof Error ? err.message : "Claim failed",
+        });
       }
     }
 
     await queryClient.invalidateQueries({ queryKey: ["rewards-summary", address] });
     await queryClient.invalidateQueries({ queryKey: ["transactions", address] });
+
+    if (results.length === 0) {
+      const detail = failures.map((f) => `${f.symbol}: ${f.message}`).join("; ");
+      throw new Error(detail || "Nothing to claim right now.");
+    }
+
     return results;
   };
 }
