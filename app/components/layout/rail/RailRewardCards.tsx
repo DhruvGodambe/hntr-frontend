@@ -4,12 +4,15 @@ import { ReferralCommissionIcon, PoolRewardsIcon } from "../icons/RailIcons";
 import { formatClaimableByToken } from "../../../../lib/tokens";
 import type { LeadershipStatus, RewardsSummary } from "../../../../lib/rewards";
 
+type ClaimSymbol = "USDT" | "USDC";
+
 type RailRewardCardsProps = {
   summary: RewardsSummary | undefined;
   leadershipStatus: LeadershipStatus | undefined;
   claimBusy: boolean;
+  claimBusySymbol?: ClaimSymbol | null;
   maskBalance: (value: string) => string;
-  onClaimCommissions: () => void;
+  onClaimCommissions: (symbol: ClaimSymbol) => void;
   variant?: "desktop" | "mobile";
 };
 
@@ -17,6 +20,7 @@ export default function RailRewardCards({
   summary,
   leadershipStatus,
   claimBusy,
+  claimBusySymbol = null,
   maskBalance,
   onClaimCommissions,
   variant = "desktop",
@@ -24,7 +28,39 @@ export default function RailRewardCards({
   const poolRewardsAmount = leadershipStatus?.estimatedPayoutUSD ?? 0;
   const hasPoolRewards = !!(leadershipStatus?.hasShares && poolRewardsAmount > 0);
   const claimableByTokenLabel = formatClaimableByToken(summary?.tokens);
+  const claimableTokens = (summary?.tokens || []).filter((t) => t.claimable > 0 && t.address);
   const isMobile = variant === "mobile";
+
+  const claimButtons =
+    claimableTokens.length > 0 ? (
+      <div className="rrc-claim-btns">
+        {claimableTokens.map((token) => (
+          <button
+            key={token.symbol}
+            type="button"
+            className="cbtn"
+            disabled={claimBusy}
+            onClick={() => onClaimCommissions(token.symbol as ClaimSymbol)}
+            title={
+              claimBusySymbol === token.symbol
+                ? `Claiming ${token.symbol}…`
+                : `Claim $${token.claimable.toFixed(2)} ${token.symbol}`
+            }
+          >
+            {claimBusySymbol === token.symbol ? "CLAIMING…" : `CLAIM ${token.symbol}`}
+          </button>
+        ))}
+      </div>
+    ) : (
+      <button
+        type="button"
+        className="cbtn"
+        disabled
+        title="Nothing to claim yet — commissions appear here as your network purchases memberships."
+      >
+        CLAIM
+      </button>
+    );
 
   if (isMobile) {
     return (
@@ -43,20 +79,7 @@ export default function RailRewardCards({
               {claimableByTokenLabel}
             </div>
           ) : null}
-          <button
-            className="cbtn"
-            disabled={claimBusy || !(summary?.claimableNow && summary.claimableNow > 0)}
-            onClick={onClaimCommissions}
-            title={
-              claimBusy
-                ? "Claim in progress…"
-                : summary?.claimableNow && summary.claimableNow > 0
-                  ? "Claim your commissions now"
-                  : "Nothing to claim yet"
-            }
-          >
-            {claimBusy ? "CLAIMING…" : "CLAIM"}
-          </button>
+          {claimButtons}
         </div>
         <div className="rrc mobile-rrc r-div">
           <div
@@ -100,20 +123,7 @@ export default function RailRewardCards({
         ) : null}
         <div className="rrcb">
           <div className="rrcv">{maskBalance(`$${(summary?.claimableNow ?? 0).toFixed(2)}`)}</div>
-          <button
-            className="cbtn"
-            disabled={claimBusy || !(summary?.claimableNow && summary.claimableNow > 0)}
-            onClick={onClaimCommissions}
-            title={
-              claimBusy
-                ? "Claim in progress…"
-                : summary?.claimableNow && summary.claimableNow > 0
-                  ? "Claim your commissions now"
-                  : "Nothing to claim yet — commissions appear here as your network purchases memberships."
-            }
-          >
-            {claimBusy ? "CLAIMING…" : "CLAIM"}
-          </button>
+          {claimButtons}
         </div>
       </div>
       <div className="rrc r-div">

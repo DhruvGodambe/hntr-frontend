@@ -5,15 +5,18 @@ import RailStatsRow from "./RailStatsRow";
 import RailRewardCards from "./RailRewardCards";
 import type { LeadershipStatus, RewardsSummary } from "../../../../lib/rewards";
 
+type ClaimSymbol = "USDT" | "USDC";
+
 type MobileHomeRailCardProps = {
   summary: RewardsSummary | undefined;
   hntrPoints: number;
   leadershipStatus: LeadershipStatus | undefined;
   claimBusy: boolean;
+  claimBusySymbol?: ClaimSymbol | null;
   balancesHidden: boolean;
   maskBalance: (value: string) => string;
   onTogglePrivacy: () => void;
-  onClaimCommissions: () => void;
+  onClaimCommissions: (symbol: ClaimSymbol) => void;
 };
 
 export default function MobileHomeRailCard({
@@ -21,6 +24,7 @@ export default function MobileHomeRailCard({
   hntrPoints,
   leadershipStatus,
   claimBusy,
+  claimBusySymbol = null,
   balancesHidden,
   maskBalance,
   onTogglePrivacy,
@@ -39,6 +43,7 @@ export default function MobileHomeRailCard({
           summary={summary}
           leadershipStatus={leadershipStatus}
           claimBusy={claimBusy}
+          claimBusySymbol={claimBusySymbol}
           maskBalance={maskBalance}
           onClaimCommissions={onClaimCommissions}
           variant="mobile"

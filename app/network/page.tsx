@@ -176,7 +176,8 @@ export default function NetworkPage() {
   const claimCommissions = useClaimCommissions();
   const { connectWallet } = useConnectWallet();
   const [connectBusy, setConnectBusy] = useState(false);
-  const [claimBusy, setClaimBusy] = useState(false);
+  const [claimBusySymbol, setClaimBusySymbol] = useState<"USDT" | "USDC" | null>(null);
+  const claimBusy = claimBusySymbol !== null;
   const [txSearch, setTxSearch] = useState("");
   const [txTypeFilter, setTxTypeFilter] = useState<(typeof TX_TYPE_FILTER_OPTIONS)[number]["value"]>("all");
   const [txSourceFilter, setTxSourceFilter] = useState("all");
@@ -282,9 +283,10 @@ export default function NetworkPage() {
     document.addEventListener("mousedown", handlePointerDown);
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [txFilterOpen]);
-  const hasClaimableCommissions = !!(summary?.claimableNow && summary.claimableNow > 0);
+  const claimableTokens = (summary?.tokens || []).filter((t) => t.claimable > 0 && t.address);
+  const hasClaimableCommissions = claimableTokens.length > 0;
   const claimDisabledReason = claimBusy
-    ? "Claim in progress…"
+    ? `Claiming ${claimBusySymbol}…`
     : !summary
     ? "Connect your wallet to check your balance."
     : !hasClaimableCommissions
@@ -446,21 +448,30 @@ export default function NetworkPage() {
     }
   };
 
-  const handleClaimCommissions = async () => {
+  const handleClaimCommissions = async (symbol: "USDT" | "USDC") => {
     if (claimBusy) return;
-    setClaimBusy(true);
+    const token = (summary?.tokens || []).find((t) => t.symbol === symbol && t.claimable > 0);
+    if (!token) {
+      window.showToast?.({
+        title: "Nothing to claim",
+        sub: `No claimable ${symbol} commissions right now.`,
+        link: "",
+      });
+      return;
+    }
+    setClaimBusySymbol(symbol);
     try {
-      const results = await claimCommissions(summary?.tokens || []);
+      await claimCommissions([token]);
       await refetchSummary();
       window.showToast?.({
-        title: "Commissions claimed",
-        sub: `${results.length} token${results.length > 1 ? "s" : ""} sent to your wallet.`,
+        title: `${symbol} claimed`,
+        sub: `$${token.claimable.toFixed(2)} ${symbol} sent to your wallet.`,
         link: "",
       });
     } catch (error) {
-      handleAppError(error, "Claim failed");
+      handleAppError(error, `${symbol} claim failed`);
     } finally {
-      setClaimBusy(false);
+      setClaimBusySymbol(null);
     }
   };
 
@@ -721,6 +732,7 @@ export default function NetworkPage() {
                 delay: ".05s",
                 claimable: true,
                 note: "CLAIM",
+                claimTokens: claimableTokens,
               },
               {
                 icon: (
@@ -879,14 +891,48 @@ export default function NetworkPage() {
                 ) : null}
                 <div className="net-rc-footer">
                   <div className="net-rc-amount">{reward.amount}</div>
-                  <button
-                    className="net-claim-btn"
-                    disabled={!reward.claimable || claimBusy || !hasClaimableCommissions}
-                    onClick={reward.claimable ? handleClaimCommissions : undefined}
-                    title={reward.claimable ? claimDisabledReason || "Claim your commissions now" : reward.desc}
-                  >
-                    {reward.claimable ? (claimBusy ? "CLAIMING…" : "CLAIM") : reward.note}
-                  </button>
+                  {"claimTokens" in reward && Array.isArray(reward.claimTokens) ? (
+                    reward.claimTokens.length > 0 ? (
+                      <div className="net-claim-btns">
+                        {reward.claimTokens.map((token) => (
+                          <button
+                            key={token.symbol}
+                            type="button"
+                            className="net-claim-btn"
+                            disabled={claimBusy}
+                            onClick={() => handleClaimCommissions(token.symbol as "USDT" | "USDC")}
+                            title={
+                              claimBusySymbol === token.symbol
+                                ? `Claiming ${token.symbol}…`
+                                : `Claim $${token.claimable.toFixed(2)} ${token.symbol}`
+                            }
+                          >
+                            {claimBusySymbol === token.symbol
+                              ? "CLAIMING…"
+                              : `CLAIM ${token.symbol}`}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="net-claim-btn"
+                        disabled
+                        title={claimDisabledReason || "Nothing to claim yet"}
+                      >
+                        CLAIM
+                      </button>
+                    )
+                  ) : (
+                    <button
+                      className="net-claim-btn"
+                      disabled={!reward.claimable || claimBusy || !hasClaimableCommissions}
+                      onClick={undefined}
+                      title={reward.desc}
+                    >
+                      {reward.note}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

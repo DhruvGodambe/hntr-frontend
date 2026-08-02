@@ -336,19 +336,15 @@ export interface PreparedCommissionClaim {
 }
 
 /**
- * Claims every token the user currently has a withdrawable balance in. The user
- * now signs and submits `withdrawCommissions()` directly from their own wallet
- * (the contract requires msg.sender == user). The backend only prepares the call
- * and tracks it via the blockchain listener.
- *
- * USDT and USDC are claimed sequentially (one MetaMask prompt each). A pending
- * lock is per-token so the first claim cannot block the second.
+ * Claims the given token balances (typically one token per button click).
+ * The user signs `withdrawCommissions()` from their wallet; the backend prepares
+ * the call and the listener confirms it. Pending locks are per-token.
  */
 export function useClaimCommissions() {
   const queryClient = useQueryClient();
   const { address } = useAccount();
 
-  return async function claimAll(claimableTokens: TokenBalance[]) {
+  return async function claimTokens(claimableTokens: TokenBalance[]) {
     const toClaim = claimableTokens.filter((t) => t.claimable > 0 && t.address);
     if (toClaim.length === 0) {
       throw new Error("Nothing to claim right now.");
@@ -362,8 +358,7 @@ export function useClaimCommissions() {
     for (const token of toClaim) {
       const tokenAddress = getAddress(token.address as `0x${string}`);
 
-      // Fresh on-chain balance — avoids a second MetaMask prompt for $0 when the
-      // summary snapshot is stale or a prior claim in this loop already drained a token.
+      // Fresh on-chain balance — skip MetaMask if already drained.
       if (publicClient && address) {
         try {
           const live = (await publicClient.readContract({

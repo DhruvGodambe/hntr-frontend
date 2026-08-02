@@ -61,7 +61,8 @@ export default function MainLayout({
   const { data: leadershipStatus } = useLeadershipStatus();
   const claimCommissions = useClaimCommissions();
 
-  const [claimBusy, setClaimBusy] = useState(false);
+  const [claimBusySymbol, setClaimBusySymbol] = useState<"USDT" | "USDC" | null>(null);
+  const claimBusy = claimBusySymbol !== null;
   const [isDark, setIsDark] = useState(true);
   const [walletPanelOpen, setWalletPanelOpen] = useState(false);
   const [notifPanelOpen, setNotifPanelOpen] = useState(false);
@@ -263,21 +264,30 @@ export default function MainLayout({
     }
   };
 
-  const handleClaimCommissions = async () => {
+  const handleClaimCommissions = async (symbol: "USDT" | "USDC") => {
     if (claimBusy) return;
-    setClaimBusy(true);
+    const token = (summary?.tokens || []).find((t) => t.symbol === symbol && t.claimable > 0);
+    if (!token) {
+      window.showToast?.({
+        title: "Nothing to claim",
+        sub: `No claimable ${symbol} commissions right now.`,
+        link: "",
+      });
+      return;
+    }
+    setClaimBusySymbol(symbol);
     try {
-      const results = await claimCommissions(summary?.tokens || []);
+      await claimCommissions([token]);
       await refetchSummary();
       window.showToast?.({
-        title: "Commissions claimed",
-        sub: `${results.length} token${results.length > 1 ? "s" : ""} sent to your wallet.`,
+        title: `${symbol} claimed`,
+        sub: `$${token.claimable.toFixed(2)} ${symbol} sent to your wallet.`,
         link: "",
       });
     } catch (error) {
-      handleAppError(error, "Claim failed");
+      handleAppError(error, `${symbol} claim failed`);
     } finally {
-      setClaimBusy(false);
+      setClaimBusySymbol(null);
     }
   };
 
@@ -293,6 +303,7 @@ export default function MainLayout({
     hntrPoints,
     leadershipStatus,
     claimBusy,
+    claimBusySymbol,
     balancesHidden,
     activeTab,
     filteredActivity,
@@ -360,6 +371,7 @@ export default function MainLayout({
             hntrPoints={hntrPoints}
             leadershipStatus={leadershipStatus}
             claimBusy={claimBusy}
+            claimBusySymbol={claimBusySymbol}
             balancesHidden={balancesHidden}
             maskBalance={maskBalance}
             onTogglePrivacy={togglePrivacy}

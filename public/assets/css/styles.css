@@ -952,8 +952,10 @@ body.dark .net-wallet-banner-title{color:#fde047}
 body.dark .net-wallet-banner-btn{background:var(--accent,#ec7a2c);color:#F2EFEA}
 .net-rc-desc{font-size:10px;color:var(--t1);line-height:1.5;margin-bottom:18px;flex:1}
 .net-rc-earnings{font-size:11px;font-weight:600;color:var(--t3);margin-top:-12px;margin-bottom:16px}
-.net-rc-footer{display:flex;align-items:center;justify-content:space-between}
+.net-rc-footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .net-rc-amount{font-family:var(--fm);font-size:14px;font-weight:700;color:var(--t4)}
+.net-claim-btns{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.rrc-claim-btns{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;align-items:center}
 .net-claim-btn{height:32px;padding:0 16px;background:var(--olive);color:var(--cream);border:none;border-radius:5px;font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:.1em;cursor:pointer;box-shadow:var(--sh1);transition:background .15s}
 .net-claim-btn:hover{background:var(--olive-dark)}
 /* Disabled buttons previously looked 100% identical to active ones (no opacity/cursor

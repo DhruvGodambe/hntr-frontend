@@ -8,6 +8,8 @@ import PlatformActivity from "./PlatformActivity";
 import type { ActivityEntry, ActivityTab } from "../types";
 import type { LeadershipStatus, RewardsSummary } from "../../../../lib/rewards";
 
+type ClaimSymbol = "USDT" | "USDC";
+
 type RightRailProps = {
   walletConnected: boolean;
   railOpen: boolean;
@@ -18,12 +20,13 @@ type RightRailProps = {
   hntrPoints: number;
   leadershipStatus: LeadershipStatus | undefined;
   claimBusy: boolean;
+  claimBusySymbol?: ClaimSymbol | null;
   balancesHidden: boolean;
   activeTab: ActivityTab;
   filteredActivity: ActivityEntry[];
   maskBalance: (value: string) => string;
   onTogglePrivacy: () => void;
-  onClaimCommissions: () => void;
+  onClaimCommissions: (symbol: ClaimSymbol) => void;
   onTabChange: (tab: ActivityTab) => void;
 };
 
@@ -37,6 +40,7 @@ export default function RightRail({
   hntrPoints,
   leadershipStatus,
   claimBusy,
+  claimBusySymbol = null,
   balancesHidden,
   activeTab,
   filteredActivity,
@@ -70,6 +74,7 @@ export default function RightRail({
             summary={summary}
             leadershipStatus={leadershipStatus}
             claimBusy={claimBusy}
+            claimBusySymbol={claimBusySymbol}
             maskBalance={maskBalance}
             onClaimCommissions={onClaimCommissions}
           />
