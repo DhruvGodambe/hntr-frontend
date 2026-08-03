@@ -12,6 +12,7 @@ import PaymentTokenToggle from "./PaymentTokenToggle";
 import MembershipPaySummary from "./MembershipPaySummary";
 import SignupPhoneInput from "./SignupPhoneInput";
 import type { PaymentToken } from "../../lib/tokens";
+import { resolveReferralSponsor } from "../../lib/referral";
 import {
   SIGNUP_REGION_OPTIONS,
   type SignupRegion,
@@ -153,15 +154,10 @@ export default function SignupOverlays() {
   const emailRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const ref = params.get("ref");
-      if (ref) {
-        setSponsorUsername(ref.replace(/^@/, "").replace(/\s/g, ""));
-        setSponsorLocked(true);
-      }
-    } catch {
-      // no-op: referral prefill is a convenience, not required
+    const sponsor = resolveReferralSponsor();
+    if (sponsor) {
+      setSponsorUsername(sponsor);
+      setSponsorLocked(true);
     }
   }, []);
 
@@ -210,6 +206,13 @@ export default function SignupOverlays() {
         skipStep2Ref.current = false;
         setIsProfileRegistered(false);
         setSponsorChecking(false);
+        const storedSponsor = resolveReferralSponsor();
+        if (storedSponsor && !sponsorLockedRef.current) {
+          setSponsorUsername(storedSponsor);
+          setSponsorLocked(true);
+          sponsorLockedRef.current = true;
+          sponsorUsernameRef.current = storedSponsor;
+        }
         if (sponsorLockedRef.current) {
           const sponsor = sponsorUsernameRef.current.trim();
           if (sponsor) {
@@ -369,8 +372,14 @@ export default function SignupOverlays() {
           setIsProfileRegistered(false);
           openSignupOverlay();
           goToSignupStep(2);
-          if (sponsorLocked && sponsorUsername.trim()) {
-            void verifySponsor(sponsorUsername);
+          const referralSponsor = resolveReferralSponsor();
+          const activeSponsor = (referralSponsor ?? sponsorUsername).trim();
+          if (referralSponsor && referralSponsor !== sponsorUsername.trim()) {
+            setSponsorUsername(referralSponsor);
+            setSponsorLocked(true);
+          }
+          if (activeSponsor) {
+            void verifySponsor(activeSponsor);
           }
         } else {
           throw error;
