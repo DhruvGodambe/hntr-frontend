@@ -60,7 +60,7 @@ export default function AdminDashboard() {
   const [upgradeTier, setUpgradeTier] = useState("");
   const [upgradeRank, setUpgradeRank] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  const patchUserRef = useRef<(username: string, tier: string, rank: string) => void>(() => {});
+  const patchUserRef = useRef<(username: string, tier: string, rank: string, isForcedRank?: boolean) => void>(() => {});
 
   const loadMetrics = useCallback(async () => {
     setMetricsLoading(true);
@@ -329,12 +329,28 @@ export default function AdminDashboard() {
                 onChange={(e) => setUpgradeRank(e.target.value)}
                 className="w-full bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f50]"
               >
-                {["Scout", "Tracker", "Ranger", "Hunter", "Elite Hunter", "Master Hunter", "Legend Hunter"].map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
+                {["Scout", "Tracker", "Ranger", "Hunter", "Elite Hunter", "Master Hunter", "Legend Hunter"]
+                  .filter((r) => {
+                    if (!selectedUser?.isForcedRank) return true;
+                    const order = ["Scout", "Tracker", "Ranger", "Hunter", "Elite Hunter", "Master Hunter", "Legend Hunter"];
+                    const current = selectedUser.rank === "None" ? -1 : order.indexOf(selectedUser.rank);
+                    return order.indexOf(r) >= current;
+                  })
+                  .map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
               </select>
+              {selectedUser?.isForcedRank ? (
+                <p className="mt-2 text-[11px] text-amber-500/90">
+                  Forced rank — cannot rank down. Achievement bonuses pay only after team volume qualifies for each rank.
+                </p>
+              ) : (
+                <p className="mt-2 text-[11px] text-gray-500">
+                  Forced ranks do not pay achievement bonuses until the user earns the required team volume.
+                </p>
+              )}
             </div>
           </div>
           <button
@@ -343,7 +359,7 @@ export default function AdminDashboard() {
               setActionLoading(true);
               try {
                 const result = await adminApi.overrideUser(selectedUser.username, upgradeTier, upgradeRank);
-                patchUserRef.current(result.username, result.tier, result.rank);
+                patchUserRef.current(result.username, result.tier, result.rank, result.isForcedRank);
                 setIsUpgradeModalOpen(false);
                 notify("success", `User ${selectedUser.username} profile updated.`);
               } catch (err) {
@@ -626,7 +642,7 @@ function UsersTabContent({
   notify,
 }: {
   onUpgradeClick: (user: AdminUser) => void;
-  onPatchUserReady: (patchUser: (username: string, tier: string, rank: string) => void) => void;
+  onPatchUserReady: (patchUser: (username: string, tier: string, rank: string, isForcedRank?: boolean) => void) => void;
   notify: (type: "success" | "error" | "info", message: string) => void;
 }) {
   const [search, setSearch] = useState("");
@@ -652,9 +668,13 @@ function UsersTabContent({
     [query, limit, notify],
   );
 
-  const patchUser = useCallback((username: string, tier: string, rank: string) => {
+  const patchUser = useCallback((username: string, tier: string, rank: string, isForcedRank?: boolean) => {
     setUsers((prev) =>
-      prev.map((u) => (u.username === username ? { ...u, tier, rank } : u)),
+      prev.map((u) =>
+        u.username === username
+          ? { ...u, tier, rank, ...(isForcedRank !== undefined ? { isForcedRank } : { isForcedRank: true }) }
+          : u,
+      ),
     );
   }, []);
 
@@ -720,7 +740,19 @@ function UsersTabContent({
                 </div>
               </td>
               <td className="px-6 py-4 text-sm font-medium">{u.tier}</td>
-              <td className="px-6 py-4 text-sm text-gray-400">{u.rank}</td>
+              <td className="px-6 py-4 text-sm text-gray-400">
+                <div className="flex items-center gap-2">
+                  <span>{u.rank}</span>
+                  {u.isForcedRank ? (
+                    <span
+                      className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-400"
+                      title="Admin-forced rank; achievement bonuses wait for volume"
+                    >
+                      Forced
+                    </span>
+                  ) : null}
+                </div>
+              </td>
               <td className="px-6 py-4 text-sm text-white font-bold">{formatUsd(u.teamVolume)}</td>
               <td className="px-6 py-4 text-sm text-gray-400 font-bold">{u.directs}</td>
               <td className="px-6 py-4 text-sm text-gray-400 font-bold">{u.downlines}</td>

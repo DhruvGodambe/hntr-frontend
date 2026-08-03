@@ -55,8 +55,11 @@ export interface AdminUser {
   downlines: number;
   status: string;
   isBlocked: boolean;
+  isForcedRank?: boolean;
   actualTier?: string;
   actualRank?: string;
+  tierOverride?: string | null;
+  rankOverride?: string | null;
 }
 
 export interface AdminPool {
@@ -249,6 +252,7 @@ export const adminApi = {
       username: string;
       tier: string;
       rank: string;
+      isForcedRank?: boolean;
       previousTier?: string;
       previousRank?: string;
       message: string;
