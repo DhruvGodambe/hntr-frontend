@@ -1,8 +1,7 @@
 import { parseAbi } from "viem";
+import { CONTRACT_ADDRESS, USDC_ADDRESS, USDT_ADDRESS } from "./constants";
 
-export const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "") as `0x${string}`;
-export const USDT_ADDRESS = (process.env.NEXT_PUBLIC_USDT_ADDRESS || "") as `0x${string}`;
-export const USDC_ADDRESS = (process.env.NEXT_PUBLIC_USDC_ADDRESS || "") as `0x${string}`;
+export { CONTRACT_ADDRESS, USDT_ADDRESS, USDC_ADDRESS };
 
 export const TOKEN_ADDRESSES: Record<"USDT" | "USDC", `0x${string}`> = {
   USDT: USDT_ADDRESS,
@@ -84,7 +83,7 @@ export const COMMISSION_LEVELS = [
   { level: 7, percent: 4, requiredMembership: "Gold ($750)", requiredRank: "Ranger (50k)" },
   { level: 8, percent: 2, requiredMembership: "Gold ($750)", requiredRank: "Ranger (50k)" },
   { level: 9, percent: 2, requiredMembership: "Gold ($750)", requiredRank: "Ranger (50k)" },
-  { level: 10, percent: 2, requiredMembership: "Gold ($750)", requiredRank: "Ranger (50k)" },
+  { level: 10, percent: 2, requiredMembership: "Platinum ($1,500)", requiredRank: "Hunter (250k)" },
   { level: 11, percent: 2, requiredMembership: "Platinum ($1,500)", requiredRank: "Hunter (250k)" },
   { level: 12, percent: 2, requiredMembership: "Platinum ($1,500)", requiredRank: "Hunter (250k)" },
 ] as const;
