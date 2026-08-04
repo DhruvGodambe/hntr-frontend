@@ -57,7 +57,6 @@ export default function AdminDashboard() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
-  const [upgradeTier, setUpgradeTier] = useState("");
   const [upgradeRank, setUpgradeRank] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const patchUserRef = useRef<(username: string, tier: string, rank: string, isForcedRank?: boolean) => void>(() => {});
@@ -192,7 +191,6 @@ export default function AdminDashboard() {
         <UsersTabContent
           onUpgradeClick={(user) => {
             setSelectedUser(user);
-            setUpgradeTier(user.tier === "None" ? "Bronze" : user.tier);
             setUpgradeRank(user.rank === "None" ? "Scout" : user.rank);
             setIsUpgradeModalOpen(true);
           }}
@@ -305,25 +303,18 @@ export default function AdminDashboard() {
         </div>
       </AdminModal>
 
-      <AdminModal isOpen={isUpgradeModalOpen} onClose={() => setIsUpgradeModalOpen(false)} title={`Upgrade Profile: ${selectedUser?.username || "User"}`}>
+      <AdminModal isOpen={isUpgradeModalOpen} onClose={() => setIsUpgradeModalOpen(false)} title={`Upgrade Rank: ${selectedUser?.username || "User"}`}>
         <div className="space-y-6">
           <div className="space-y-4">
-            <div>
-              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Target Membership</label>
-              <select
-                value={upgradeTier}
-                onChange={(e) => setUpgradeTier(e.target.value)}
-                className="w-full bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f50]"
-              >
-                {["Bronze", "Silver", "Gold", "Platinum", "Diamond"].map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
+            <div className="bg-[#1a1a1a] border border-[#222] rounded-xl px-4 py-3">
+              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Membership</div>
+              <div className="text-sm font-bold text-white">{selectedUser?.tier || "None"}</div>
+              <p className="mt-1 text-[11px] text-gray-500">
+                On-chain only. Admin cannot upgrade or downgrade membership.
+              </p>
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Override Rank</label>
+              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Upgrade Rank</label>
               <select
                 value={upgradeRank}
                 onChange={(e) => setUpgradeRank(e.target.value)}
@@ -331,9 +322,8 @@ export default function AdminDashboard() {
               >
                 {["Scout", "Tracker", "Ranger", "Hunter", "Elite Hunter", "Master Hunter", "Legend Hunter"]
                   .filter((r) => {
-                    if (!selectedUser?.isForcedRank) return true;
                     const order = ["Scout", "Tracker", "Ranger", "Hunter", "Elite Hunter", "Master Hunter", "Legend Hunter"];
-                    const current = selectedUser.rank === "None" ? -1 : order.indexOf(selectedUser.rank);
+                    const current = !selectedUser?.rank || selectedUser.rank === "None" ? -1 : order.indexOf(selectedUser.rank);
                     return order.indexOf(r) >= current;
                   })
                   .map((r) => (
@@ -342,15 +332,9 @@ export default function AdminDashboard() {
                     </option>
                   ))}
               </select>
-              {selectedUser?.isForcedRank ? (
-                <p className="mt-2 text-[11px] text-amber-500/90">
-                  Forced rank — cannot rank down. Achievement bonuses pay only after team volume qualifies for each rank.
-                </p>
-              ) : (
-                <p className="mt-2 text-[11px] text-gray-500">
-                  Forced ranks do not pay achievement bonuses until the user earns the required team volume.
-                </p>
-              )}
+              <p className="mt-2 text-[11px] text-gray-500">
+                Rank can only be upgraded (not lowered). Achievement bonuses pay after team volume qualifies for each rank.
+              </p>
             </div>
           </div>
           <button
@@ -358,10 +342,10 @@ export default function AdminDashboard() {
               if (!selectedUser) return;
               setActionLoading(true);
               try {
-                const result = await adminApi.overrideUser(selectedUser.username, upgradeTier, upgradeRank);
+                const result = await adminApi.overrideUser(selectedUser.username, undefined, upgradeRank);
                 patchUserRef.current(result.username, result.tier, result.rank, result.isForcedRank);
                 setIsUpgradeModalOpen(false);
-                notify("success", `User ${selectedUser.username} profile updated.`);
+                notify("success", result.message || `Rank upgraded for ${selectedUser.username}.`);
               } catch (err) {
                 notify("error", err instanceof AdminApiError ? err.message : "Update failed");
               } finally {
@@ -371,7 +355,7 @@ export default function AdminDashboard() {
             disabled={actionLoading}
             className="w-full bg-[#f50] py-3 rounded-xl text-sm font-bold shadow-lg shadow-orange-500/10 disabled:opacity-50"
           >
-            {actionLoading ? "Saving..." : "Confirm Upgrades"}
+            {actionLoading ? "Saving..." : "Confirm Rank Upgrade"}
           </button>
         </div>
       </AdminModal>

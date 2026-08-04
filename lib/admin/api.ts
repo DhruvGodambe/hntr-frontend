@@ -258,7 +258,8 @@ export const adminApi = {
       message: string;
     }>(`/api/admin/users/${encodeURIComponent(username)}/override`, {
       method: "POST",
-      body: { tier, rank },
+      // Membership is immutable from admin — only rank upgrades are accepted.
+      body: { rank },
     }),
 
   getTransactions: (params: { type?: string; page?: number; limit?: number; search?: string } = {}) =>
