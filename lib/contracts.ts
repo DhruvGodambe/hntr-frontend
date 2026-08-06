@@ -34,6 +34,9 @@ export const hntrMembershipAbi = parseAbi([
   "function withdrawCompanyWallet(address user, address token)",
   "function withdrawProtocolBalance(address token)",
 
+  // --- Company free membership force ---
+  "function overrideMembershipTier(address user, uint8 tier)",
+
   // --- Views ---
   "function companyWallet() view returns (address)",
   "function getOverdueWallets(address token) view returns (address[])",
@@ -52,6 +55,7 @@ export const hntrMembershipAbi = parseAbi([
   // --- Events ---
   "event MembershipPurchased(address indexed user, uint8 tier, uint256 amount, address token)",
   "event MembershipUpgraded(address indexed user, uint8 oldTier, uint8 newTier, uint256 amountPaid, address token)",
+  "event MembershipTierOverriden(address indexed user, uint8 tier, uint256 joinedAt)",
   "event CommissionEarned(address indexed user, uint256 liquidAmount, uint256 lockedAmount, uint8 level, address token)",
   "event CommissionWithdrawn(address indexed user, uint256 amount, address token)",
   "event CompanyWalletWithdrawn(address indexed user, address indexed token, uint256 amount, address indexed companyWallet)",

@@ -50,6 +50,7 @@ export default function AdminDashboard() {
 
   const [isLeadershipModalOpen, setIsLeadershipModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isMembershipModalOpen, setIsMembershipModalOpen] = useState(false);
   const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
 
   const [leadershipPreview, setLeadershipPreview] = useState<LeadershipPreview | null>(null);
@@ -58,8 +59,53 @@ export default function AdminDashboard() {
 
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [upgradeRank, setUpgradeRank] = useState("");
+  const [upgradeTier, setUpgradeTier] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  const patchUserRef = useRef<(username: string, tier: string, rank: string, isForcedRank?: boolean) => void>(() => {});
+  const [companyWallet, setCompanyWallet] = useState<string | null>(null);
+  const { address, isConnected } = useAccount();
+  const { connectWallet } = useConnectWallet();
+  const patchUserRef = useRef<
+    (
+      username: string,
+      tier: string,
+      rank: string,
+      opts?: { isForcedRank?: boolean; isForcedMembership?: boolean; tierOverride?: string | null },
+    ) => void
+  >(() => {});
+
+  useEffect(() => {
+    adminApi
+      .getCompanyWallet()
+      .then((data) => setCompanyWallet(data.address || null))
+      .catch(() => setCompanyWallet(null));
+  }, []);
+
+  const ensureCompanyWallet = async () => {
+    clearStoredAuth();
+    if (!companyWallet) {
+      const data = await adminApi.getCompanyWallet();
+      if (!data.address) throw new Error("On-chain company wallet address is unknown.");
+      setCompanyWallet(data.address);
+    }
+    const expected = (companyWallet || (await adminApi.getCompanyWallet()).address)?.toLowerCase();
+    if (!expected) throw new Error("On-chain company wallet address is unknown.");
+    let connected = address;
+    if (!isConnected || !connected) {
+      connected = await connectWallet();
+    }
+    if (connected.toLowerCase() !== expected) {
+      throw new Error(
+        `Connected ${connected.slice(0, 6)}…${connected.slice(-4)} is not the company wallet (${expected.slice(0, 6)}…${expected.slice(-4)}). Switch account in your wallet.`,
+      );
+    }
+    return connected;
+  };
+
+  const TIER_ORDER = ["Bronze", "Silver", "Gold", "Platinum", "Diamond"] as const;
+  const tierIndex = (t: string) => {
+    if (!t || t === "None") return -1;
+    return TIER_ORDER.indexOf(t as (typeof TIER_ORDER)[number]);
+  };
 
   const loadMetrics = useCallback(async () => {
     setMetricsLoading(true);
@@ -194,6 +240,13 @@ export default function AdminDashboard() {
             setUpgradeRank(user.rank === "None" ? "Scout" : user.rank);
             setIsUpgradeModalOpen(true);
           }}
+          onMembershipClick={(user) => {
+            setSelectedUser(user);
+            const next =
+              TIER_ORDER.find((t) => tierIndex(t) > tierIndex(user.tier)) || "Diamond";
+            setUpgradeTier(next);
+            setIsMembershipModalOpen(true);
+          }}
           onPatchUserReady={(patchUser) => {
             patchUserRef.current = patchUser;
           }}
@@ -310,7 +363,7 @@ export default function AdminDashboard() {
               <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Membership</div>
               <div className="text-sm font-bold text-white">{selectedUser?.tier || "None"}</div>
               <p className="mt-1 text-[11px] text-gray-500">
-                On-chain only. Admin cannot upgrade or downgrade membership.
+                Use “Set Membership” to force tier on-chain (company wallet pays gas only).
               </p>
             </div>
             <div>
@@ -343,7 +396,10 @@ export default function AdminDashboard() {
               setActionLoading(true);
               try {
                 const result = await adminApi.overrideUser(selectedUser.username, undefined, upgradeRank);
-                patchUserRef.current(result.username, result.tier, result.rank, result.isForcedRank);
+                patchUserRef.current(result.username, result.tier, result.rank, {
+                  isForcedRank: result.isForcedRank,
+                  isForcedMembership: result.isForcedMembership,
+                });
                 setIsUpgradeModalOpen(false);
                 notify("success", result.message || `Rank upgraded for ${selectedUser.username}.`);
               } catch (err) {
@@ -356,6 +412,109 @@ export default function AdminDashboard() {
             className="w-full bg-[#f50] py-3 rounded-xl text-sm font-bold shadow-lg shadow-orange-500/10 disabled:opacity-50"
           >
             {actionLoading ? "Saving..." : "Confirm Rank Upgrade"}
+          </button>
+        </div>
+      </AdminModal>
+
+      <AdminModal
+        isOpen={isMembershipModalOpen}
+        onClose={() => setIsMembershipModalOpen(false)}
+        title={`Set Membership: ${selectedUser?.username || "User"}`}
+      >
+        <div className="space-y-6">
+          <div className="bg-[#1a1a1a] border border-[#222] rounded-xl px-4 py-3 space-y-2">
+            <p className="text-[11px] text-gray-400">
+              Company wallet pays gas only. No membership price and no commissions. Marks{" "}
+              <span className="text-amber-400 font-bold">forced membership</span>.
+            </p>
+            <div className="text-[10px] text-gray-500 font-mono break-all">
+              Company: {companyWallet || "loading…"}
+            </div>
+            <div className="pt-1">
+              <ConnectKitButton />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
+              Membership Tier
+            </label>
+            <select
+              value={upgradeTier}
+              onChange={(e) => setUpgradeTier(e.target.value)}
+              className="w-full bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f50]"
+            >
+              {TIER_ORDER.filter((t) => tierIndex(t) > tierIndex(selectedUser?.tier || "None")).map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            {tierIndex(selectedUser?.tier || "None") >= tierIndex("Diamond") ? (
+              <p className="mt-2 text-[11px] text-amber-400">User is already Diamond — no higher tier.</p>
+            ) : (
+              <p className="mt-2 text-[11px] text-gray-500">
+                Current: {selectedUser?.tier || "None"}
+                {selectedUser?.isForcedMembership ? " (forced)" : ""}. Upgrade only.
+              </p>
+            )}
+          </div>
+          <button
+            onClick={async () => {
+              if (!selectedUser?.walletAddress) {
+                notify("error", "User has no wallet address.");
+                return;
+              }
+              if (!CONTRACT_ADDRESS) {
+                notify("error", "Contract address is not configured.");
+                return;
+              }
+              if (!upgradeTier || tierIndex(upgradeTier) <= tierIndex(selectedUser.tier)) {
+                notify("error", "Select a higher membership tier.");
+                return;
+              }
+              setActionLoading(true);
+              try {
+                await ensureCompanyWallet();
+                // On-chain Tier enum: 0=None, 1=Bronze… (TIER_ORDER index 0 → 1)
+                const onChainTier = tierIndex(upgradeTier) + 1;
+                const txHash = await writeContract(config, {
+                  address: CONTRACT_ADDRESS,
+                  abi: hntrMembershipAbi,
+                  functionName: "overrideMembershipTier",
+                  args: [selectedUser.walletAddress as `0x${string}`, onChainTier],
+                });
+                await waitForTransactionReceipt(config, { hash: txHash });
+                const result = await adminApi.recordMembershipOverride(selectedUser.username, {
+                  txHash,
+                  tier: upgradeTier,
+                });
+                patchUserRef.current(result.username, result.tier, result.rank || selectedUser.rank, {
+                  isForcedMembership: true,
+                  tierOverride: result.tierOverride ?? result.tier,
+                });
+                setIsMembershipModalOpen(false);
+                notify("success", result.message || `Membership set to ${upgradeTier}.`);
+              } catch (err) {
+                notify(
+                  "error",
+                  err instanceof AdminApiError
+                    ? err.message
+                    : err instanceof Error
+                      ? err.message
+                      : "Membership override failed",
+                );
+              } finally {
+                setActionLoading(false);
+              }
+            }}
+            disabled={
+              actionLoading ||
+              !selectedUser?.walletAddress ||
+              tierIndex(selectedUser?.tier || "None") >= tierIndex("Diamond")
+            }
+            className="w-full bg-[#f50] py-3 rounded-xl text-sm font-bold shadow-lg shadow-orange-500/10 disabled:opacity-50"
+          >
+            {actionLoading ? "Confirming on-chain…" : "Set Membership (company wallet)"}
           </button>
         </div>
       </AdminModal>
@@ -622,11 +781,20 @@ function WalletsTabContent({ notify }: { notify: (type: "success" | "error" | "i
 
 function UsersTabContent({
   onUpgradeClick,
+  onMembershipClick,
   onPatchUserReady,
   notify,
 }: {
   onUpgradeClick: (user: AdminUser) => void;
-  onPatchUserReady: (patchUser: (username: string, tier: string, rank: string, isForcedRank?: boolean) => void) => void;
+  onMembershipClick: (user: AdminUser) => void;
+  onPatchUserReady: (
+    patchUser: (
+      username: string,
+      tier: string,
+      rank: string,
+      opts?: { isForcedRank?: boolean; isForcedMembership?: boolean; tierOverride?: string | null },
+    ) => void,
+  ) => void;
   notify: (type: "success" | "error" | "info", message: string) => void;
 }) {
   const [search, setSearch] = useState("");
@@ -652,15 +820,31 @@ function UsersTabContent({
     [query, limit, notify],
   );
 
-  const patchUser = useCallback((username: string, tier: string, rank: string, isForcedRank?: boolean) => {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.username === username
-          ? { ...u, tier, rank, ...(isForcedRank !== undefined ? { isForcedRank } : { isForcedRank: true }) }
-          : u,
-      ),
-    );
-  }, []);
+  const patchUser = useCallback(
+    (
+      username: string,
+      tier: string,
+      rank: string,
+      opts?: { isForcedRank?: boolean; isForcedMembership?: boolean; tierOverride?: string | null },
+    ) => {
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.username === username
+            ? {
+                ...u,
+                tier,
+                rank,
+                isForcedRank: opts?.isForcedRank !== undefined ? opts.isForcedRank : u.isForcedRank,
+                isForcedMembership:
+                  opts?.isForcedMembership !== undefined ? opts.isForcedMembership : u.isForcedMembership,
+                tierOverride: opts?.tierOverride !== undefined ? opts.tierOverride : u.tierOverride,
+              }
+            : u,
+        ),
+      );
+    },
+    [],
+  );
 
   useEffect(() => {
     onPatchUserReady(patchUser);
@@ -723,7 +907,19 @@ function UsersTabContent({
                   {u.walletAddress ? `${u.walletAddress.slice(0, 6)}...${u.walletAddress.slice(-3)}` : "—"}
                 </div>
               </td>
-              <td className="px-6 py-4 text-sm font-medium">{u.tier}</td>
+              <td className="px-6 py-4 text-sm font-medium">
+                <div className="flex items-center gap-2">
+                  <span>{u.tier}</span>
+                  {u.isForcedMembership ? (
+                    <span
+                      className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-sky-500/40 text-sky-400"
+                      title="Company free membership override (no payment)"
+                    >
+                      Forced
+                    </span>
+                  ) : null}
+                </div>
+              </td>
               <td className="px-6 py-4 text-sm text-gray-400">
                 <div className="flex items-center gap-2">
                   <span>{u.rank}</span>
@@ -748,9 +944,16 @@ function UsersTabContent({
                   <button
                     onClick={() => onUpgradeClick(u)}
                     className="p-2 hover:bg-[#222] rounded-lg border border-[#222] transition-colors"
-                    title="Upgrade Profile"
+                    title="Force rank"
                   >
                     ↑
+                  </button>
+                  <button
+                    onClick={() => onMembershipClick(u)}
+                    className="p-2 hover:bg-[#222] rounded-lg border border-[#222] transition-colors text-[10px] font-bold"
+                    title="Set membership (company wallet)"
+                  >
+                    Tier
                   </button>
                   <button
                     onClick={async () => {

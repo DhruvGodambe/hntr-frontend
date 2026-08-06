@@ -56,6 +56,7 @@ export interface AdminUser {
   status: string;
   isBlocked: boolean;
   isForcedRank?: boolean;
+  isForcedMembership?: boolean;
   actualTier?: string;
   actualRank?: string;
   tierOverride?: string | null;
@@ -253,13 +254,34 @@ export const adminApi = {
       tier: string;
       rank: string;
       isForcedRank?: boolean;
+      isForcedMembership?: boolean;
       previousTier?: string;
       previousRank?: string;
+      tierOverride?: string | null;
+      rankOverride?: string | null;
       message: string;
     }>(`/api/admin/users/${encodeURIComponent(username)}/override`, {
       method: "POST",
-      // Membership is immutable from admin — only rank upgrades are accepted.
+      // Rank upgrades only via this endpoint — membership force is on-chain company wallet.
       body: { rank },
+    }),
+
+  recordMembershipOverride: (username: string, params: { txHash: string; tier: string }) =>
+    adminRequest<{
+      username: string;
+      walletAddress: string;
+      tier: string;
+      rank: string;
+      isForcedMembership: boolean;
+      isForcedRank?: boolean;
+      previousTier?: string;
+      tierOverride?: string | null;
+      rankOverride?: string | null;
+      txHash: string;
+      message: string;
+    }>(`/api/admin/users/${encodeURIComponent(username)}/record-membership-override`, {
+      method: "POST",
+      body: params,
     }),
 
   getTransactions: (params: { type?: string; page?: number; limit?: number; search?: string } = {}) =>

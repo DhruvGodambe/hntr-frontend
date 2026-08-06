@@ -1,9 +1,10 @@
 /**
  * Sepolia deployment addresses for HNTRMembership + mock USDT/USDC.
  * Update these after each redeploy (keep in sync with hntr-backend CONTRACT_ADDRESS).
+ * Deployed 2026-08-06: 0x96CAc40334EB407B596E44a535674d32f24eB30B (block ~11433519)
  */
 export const CONTRACT_ADDRESS =
-  "0xC53AEDE54bf9039831BC6f68bB4f0b2EF583eB95" as const satisfies `0x${string}`;
+  "0x96CAc40334EB407B596E44a535674d32f24eB30B" as const satisfies `0x${string}`;
 
 export const USDT_ADDRESS =
   "0xff26Bf42e258979e307B581F32A7C984BCEDA66a" as const satisfies `0x${string}`;
