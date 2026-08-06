@@ -6,7 +6,7 @@ import RailStatsRow from "./RailStatsRow";
 import RailRewardCards from "./RailRewardCards";
 import PlatformActivity from "./PlatformActivity";
 import type { ActivityEntry, ActivityTab } from "../types";
-import type { LeadershipStatus, RewardsSummary } from "../../../../lib/rewards";
+import type { RewardsSummary } from "../../../../lib/rewards";
 
 type ClaimSymbol = "USDT" | "USDC";
 
@@ -18,7 +18,6 @@ type RightRailProps = {
   railOpacity: number;
   summary: RewardsSummary | undefined;
   hntrPoints: number;
-  leadershipStatus: LeadershipStatus | undefined;
   claimBusy: boolean;
   claimBusySymbol?: ClaimSymbol | null;
   balancesHidden: boolean;
@@ -38,7 +37,6 @@ export default function RightRail({
   railOpacity,
   summary,
   hntrPoints,
-  leadershipStatus,
   claimBusy,
   claimBusySymbol = null,
   balancesHidden,
@@ -72,7 +70,6 @@ export default function RightRail({
           <div className="rrtl">Active Rewards Tiers</div>
           <RailRewardCards
             summary={summary}
-            leadershipStatus={leadershipStatus}
             claimBusy={claimBusy}
             claimBusySymbol={claimBusySymbol}
             maskBalance={maskBalance}

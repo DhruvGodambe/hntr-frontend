@@ -3,14 +3,13 @@
 import RailMobileProfileBlock from "./RailMobileProfileBlock";
 import RailStatsRow from "./RailStatsRow";
 import RailRewardCards from "./RailRewardCards";
-import type { LeadershipStatus, RewardsSummary } from "../../../../lib/rewards";
+import type { RewardsSummary } from "../../../../lib/rewards";
 
 type ClaimSymbol = "USDT" | "USDC";
 
 type MobileHomeRailCardProps = {
   summary: RewardsSummary | undefined;
   hntrPoints: number;
-  leadershipStatus: LeadershipStatus | undefined;
   claimBusy: boolean;
   claimBusySymbol?: ClaimSymbol | null;
   balancesHidden: boolean;
@@ -22,7 +21,6 @@ type MobileHomeRailCardProps = {
 export default function MobileHomeRailCard({
   summary,
   hntrPoints,
-  leadershipStatus,
   claimBusy,
   claimBusySymbol = null,
   balancesHidden,
@@ -41,7 +39,6 @@ export default function MobileHomeRailCard({
       <div className="mobile-rail-rewards-grid">
         <RailRewardCards
           summary={summary}
-          leadershipStatus={leadershipStatus}
           claimBusy={claimBusy}
           claimBusySymbol={claimBusySymbol}
           maskBalance={maskBalance}

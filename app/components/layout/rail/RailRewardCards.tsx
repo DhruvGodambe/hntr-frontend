@@ -2,13 +2,12 @@
 
 import { ReferralCommissionIcon, PoolRewardsIcon } from "../icons/RailIcons";
 import { formatClaimableByToken } from "../../../../lib/tokens";
-import type { LeadershipStatus, RewardsSummary } from "../../../../lib/rewards";
+import type { RewardsSummary } from "../../../../lib/rewards";
 
 type ClaimSymbol = "USDT" | "USDC";
 
 type RailRewardCardsProps = {
   summary: RewardsSummary | undefined;
-  leadershipStatus: LeadershipStatus | undefined;
   claimBusy: boolean;
   claimBusySymbol?: ClaimSymbol | null;
   maskBalance: (value: string) => string;
@@ -16,17 +15,18 @@ type RailRewardCardsProps = {
   variant?: "desktop" | "mobile";
 };
 
+/** NFT strategy pool rewards are not live yet — never surface a claimable amount. */
+const POOL_REWARDS_COMING_SOON_TITLE =
+  "Pool rewards from NFT strategy pools are coming soon — nothing to claim yet.";
+
 export default function RailRewardCards({
   summary,
-  leadershipStatus,
   claimBusy,
   claimBusySymbol = null,
   maskBalance,
   onClaimCommissions,
   variant = "desktop",
 }: RailRewardCardsProps) {
-  const poolRewardsAmount = leadershipStatus?.estimatedPayoutUSD ?? 0;
-  const hasPoolRewards = !!(leadershipStatus?.hasShares && poolRewardsAmount > 0);
   const claimableByTokenLabel = formatClaimableByToken(summary?.tokens);
   const claimableTokens = (summary?.tokens || []).filter((t) => t.claimable > 0 && t.address);
   const isMobile = variant === "mobile";
@@ -62,6 +62,12 @@ export default function RailRewardCards({
       </button>
     );
 
+  const poolRewardsClaim = (
+    <button type="button" className="cbtn" disabled title={POOL_REWARDS_COMING_SOON_TITLE}>
+      SOON
+    </button>
+  );
+
   if (isMobile) {
     return (
       <>
@@ -89,18 +95,11 @@ export default function RailRewardCards({
             <PoolRewardsIcon />
             <div className="rrctype">Pool Rewards</div>
           </div>
-          <div className="rrcv mobile-rrcv">{maskBalance(`$${poolRewardsAmount.toFixed(2)}`)}</div>
-          <button
-            className="cbtn"
-            disabled={!hasPoolRewards}
-            title={
-              hasPoolRewards
-                ? "Pool rewards are distributed monthly from the leadership pool"
-                : "Reach Hunter rank or above to earn pool rewards"
-            }
-          >
-            CLAIM
-          </button>
+          <div className="rrcv mobile-rrcv">{maskBalance("$0.00")}</div>
+          <div className="rrcd" style={{ marginBottom: "8px" }}>
+            Coming soon — NFT strategy pools
+          </div>
+          {poolRewardsClaim}
         </div>
       </>
     );
@@ -133,20 +132,10 @@ export default function RailRewardCards({
             <div className="rrctype">Pool Rewards</div>
           </div>
         </div>
-        <div className="rrcd">Proportional distribution from NFT strategy pools</div>
+        <div className="rrcd">Coming soon — proportional distribution from NFT strategy pools</div>
         <div className="rrcb">
-          <div className="rrcv">{maskBalance(`$${poolRewardsAmount.toFixed(2)}`)}</div>
-          <button
-            className="cbtn"
-            disabled={!hasPoolRewards}
-            title={
-              hasPoolRewards
-                ? "Pool rewards are distributed monthly from the leadership pool"
-                : "Reach Hunter rank or above to earn pool rewards"
-            }
-          >
-            CLAIM
-          </button>
+          <div className="rrcv">{maskBalance("$0.00")}</div>
+          {poolRewardsClaim}
         </div>
       </div>
     </>

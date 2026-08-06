@@ -10,7 +10,7 @@ import NotificationSystem from "./NotificationSystem";
 import DepositModal from "./DepositModal";
 import { clearStoredAuth } from "../../lib/api";
 import { handleAppError } from "../../lib/errors";
-import { useDashboardData, useClaimCommissions, useLeadershipStatus, usePointsSummary } from "../../lib/rewards";
+import { useDashboardData, useClaimCommissions, usePointsSummary } from "../../lib/rewards";
 import { useEnsIdentity } from "../../lib/useEnsIdentity";
 import type { StandardToastData } from "../../lib/notification-data";
 import type { MainLayoutProps } from "./layout/types";
@@ -58,7 +58,6 @@ export default function MainLayout({
     ) : null;
   const { summary, refetchSummary } = useDashboardData();
   const { data: pointsSummary } = usePointsSummary();
-  const { data: leadershipStatus } = useLeadershipStatus();
   const claimCommissions = useClaimCommissions();
 
   const [claimBusySymbol, setClaimBusySymbol] = useState<"USDT" | "USDC" | null>(null);
@@ -301,7 +300,6 @@ export default function MainLayout({
     railOpacity,
     summary,
     hntrPoints,
-    leadershipStatus,
     claimBusy,
     claimBusySymbol,
     balancesHidden,
@@ -369,7 +367,6 @@ export default function MainLayout({
           <MobileHomeRailCard
             summary={summary}
             hntrPoints={hntrPoints}
-            leadershipStatus={leadershipStatus}
             claimBusy={claimBusy}
             claimBusySymbol={claimBusySymbol}
             balancesHidden={balancesHidden}
