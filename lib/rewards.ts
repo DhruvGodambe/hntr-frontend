@@ -433,6 +433,8 @@ export function useClaimCommissions() {
 
     await queryClient.invalidateQueries({ queryKey: ["rewards-summary", address] });
     await queryClient.invalidateQueries({ queryKey: ["transactions", address] });
+    // Claim notifications are written by the chain listener after confirmation.
+    await queryClient.invalidateQueries({ queryKey: ["notifications", address] });
 
     if (results.length === 0) {
       const detail = failures.map((f) => `${f.symbol}: ${f.message}`).join("; ");
