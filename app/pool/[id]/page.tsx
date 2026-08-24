@@ -1,11 +1,21 @@
 "use client";
 
 import MainLayout from "../../components/MainLayout";
-import { getPoolById, OTHER_POOLS, type PoolDetail } from "../../../lib/pools-data";
 import { DEPOSIT_CTA_LABEL } from "../../../lib/deposit-modal";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useRouter } from "nextjs-toploader/app";
+import {
+  OPENSEA_POOL_META,
+  parsePoolRouteId,
+  poolDisplayName,
+  toPoolRouteId,
+  useOpenSeaOtherPoolListings,
+  useOpenSeaPoolNft,
+  type OpenSeaPoolNft,
+  type PoolCollectionSlug,
+} from "@/lib/opensea";
+import type { PoolDetail } from "../../../lib/pools-data";
 
 type TxRow = {
   id: string;
@@ -63,12 +73,36 @@ function collectionDisplayName(name: string): string {
   return name.replace(/\s*#\d+\s*$/, "").trim();
 }
 
-function tagFromMetaId(metaId: string): string {
-  if (metaId.includes("BAYC")) return "YUGA LABS";
-  if (metaId.includes("PUNK")) return "LARVA LABS";
-  if (metaId.includes("PUDGY")) return "PPENGUIN";
-  if (metaId.includes("AZUKI")) return "AZUKI";
-  return "HNTR";
+function tagsForSlug(slug: string): [string, string] {
+  if (slug in OPENSEA_POOL_META) {
+    return OPENSEA_POOL_META[slug as PoolCollectionSlug].tags;
+  }
+  return ["OPENSEA", "LIVE LISTING"];
+}
+
+function mapNftToPool(nft: OpenSeaPoolNft): PoolDetail {
+  const target = (nft.listingPriceEth || nft.floorPriceEth || 0).toFixed(2);
+  return {
+    id: toPoolRouteId(nft.slug, nft.tokenId),
+    metaId: `${nft.slug}-${nft.tokenId}`,
+    name: `${nft.collectionName} #${nft.tokenId}`,
+    shortName: nft.name,
+    series: "OpenSea listing",
+    target,
+    raised: "0.00",
+    progress: 0,
+    gpProfit: "—",
+    gpChange: "Coming soon",
+    ethProfit: "0.00",
+    ethChange: "—",
+    usdtProfit: "$0.00",
+    usdtNote: "Unrealised P&L",
+    participants: 0,
+    floorEth: (nft.floorPriceEth || 0).toFixed(2),
+    img: nft.imageUrl || "/assets/images/image-6.jpg",
+    avatarImg: nft.imageUrl || "/assets/images/image-6.jpg",
+    daysRemaining: 0,
+  };
 }
 
 function ethToUsd(eth: string): string {
@@ -84,7 +118,91 @@ function remainingEth(target: string, raised: string): string {
   return Math.max(0, parseFloat(target) - parseFloat(raised)).toFixed(2);
 }
 
-function PoolDetailView({ pool }: { pool: PoolDetail }) {
+function PoolDetailSkeleton() {
+  return (
+    <MainLayout>
+      <div className="pool-detail-page pd-skel-page">
+        <div className="feed pool-detail-scroll" id="feed-pooldetail">
+          <div className="pd-desktop-only">
+            <div className="breadcrumb">
+              <div className="bc-head">
+                <div className="pd-skel" style={{ width: 28, height: 28, borderRadius: 6 }} />
+                <div className="pd-skel" style={{ width: 160, height: 14 }} />
+              </div>
+              <div className="pd-skel pd-skel-line" style={{ width: 220, marginTop: 8 }} />
+            </div>
+
+            <div className="detail-card">
+              <div className="pool-detail-top">
+                <div className="pd-skel pd-skel-img" aria-hidden="true" />
+                <div className="pool-detail-info">
+                  <div className="pool-meta-row">
+                    <div className="pd-skel pd-skel-line" style={{ width: 120 }} />
+                    <div className="pd-skel pd-skel-line" style={{ width: 88 }} />
+                    <div className="pd-skel pd-skel-line" style={{ width: 110 }} />
+                    <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+                      <div className="pd-skel" style={{ width: 28, height: 28, borderRadius: 5 }} />
+                      <div className="pd-skel" style={{ width: 28, height: 28, borderRadius: 5 }} />
+                    </div>
+                  </div>
+                  <div className="pd-skel pd-skel-title" />
+                  <div className="pd-skel pd-skel-stat" />
+                  <div className="pd-skel pd-skel-bar" />
+                  <div className="pd-skel pd-skel-btn" />
+                  <div className="pd-skel pd-skel-line" style={{ width: "70%", margin: "0 auto" }} />
+                </div>
+              </div>
+            </div>
+
+            <div className="metrics-strip">
+              {[0, 1, 2, 3].map((i) => (
+                <div className="pd-skel pd-skel-metric" key={i} />
+              ))}
+            </div>
+
+            <div className="section-hdr">
+              <div className="pd-skel" style={{ width: 180, height: 12 }} />
+              <div style={{ display: "flex", gap: 8 }}>
+                <div className="pd-skel" style={{ width: 72, height: 26, borderRadius: 4 }} />
+                <div className="pd-skel" style={{ width: 64, height: 26, borderRadius: 4 }} />
+              </div>
+            </div>
+            <div className="pd-skel pd-skel-table" />
+          </div>
+
+          <div className="pd-mobile-only">
+            <div className="pd-mobile-hero">
+              <div className="pd-skel" style={{ width: "100%", height: 280, borderRadius: 0 }} />
+            </div>
+            <div className="pd-mobile-body">
+              <div className="pd-skel pd-skel-stat" style={{ marginBottom: 14 }} />
+              <div className="pd-skel pd-skel-bar" style={{ marginBottom: 16 }} />
+              <div className="pd-skel pd-skel-btn" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </MainLayout>
+  );
+}
+
+function PoolDetailView({
+  pool,
+  slug,
+  openseaUrl,
+  otherListings,
+}: {
+  pool: PoolDetail;
+  slug: string;
+  openseaUrl?: string;
+  otherListings: Array<{
+    tokenId: string;
+    name: string;
+    imageUrl: string;
+    collection: string;
+    priceEth: number;
+  }>;
+}) {
   const router = useRouter();
   const [shareCopied, setShareCopied] = useState(false);
   const [txRows, setTxRows] = useState<TxRow[]>(() => Array.from({ length: 4 }, () => makeTxRow()));
@@ -100,8 +218,7 @@ function PoolDetailView({ pool }: { pool: PoolDetail }) {
 
   const tokenId = extractTokenId(pool.name);
   const collectionName = collectionDisplayName(pool.name);
-  const tagPrimary = tagFromMetaId(pool.metaId);
-  const tagSecondary = pool.series.toUpperCase();
+  const [tagPrimary, tagSecondary] = tagsForSlug(slug);
   const poolLabel = `POOL ${tokenId}`;
   const targetUsd = ethToUsd(pool.target);
   const raisedUsd = ethToUsd(pool.raised);
@@ -298,7 +415,18 @@ function PoolDetailView({ pool }: { pool: PoolDetail }) {
                     <div className="pool-meta-links">
                       <span className="pool-meta-link">{pool.shortName}</span>
                       <span style={{ color: "var(--t0)" }}>|</span>
-                      <span className="pool-meta-link">{pool.series}</span>
+                      {openseaUrl ? (
+                        <a
+                          className="pool-meta-link"
+                          href={openseaUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          OpenSea listing
+                        </a>
+                      ) : (
+                        <span className="pool-meta-link">OpenSea listing</span>
+                      )}
                     </div>
                     <div className="pool-share-btns">
                       <button
@@ -322,7 +450,14 @@ function PoolDetailView({ pool }: { pool: PoolDetail }) {
                           />
                         </svg>
                       </button>
-                      <button className="share-btn" type="button" aria-label="Open external">
+                      <button
+                        className="share-btn"
+                        type="button"
+                        aria-label="Open on OpenSea"
+                        onClick={() => {
+                          if (openseaUrl) window.open(openseaUrl, "_blank", "noopener,noreferrer");
+                        }}
+                      >
                         <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                           <path
                             d="M4 8h8M8 4l4 4-4 4"
@@ -486,23 +621,41 @@ function PoolDetailView({ pool }: { pool: PoolDetail }) {
             </div>
             <div className="carousel-outer">
               <div className="carousel-track" id="carouselTrack">
-                {[...OTHER_POOLS, ...OTHER_POOLS].map((item, i) => (
-                  <div className="pool-thumb" key={`${item.name}-${i}`}>
-                    <div className="pool-thumb-art">{item.emoji}</div>
-                    <div className="pool-thumb-info">
-                      <div className="pt-name">{item.name}</div>
-                      <div className="pt-activity">Activity: {item.activity}</div>
+                {(otherListings.length ? [...otherListings, ...otherListings] : []).map((item, i) => {
+                  const routeId = toPoolRouteId(item.collection, item.tokenId);
+                  return (
+                    <div className="pool-thumb" key={`${routeId}-${i}`}>
                       <div
-                        className="pt-view"
-                        onClick={() => router.push("/pool/54587")}
-                        role="link"
-                        tabIndex={0}
+                        className="pool-thumb-art"
+                        style={
+                          item.imageUrl
+                            ? {
+                                backgroundImage: `url(${item.imageUrl})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                              }
+                            : undefined
+                        }
                       >
-                        View →
+                        {item.imageUrl ? "" : "NFT"}
+                      </div>
+                      <div className="pool-thumb-info">
+                        <div className="pt-name">{poolDisplayName(item.collection)}</div>
+                        <div className="pt-activity">
+                          #{item.tokenId} · {item.priceEth > 0 ? `${item.priceEth.toFixed(2)} ETH` : "Floor listing"}
+                        </div>
+                        <div
+                          className="pt-view"
+                          onClick={() => router.push(`/pool/${routeId}`)}
+                          role="link"
+                          tabIndex={0}
+                        >
+                          View →
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -521,8 +674,45 @@ function PoolDetailView({ pool }: { pool: PoolDetail }) {
 
 export default function PoolDetailPage() {
   const params = useParams();
-  const id = typeof params.id === "string" ? params.id : "54587";
-  const pool = getPoolById(id);
+  const id = typeof params.id === "string" ? params.id : "";
+  const parsed = parsePoolRouteId(id);
+  const { data, isLoading, error } = useOpenSeaPoolNft(parsed.slug || null, parsed.tokenId);
+  const { data: others = [] } = useOpenSeaOtherPoolListings(
+    parsed.slug || undefined,
+    data?.tokenId || parsed.tokenId || undefined,
+  );
 
-  return <PoolDetailView pool={pool} key={pool.id} />;
+  if (isLoading) {
+    return <PoolDetailSkeleton />;
+  }
+
+  if (error || !data) {
+    return (
+      <MainLayout>
+        <div className="feed" id="feed-pooldetail" style={{ padding: "48px 24px" }}>
+          <div style={{ color: "var(--t1)", marginBottom: 8 }}>NFT not found</div>
+          <div style={{ color: "var(--t2)", fontSize: 13 }}>
+            This pool id is not a live OpenSea token. Go back to Pools and pick a listing.
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  const pool = mapNftToPool(data);
+  return (
+    <PoolDetailView
+      pool={pool}
+      slug={data.slug}
+      openseaUrl={data.openseaUrl}
+      otherListings={others.map((listing) => ({
+        tokenId: listing.tokenId,
+        name: listing.name,
+        imageUrl: listing.imageUrl,
+        collection: listing.collection,
+        priceEth: listing.priceEth,
+      }))}
+      key={pool.id}
+    />
+  );
 }

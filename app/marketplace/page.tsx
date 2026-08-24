@@ -182,6 +182,7 @@ export default function MarketplacePage() {
   }, [openSeaCollections]);
 
   const nfts = useMemo(() => {
+    if (isLoadingListings) return [];
     if (!openSeaListings?.length) return HARDCODED_NFTS;
 
     return openSeaListings.map((listing) => {
@@ -202,7 +203,7 @@ export default function MarketplacePage() {
         fallback: !listing.imageUrl,
       };
     });
-  }, [openSeaListings]);
+  }, [openSeaListings, isLoadingListings]);
 
   const filteredNfts = useMemo(
     () => nfts.filter((nft) => nftMatchesFilter(nft.name, marketFilter)),
@@ -388,9 +389,7 @@ export default function MarketplacePage() {
                 Sort: <span className="sort-val">Floor High to Low</span>
               </div>
               {isLoading && (
-                <div className="sort-lbl" style={{ marginLeft: "auto" }}>
-                  Loading OpenSea…
-                </div>
+                <div className="pd-skel" style={{ marginLeft: "auto", width: 96, height: 10 }} aria-hidden="true" />
               )}
               {!isLoading && (collectionsError || listingsError) && (
                 <div className="sort-lbl" style={{ marginLeft: "auto", color: "#ff6b6b" }}>
@@ -425,7 +424,22 @@ export default function MarketplacePage() {
             </div>
 
             <div className="vault-grid">
-              {filteredNfts.map((nft, i) => (
+              {isLoadingListings &&
+                [0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+                  <div key={`vc-skel-${i}`} className="vc vc-skel" aria-hidden="true">
+                    <div className="vc-img-wrap">
+                      <div className="pd-skel" style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 0 }} />
+                    </div>
+                    <div className="vc-body">
+                      <div className="pd-skel" style={{ width: "72%", height: 12, marginBottom: 10 }} />
+                      <div className="pd-skel" style={{ width: "100%", height: 8, marginBottom: 6 }} />
+                      <div className="pd-skel" style={{ width: "100%", height: 8, marginBottom: 6 }} />
+                      <div className="pd-skel" style={{ width: "55%", height: 8, marginBottom: 10 }} />
+                      <div className="pd-skel" style={{ width: "100%", height: 28, borderRadius: 6 }} />
+                    </div>
+                  </div>
+                ))}
+              {!isLoadingListings && filteredNfts.map((nft, i) => (
                 <div key={i} className="vc">
                   <div className="vc-img-wrap">
                     {nft.img ? (

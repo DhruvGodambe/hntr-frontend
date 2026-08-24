@@ -4300,11 +4300,18 @@ body.dark .mkt-filter-tab.active {
     border-radius: var(--r) var(--r) 0 0;
   }
 
-  .pool-detail-img {
+  .pool-detail-img,
+  .pd-skel-img {
     width: 100% !important;
     max-width: 100% !important;
+    min-height: 220px !important;
     border-radius: var(--r) var(--r) 0 0;
     background: var(--e3) !important;
+  }
+
+  .pool-detail-info {
+    padding: 20px 18px 22px !important;
+    gap: 14px !important;
   }
 
   body:not(.dark) #feed-pooldetail .detail-card .pool-detail-img {

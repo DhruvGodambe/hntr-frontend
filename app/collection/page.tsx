@@ -8,7 +8,11 @@ import {
   formatFloorPrice,
   formatUsd,
   OPENSEA_COLLECTION_SLUGS,
+  poolDisplayName,
+  toPoolRouteId,
   useOpenSeaCollections,
+  useOpenSeaMarketplaceListings,
+  useOpenSeaMarketplaceSales,
 } from "@/lib/opensea";
 
 const RING_CIRC = 201.06;
@@ -19,6 +23,8 @@ const LISTING_SRC_LOGOS = [
 
 type CoOwnedNft = {
   id: number;
+  slug: string;
+  rawTokenId: string;
   name: string;
   tokenId: string;
   img: string;
@@ -68,7 +74,7 @@ type ProgressRow = {
   depUsd: string;
 };
 
-const CO_OWNED_NFTS: CoOwnedNft[] = [
+const CO_OWNED_NFTS: Omit<CoOwnedNft, "slug" | "rawTokenId">[] = [
   {
     id: 1,
     name: "Bored Ape Yacht Club",
@@ -480,6 +486,9 @@ export default function CollectionPage() {
     isLoading: isLoadingCollections,
     error: collectionsError,
   } = useOpenSeaCollections();
+  const { data: marketplaceListings, isLoading: listingsLoading } =
+    useOpenSeaMarketplaceListings(4);
+  const { data: marketplaceSales } = useOpenSeaMarketplaceSales(2);
 
   const ethUsd = 2900;
 
@@ -493,32 +502,97 @@ export default function CollectionPage() {
   }, [collections, openSeaCollections]);
 
   const coOwnedNfts = useMemo<CoOwnedNft[]>(() => {
-    if (!openSeaCollections) return CO_OWNED_NFTS;
+    const checked = new Set(collections.filter((c) => c.checked).map((c) => c.name));
+    const checkedSlugs = new Set<string>(
+      Object.entries(OPENSEA_COLLECTION_SLUGS)
+        .filter(([name]) => checked.has(name))
+        .map(([, slug]) => slug),
+    );
+
+    const listings = (marketplaceListings || []).filter((listing) =>
+      checkedSlugs.has(listing.collection),
+    );
+
+    if (listings.length) {
+      return listings.map((listing, index) => {
+        const price = listing.priceEth || 0;
+        return {
+          id: index + 1,
+          slug: listing.collection,
+          rawTokenId: listing.tokenId,
+          name: poolDisplayName(listing.collection),
+          tokenId: `#${listing.tokenId}`,
+          img: listing.imageUrl || "",
+          pool: "OPENSEA",
+          sharePct: 0,
+          listedPrice: price > 0 ? price.toFixed(2) : "—",
+          listedUsd: price > 0 ? formatUsd(price) : "—",
+          myShare: "—",
+          myShareUsd: "—",
+          profit: "—",
+          status: "Listed",
+          delay: `${index * 0.04}s`,
+        };
+      });
+    }
+
+    if (listingsLoading) return [];
+
     const out: CoOwnedNft[] = [];
     for (const [name, slug] of Object.entries(OPENSEA_COLLECTION_SLUGS)) {
-      const { stats, nfts } = openSeaCollections[slug] || { stats: null, nfts: [] };
+      if (!checked.has(name)) continue;
+      const { stats, nfts } = openSeaCollections?.[slug] || { stats: null, nfts: [] };
       for (const nft of nfts.slice(0, 2)) {
         const floor = stats?.floorPrice ?? 0;
-        const listedEth = floor > 0 ? floor : 0;
         out.push({
           id: out.length + 1,
+          slug,
+          rawTokenId: nft.tokenId,
           name,
           tokenId: `#${nft.tokenId}`,
           img: nft.imageUrl || "",
-          pool: "POOL #842",
-          sharePct: 22,
-          listedPrice: listedEth.toFixed(2),
-          listedUsd: formatUsd(listedEth),
-          myShare: "2.9",
-          myShareUsd: "$6,467",
-          profit: "10%",
+          pool: "OPENSEA",
+          sharePct: 0,
+          listedPrice: floor > 0 ? floor.toFixed(2) : "—",
+          listedUsd: floor > 0 ? formatUsd(floor) : "—",
+          myShare: "—",
+          myShareUsd: "—",
+          profit: "—",
           status: "Listed",
           delay: `${out.length * 0.04}s`,
         });
       }
     }
-    return out.length > 0 ? out : CO_OWNED_NFTS;
-  }, [openSeaCollections]);
+    return out;
+  }, [openSeaCollections, collections, marketplaceListings, listingsLoading]);
+
+  const livePosData = useMemo(() => {
+    const listed: ListedRow[] = (marketplaceListings || []).slice(0, 8).map((listing) => ({
+      src: "OpenSea",
+      coll: poolDisplayName(listing.collection),
+      token: `#${listing.tokenId}`,
+      price: `${listing.priceEth.toFixed(2)} ETH`,
+      priceUsd: formatUsd(listing.priceEth),
+      apr: "—",
+      profit: "—",
+      profitUsd: "—",
+    }));
+    const sold: SoldRow[] = (marketplaceSales || []).slice(0, 8).map((sale) => ({
+      src: "OpenSea",
+      coll: poolDisplayName(sale.collection),
+      token: `#${sale.tokenId}`,
+      price: "",
+      priceUsd: "",
+      apr: "",
+      bought: "—",
+      boughtUsd: "—",
+      sold: `${sale.priceEth.toFixed(2)} ETH`,
+      soldUsd: formatUsd(sale.priceEth),
+      profit: "—",
+      profitUsd: "—",
+    }));
+    return { listed, sold, progress: [] as ProgressRow[] };
+  }, [marketplaceListings, marketplaceSales]);
 
   useEffect(() => {
     const timers = coOwnedNfts.map((nft, i) =>
@@ -529,8 +603,8 @@ export default function CollectionPage() {
     return () => timers.forEach(clearTimeout);
   }, [coOwnedNfts]);
 
-  const goToPoolDetail = (nftId: number) => {
-    router.push(`/pool/${nftId === 1 ? "54587" : nftId}`);
+  const goToPoolDetail = (slug: string, tokenId: string) => {
+    router.push(`/pool/${toPoolRouteId(slug, tokenId)}`);
   };
 
   const toggleCollection = (name: string) => {
@@ -539,12 +613,21 @@ export default function CollectionPage() {
     );
   };
 
-  const rows = POS_DATA[posView];
+  const rows = (livePosData[posView]?.length ? livePosData[posView] : POS_DATA[posView]) as typeof POS_DATA[typeof posView];
 
   return (
     <MainLayout>
       <div className="feed" id="feed-collection">
         <div className="coll-body">
+          <div className="coll-coming-soon">
+            <div className="coll-coming-soon-card">
+              <div className="coll-coming-soon-kicker">HNTR Collection</div>
+              <div className="coll-coming-soon-title">Coming Soon</div>
+              <div className="coll-coming-soon-sub">
+                Co-ownership, claims, and listings are not live yet. NFT data below is from OpenSea.
+              </div>
+            </div>
+          </div>
           <CollectionHeroBanner />
 
             {/* STAT STRIP */}
@@ -655,8 +738,8 @@ export default function CollectionPage() {
               <div className="coll-main-right">
                 <div className="coll-sh" style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
                   <div className="coll-sh-title">Current Co-Owned NFTs</div>
-                  {isLoadingCollections && <span style={{ color: "var(--t2)", fontSize: "12px" }}>Loading OpenSea…</span>}
-                  {collectionsError && (
+                  {listingsLoading && <span className="pd-skel" style={{ width: 96, height: 10 }} aria-hidden="true" />}
+                  {!listingsLoading && collectionsError && (
                     <span style={{ color: "#ff6b6b", fontSize: "12px" }}>
                       OpenSea unavailable — showing fallback data
                     </span>
@@ -667,11 +750,20 @@ export default function CollectionPage() {
                 </div>
 
                 <div className="nc-grid" id="ncGrid">
-                  {isLoadingCollections && coOwnedNfts === CO_OWNED_NFTS && (
-                    <div className="nc-loading" style={{ padding: "24px", color: "var(--t2)" }}>
-                      Loading live OpenSea data...
-                    </div>
-                  )}
+                  {listingsLoading && coOwnedNfts.length === 0 &&
+                    [0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+                      <div key={`nc-skel-${i}`} className="nc nc-skel" aria-hidden="true">
+                        <div className="nc-img-wrap">
+                          <div className="pd-skel" style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 0 }} />
+                        </div>
+                        <div className="nc-body nc-desktop-only">
+                          <div className="pd-skel" style={{ width: "70%", height: 12, marginBottom: 8 }} />
+                          <div className="pd-skel" style={{ width: 54, height: 10, marginBottom: 14 }} />
+                          <div className="pd-skel" style={{ width: "100%", height: 36, marginBottom: 8 }} />
+                          <div className="pd-skel" style={{ width: "100%", height: 32 }} />
+                        </div>
+                      </div>
+                    ))}
                   {coOwnedNfts.map((nft, index) => {
                     const animatedPct = ringPcts[nft.id] ?? 0;
                     const ringOffset = RING_CIRC - (animatedPct / 100) * RING_CIRC;
@@ -680,7 +772,7 @@ export default function CollectionPage() {
                       <div key={nft.id} className="nc" style={{ animationDelay: nft.delay }}>
                         <div className="nc-img-wrap">
                           {nft.img ? (
-                            <img className="nc-img" src={nft.img} alt={nft.name} />
+                            <img className="nc-img" src={nft.img} alt={`${nft.name} ${nft.tokenId}`} referrerPolicy="no-referrer" />
                           ) : (
                             <div
                               className="nc-img"
@@ -760,7 +852,7 @@ export default function CollectionPage() {
                         <button
                           type="button"
                           className="nc-view-btn nc-desktop-only"
-                          onClick={() => goToPoolDetail(nft.id)}
+                          onClick={() => goToPoolDetail(nft.slug, nft.rawTokenId)}
                         >
                           VIEW DETAILS
                         </button>
@@ -784,7 +876,7 @@ export default function CollectionPage() {
                           <button
                             type="button"
                             className="nc-m-listing-btn"
-                            onClick={() => goToPoolDetail(nft.id)}
+                            onClick={() => goToPoolDetail(nft.slug, nft.rawTokenId)}
                           >
                             <img
                               className="nc-m-listing-icon"
@@ -850,8 +942,8 @@ export default function CollectionPage() {
                         </div>
                       </div>
                       <span className="coll-pos-src">{meta.src}</span>
-                      <button type="button" className="coll-pos-view-btn">
-                        VIEW
+                      <button type="button" className="coll-pos-view-btn" disabled>
+                        SOON
                       </button>
                     </div>
                     <div className="coll-pos-cells">
@@ -916,7 +1008,9 @@ export default function CollectionPage() {
                           </div>
                         </td>
                         <td>
-                          <button className="pos-view-btn">VIEW NFT</button>
+                          <button className="pos-view-btn" disabled>
+                            SOON
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -948,7 +1042,9 @@ export default function CollectionPage() {
                           </div>
                         </td>
                         <td>
-                          <button className="pos-view-btn">VIEW NFT</button>
+                          <button className="pos-view-btn" disabled>
+                            SOON
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -978,7 +1074,9 @@ export default function CollectionPage() {
                           <PosVal eth={r.dep} usd={r.depUsd} />
                         </td>
                         <td>
-                          <button className="pos-view-btn">VIEW NFT</button>
+                          <button className="pos-view-btn" disabled>
+                            SOON
+                          </button>
                         </td>
                       </tr>
                     ))}
