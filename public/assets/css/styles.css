@@ -1805,8 +1805,8 @@ body { color: var(--t3); font-family: var(--fn); font-size: 12px; line-height: 1
 .mtab.active{background:var(--sage-faint);color:var(--olive);font-weight:700}
 .msort{display:flex;align-items:center;gap:7px;height:28px;padding:0 12px;border-radius:7px;background:var(--e3);box-shadow:var(--sh1);font-size:11px;font-weight:600;color:var(--t3);cursor:pointer;white-space:nowrap}
 .mtwrap{overflow-x:auto}
-.mtable{min-width:1080px}
-.mhead,.mrow{display:grid;grid-template-columns:26px 26px minmax(190px,1.5fr) 46px 108px 74px 74px 74px 118px 128px 108px 62px;align-items:center;gap:6px}
+.mtable{min-width:960px}
+.mhead,.mrow{display:grid;grid-template-columns:26px 26px minmax(190px,1.5fr) 46px 108px 74px 74px 74px 128px 108px 62px;align-items:center;gap:6px}
 .mhead{padding:0 4px 8px;border-bottom:1px solid var(--bd1)}
 .mhead .mcel{font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--t0);font-family:var(--fm)}
 .mrow{padding:11px 4px;border-bottom:.5px solid var(--cream-dark);transition:.14s;border-radius:6px}

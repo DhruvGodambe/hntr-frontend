@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
 export type MarketTimeFrame = "24H" | "7D" | "30D";
-export type ChartRange = "7D" | "30D" | "1Y";
 
 export type Sparkline = {
   points: string;
@@ -38,7 +37,6 @@ export type FloorNftRow = {
   change24h: number | null;
   change7d: number | null;
   change30d: number | null;
-  sparkline: Sparkline | null;
   marketCapUsd: string;
   marketCapNative: string;
   volumeNative: string;
@@ -64,35 +62,17 @@ export type RelatedCoin = {
 export type CoinGeckoMarketOverview = {
   marketCapUsd: number;
   marketCapChangePct: number | null;
-  marketCapSpark: Sparkline | null;
   volumeUsd: number;
   volumeChangePct: number | null;
-  volumeSpark: Sparkline | null;
   volumeLabel: string;
   trending: TrendingNft[];
   dominance: DominanceNft[];
   rows: FloorNftRow[];
-  chart: {
-    marketCapUsd: number;
-    changePct: number | null;
-    changeCaption: string;
-    polyline: string;
-    area: string;
-    pos: boolean;
-    axis: string[];
-  };
-  chartStats: {
-    volume24h: string;
-    collectionsTracked: string;
-    nftDominance: string;
-    high30d: string;
-  };
   coins: RelatedCoin[];
 };
 
 type MoneyPair = { native_currency?: number; usd?: number };
 type PctPair = number | { usd?: number; native_currency?: number } | null | undefined;
-type ChartPair = [number, number];
 
 type NftMarket = {
   id: string;
@@ -113,13 +93,6 @@ type NftMarket = {
   volume_in_usd_24h_percentage_change?: number;
   one_day_sales?: number | null;
   number_of_unique_addresses?: number | null;
-};
-
-type NftChart = {
-  floor_price_usd?: ChartPair[];
-  floor_price_native?: ChartPair[];
-  h24_volume_usd?: ChartPair[];
-  market_cap_usd?: ChartPair[];
 };
 
 type TrendingResponse = {
@@ -179,8 +152,10 @@ const CHAIN_LABELS: Record<string, string> = {
   "immutable-zkevm": "Immutable",
 };
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 async function fetchCoinGecko<T>(path: string): Promise<T> {
-  const res = await fetch(`/api/coingecko?path=${encodeURIComponent(path)}`);
+  const res = await fetch(`${API_BASE}/api/market/coingecko?path=${encodeURIComponent(path)}`);
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`CoinGecko API error: ${res.status} (${path}) ${body.slice(0, 200)}`);
@@ -206,10 +181,6 @@ function pctValue(value: PctPair): number | null {
   if (value == null) return null;
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
   return asNumber(value.usd) ?? asNumber(value.native_currency);
-}
-
-function toMs(ts: number): number {
-  return ts < 1e12 ? ts * 1000 : ts;
 }
 
 function initials(name: string): string {
@@ -294,11 +265,6 @@ export function seriesToPolyline(
   return { points, pos };
 }
 
-export function polylineToArea(points: string, width: number, height: number): string {
-  if (!points) return "";
-  return `0,${height} ${points} ${width},${height}`;
-}
-
 function downsample(values: number[], maxPoints: number): number[] {
   if (values.length <= maxPoints) return values;
   const out: number[] = [];
@@ -307,52 +273,6 @@ function downsample(values: number[], maxPoints: number): number[] {
     out.push(values[Math.round(i * step)]);
   }
   return out;
-}
-
-function pairsToValues(pairs?: ChartPair[]): number[] {
-  if (!pairs?.length) return [];
-  return pairs.map((p) => p?.[1]).filter((v): v is number => typeof v === "number" && Number.isFinite(v));
-}
-
-function slicePairs(pairs: ChartPair[] | undefined, days: number): ChartPair[] {
-  if (!pairs?.length) return [];
-  const last = toMs(pairs[pairs.length - 1][0]);
-  const cutoff = last - days * 86_400_000;
-  return pairs.filter((p) => toMs(p[0]) >= cutoff);
-}
-
-function pctFromPairs(pairs: ChartPair[]): number | null {
-  const values = pairsToValues(pairs);
-  if (values.length < 2) return null;
-  const first = values[0];
-  const last = values[values.length - 1];
-  if (!first) return last ? 100 : 0;
-  return ((last - first) / first) * 100;
-}
-
-function sumDailyVolume(pairs: ChartPair[], days: number): number | null {
-  const sliced = slicePairs(pairs, days);
-  if (!sliced.length) return null;
-  const byDay = new Map<string, number>();
-  for (const [ts, value] of sliced) {
-    if (!Number.isFinite(value)) continue;
-    const day = new Date(toMs(ts)).toISOString().slice(0, 10);
-    byDay.set(day, value);
-  }
-  if (!byDay.size) return null;
-  return [...byDay.values()].reduce((sum, v) => sum + v, 0);
-}
-
-function axisLabels(pairs: ChartPair[], count = 5): string[] {
-  if (!pairs.length) return [];
-  const labels: string[] = [];
-  for (let i = 0; i < count; i++) {
-    const idx = Math.round((i / Math.max(count - 1, 1)) * (pairs.length - 1));
-    labels.push(
-      new Date(toMs(pairs[idx][0])).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-    );
-  }
-  return labels;
 }
 
 function weightedPct(items: Array<{ weight: number; pct: number | null }>): number | null {
@@ -364,24 +284,6 @@ function weightedPct(items: Array<{ weight: number; pct: number | null }>): numb
     weight += item.weight;
   }
   return weight ? sum / weight : null;
-}
-
-function daysForTimeFrame(tf: MarketTimeFrame): number {
-  if (tf === "24H") return 1;
-  if (tf === "7D") return 7;
-  return 30;
-}
-
-function volumeLabel(tf: MarketTimeFrame): string {
-  if (tf === "7D") return "7d Trading Volume";
-  if (tf === "30D") return "30d Trading Volume";
-  return "24h Trading Volume";
-}
-
-function chartCaption(range: ChartRange): string {
-  if (range === "7D") return "past 7 days";
-  if (range === "1Y") return "past year";
-  return "past 30 days";
 }
 
 async function mapInBatches<T, R>(items: T[], size: number, fn: (item: T) => Promise<R>): Promise<R[]> {
@@ -396,98 +298,66 @@ async function mapInBatches<T, R>(items: T[], size: number, fn: (item: T) => Pro
   return out;
 }
 
-async function fetchNftMarkets(): Promise<{ markets: NftMarket[]; hasProNftData: boolean }> {
+async function fetchNftMarkets(): Promise<NftMarket[]> {
   const markets = await fetchCoinGeckoOptional<NftMarket[]>(
-    "nfts/markets?vs_currency=usd&order=market_cap_usd_desc&per_page=20&page=1",
+    "nfts/markets?vs_currency=usd&order=market_cap_usd_desc&per_page=10&page=1",
   );
-  if (Array.isArray(markets) && markets.length) return { markets, hasProNftData: true };
+  if (Array.isArray(markets) && markets.length) return markets;
 
   const listed = await fetchCoinGeckoOptional<Array<{ id?: string }>>(
-    "nfts/list?order=market_cap_usd_desc&per_page=20&page=1",
+    "nfts/list?order=market_cap_usd_desc&per_page=10&page=1",
   );
   const ids = [...new Set((listed || []).map((item) => item.id).filter((id): id is string => Boolean(id)))].slice(
     0,
-    20,
+    10,
   );
 
   const details = await mapInBatches(ids, 4, (id) => fetchCoinGeckoOptional<NftMarket>(`nfts/${id}`));
-  return {
-    markets: details
-      .filter((item): item is NftMarket => Boolean(item?.id))
-      .sort((a, b) => (b.market_cap?.usd || 0) - (a.market_cap?.usd || 0)),
-    hasProNftData: false,
-  };
+  return details
+    .filter((item): item is NftMarket => Boolean(item?.id))
+    .sort((a, b) => (b.market_cap?.usd || 0) - (a.market_cap?.usd || 0));
 }
 
-async function fetchOverviewRaw(chartDays: number) {
+async function fetchOverviewRaw() {
   const coinsPath =
     `coins/markets?vs_currency=usd&ids=${RELATED_COIN_IDS}&order=market_cap_desc&sparkline=true&price_change_percentage=24h,7d`;
 
-  const [marketPayload, trendingResult, coinsResult, globalResult] = await Promise.all([
+  const [markets, trendingResult, coinsResult] = await Promise.all([
     fetchNftMarkets(),
     fetchCoinGeckoOptional<TrendingResponse>("search/trending"),
     fetchCoinGeckoOptional<CoinMarket[]>(coinsPath),
-    fetchCoinGeckoOptional<NftChart>(`nfts/market_chart/global?days=${chartDays}`),
   ]);
 
-  const markets = marketPayload.markets;
-  const trending = trendingResult?.nfts || [];
-  const coins = Array.isArray(coinsResult) ? coinsResult : [];
-  const globalChart = globalResult;
-
-  const chartIds = marketPayload.hasProNftData
-    ? markets.slice(0, 8).map((m) => m.id).filter(Boolean)
-    : [];
-  const collectionCharts = await mapInBatches(chartIds, 4, async (id) => {
-    const chart = await fetchCoinGeckoOptional<NftChart>(`nfts/${id}/market_chart?days=7`);
-    return { id, chart };
-  });
-
-  const chartsById = new Map(
-    collectionCharts.filter((c) => c.chart).map((c) => [c.id, c.chart as NftChart]),
-  );
-  return { markets, trending, coins, globalChart, chartsById };
+  return {
+    markets,
+    trending: trendingResult?.nfts || [],
+    coins: Array.isArray(coinsResult) ? coinsResult : [],
+  };
 }
 
 function buildOverview(
   raw: Awaited<ReturnType<typeof fetchOverviewRaw>>,
   timeFrame: MarketTimeFrame,
-  chartRange: ChartRange,
 ): CoinGeckoMarketOverview {
-  const { markets, trending, coins, globalChart, chartsById } = raw;
-  const tfDays = daysForTimeFrame(timeFrame);
-  const chartDays = chartRange === "1Y" ? 365 : chartRange === "7D" ? 7 : 30;
+  const { markets, trending, coins } = raw;
 
   const totalMcap = markets.reduce((sum, m) => sum + (m.market_cap?.usd || 0), 0);
   const volume24h = markets.reduce((sum, m) => sum + (m.volume_24h?.usd || 0), 0);
+  const marketCapUsd = totalMcap;
 
-  const mcapSeries = globalChart?.market_cap_usd || [];
-  const volSeries = globalChart?.h24_volume_usd || [];
-  const mcapTf = slicePairs(mcapSeries, tfDays);
-  const volTf = slicePairs(volSeries, tfDays);
-  const mcapChart = slicePairs(mcapSeries, chartDays);
-  const mcap30 = slicePairs(mcapSeries, 30);
-
-  const marketCapUsd = totalMcap || pairsToValues(mcapSeries).at(-1) || 0;
   const marketCapChangePct =
-    tfDays === 1
+    timeFrame === "24H"
       ? weightedPct(markets.map((m) => ({ weight: m.market_cap?.usd || 0, pct: pctValue(m.market_cap_24h_percentage_change) })))
-      : pctFromPairs(mcapTf);
+      : timeFrame === "7D"
+        ? weightedPct(markets.map((m) => ({ weight: m.market_cap?.usd || 0, pct: pctValue(m.floor_price_7d_percentage_change) })))
+        : weightedPct(markets.map((m) => ({ weight: m.market_cap?.usd || 0, pct: pctValue(m.floor_price_30d_percentage_change) })));
 
-  const volumeFromChart = tfDays === 1 ? null : sumDailyVolume(volSeries, tfDays);
-  const volumeUsd = volumeFromChart ?? volume24h;
-  const volumeChangePct =
-    tfDays === 1
-      ? weightedPct(
-          markets.map((m) => ({
-            weight: m.volume_24h?.usd || 0,
-            pct: pctValue(m.volume_24h_percentage_change) ?? asNumber(m.volume_in_usd_24h_percentage_change),
-          })),
-        )
-      : pctFromPairs(volTf);
-
-  const marketCapSpark = seriesToPolyline(downsample(pairsToValues(mcapTf.length ? mcapTf : mcapSeries), 26), 150, 44);
-  const volumeSpark = seriesToPolyline(downsample(pairsToValues(volTf.length ? volTf : volSeries), 26), 150, 44);
+  const volumeChangePct = weightedPct(
+    markets.map((m) => ({
+      weight: m.volume_24h?.usd || 0,
+      pct: pctValue(m.volume_24h_percentage_change) ?? asNumber(m.volume_in_usd_24h_percentage_change),
+    })),
+  );
 
   const trendingFromApi: TrendingNft[] = trending.slice(0, 3).map((n) => ({
     id: n.id || n.name || "",
@@ -533,10 +403,9 @@ function buildOverview(
     sharePct: totalMcap > 0 ? Math.round(((m.market_cap?.usd || 0) / totalMcap) * 100) : 0,
   }));
 
-  const rows: FloorNftRow[] = markets.map((m, index) => {
+  const rows: FloorNftRow[] = markets.slice(0, 10).map((m, index) => {
     const symbol = m.native_currency_symbol || "ETH";
     const sales = asNumber(m.one_day_sales);
-    const sparkValues = pairsToValues(chartsById.get(m.id)?.floor_price_usd);
     return {
       id: m.id,
       rank: index + 1,
@@ -547,10 +416,10 @@ function buildOverview(
       buyUrl: buyUrlFor(m.id),
       floorNative: formatNativeAmount(m.floor_price?.native_currency, symbol),
       floorUsd: formatUsdPrice(m.floor_price?.usd),
-      change24h: pctValue(m.floor_price_24h_percentage_change) ?? asNumber(m.floor_price_in_usd_24h_percentage_change),
+      change24h:
+        pctValue(m.floor_price_24h_percentage_change) ?? asNumber(m.floor_price_in_usd_24h_percentage_change),
       change7d: pctValue(m.floor_price_7d_percentage_change),
       change30d: pctValue(m.floor_price_30d_percentage_change),
-      sparkline: seriesToPolyline(downsample(sparkValues, 26), 120, 34),
       marketCapUsd: formatUsdFull(m.market_cap?.usd),
       marketCapNative: formatNativeAmount(m.market_cap?.native_currency, symbol),
       volumeNative: formatNativeAmount(m.volume_24h?.native_currency, symbol),
@@ -558,13 +427,6 @@ function buildOverview(
       sales24h: sales == null ? "—" : String(Math.round(sales)),
     };
   });
-
-  const chartValues = downsample(pairsToValues(mcapChart.length ? mcapChart : mcapSeries), 60);
-  const chartSpark = seriesToPolyline(chartValues, 1000, 220, 13.2);
-  const chartChange = pctFromPairs(mcapChart.length ? mcapChart : mcapSeries);
-  const high30d = Math.max(0, ...pairsToValues(mcap30.length ? mcap30 : mcapSeries), marketCapUsd);
-  const ethMcap = coins.find((c) => c.id === "ethereum")?.market_cap || 0;
-  const nftDominance = ethMcap > 0 && marketCapUsd > 0 ? (marketCapUsd / (marketCapUsd + ethMcap)) * 100 : null;
 
   const related: RelatedCoin[] = coins.map((c, index) => {
     const spark = c.sparkline_in_7d?.price || [];
@@ -587,48 +449,26 @@ function buildOverview(
   return {
     marketCapUsd,
     marketCapChangePct,
-    marketCapSpark,
-    volumeUsd,
+    volumeUsd: volume24h,
     volumeChangePct,
-    volumeSpark,
-    volumeLabel: volumeLabel(timeFrame),
+    volumeLabel: "24h Trading Volume",
     trending: trendingRows,
     dominance,
     rows,
-    chart: {
-      marketCapUsd,
-      changePct: chartChange,
-      changeCaption: chartCaption(chartRange),
-      polyline: chartSpark?.points || "",
-      area: chartSpark ? polylineToArea(chartSpark.points, 1000, 220) : "",
-      pos: chartSpark?.pos ?? (chartChange == null || chartChange >= 0),
-      axis: axisLabels(mcapChart.length ? mcapChart : mcapSeries),
-    },
-    chartStats: {
-      volume24h: formatUsdFull(volume24h),
-      collectionsTracked: markets.length ? markets.length.toLocaleString("en-US") : "—",
-      nftDominance: nftDominance == null ? "—" : `${nftDominance.toFixed(1)} %`,
-      high30d: formatUsdFull(high30d),
-    },
     coins: related,
   };
 }
 
-export function useCoinGeckoMarketOverview(
-  timeFrame: MarketTimeFrame = "24H",
-  chartRange: ChartRange = "30D",
-) {
-  const chartDays = chartRange === "1Y" ? 365 : 30;
-
+export function useCoinGeckoMarketOverview(timeFrame: MarketTimeFrame = "24H") {
   const query = useQuery({
-    queryKey: ["coingecko", "market-overview", chartDays],
-    queryFn: () => fetchOverviewRaw(chartDays),
+    queryKey: ["coingecko", "market-overview"],
+    queryFn: () => fetchOverviewRaw(),
     staleTime: 60_000,
     refetchInterval: 120_000,
     retry: 1,
   });
 
-  const data = query.data ? buildOverview(query.data, timeFrame, chartRange) : undefined;
+  const data = query.data ? buildOverview(query.data, timeFrame) : undefined;
 
   return {
     data,

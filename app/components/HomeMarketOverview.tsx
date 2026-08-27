@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  ChartRange,
   MarketTimeFrame,
   Sparkline,
   formatPctArrow,
@@ -10,7 +9,7 @@ import {
   useCoinGeckoMarketOverview,
 } from "@/lib/coingecko";
 
-type Tab = "floor" | "chart" | "coins";
+type Tab = "floor" | "coins";
 
 function Pct({ value, className = "mdlt" }: { value: number | null | undefined; className?: string }) {
   const { text, pos } = formatPctArrow(value);
@@ -58,12 +57,11 @@ function StarIcon({ filled }: { filled: boolean }) {
 
 export default function HomeMarketOverview() {
   const [timeFrame, setTimeFrame] = useState<MarketTimeFrame>("24H");
-  const [chartRange, setChartRange] = useState<ChartRange>("30D");
   const [tab, setTab] = useState<Tab>("floor");
   const [starred, setStarred] = useState<Set<string>>(() => new Set());
   const [sortAsc, setSortAsc] = useState(false);
 
-  const { data, isPending } = useCoinGeckoMarketOverview(timeFrame, chartRange);
+  const { data, isPending } = useCoinGeckoMarketOverview(timeFrame);
 
   const rows = useMemo(() => {
     const list = data?.rows || [];
@@ -82,8 +80,6 @@ export default function HomeMarketOverview() {
 
   const setHeaderRange = (tf: MarketTimeFrame) => {
     setTimeFrame(tf);
-    if (tf === "7D") setChartRange("7D");
-    else if (tf === "30D") setChartRange("30D");
   };
 
   return (
@@ -111,13 +107,10 @@ export default function HomeMarketOverview() {
         <div className="mov-stats">
           <div className="mstat">
             {isPending ? (
-              <>
-                <div>
-                  <div className="pd-skel" style={{ width: 150, height: 20, marginBottom: 8 }} />
-                  <div className="pd-skel" style={{ width: 110, height: 10 }} />
-                </div>
-                <div className="pd-skel" style={{ width: 110, height: 40, flexShrink: 0 }} />
-              </>
+              <div>
+                <div className="pd-skel" style={{ width: 150, height: 20, marginBottom: 8 }} />
+                <div className="pd-skel" style={{ width: 110, height: 10 }} />
+              </div>
             ) : (
               <>
                 <div>
@@ -126,19 +119,15 @@ export default function HomeMarketOverview() {
                     Market Cap <Pct value={data?.marketCapChangePct} className="mrc" />
                   </div>
                 </div>
-                <Spark spark={data?.marketCapSpark || null} viewBox="0 0 150 44" className="mstat-sp" />
               </>
             )}
           </div>
           <div className="mstat">
             {isPending ? (
-              <>
-                <div>
-                  <div className="pd-skel" style={{ width: 130, height: 20, marginBottom: 8 }} />
-                  <div className="pd-skel" style={{ width: 140, height: 10 }} />
-                </div>
-                <div className="pd-skel" style={{ width: 110, height: 40, flexShrink: 0 }} />
-              </>
+              <div>
+                <div className="pd-skel" style={{ width: 130, height: 20, marginBottom: 8 }} />
+                <div className="pd-skel" style={{ width: 140, height: 10 }} />
+              </div>
             ) : (
               <>
                 <div>
@@ -147,7 +136,6 @@ export default function HomeMarketOverview() {
                     {data?.volumeLabel ?? "24h Trading Volume"} <Pct value={data?.volumeChangePct} />
                   </div>
                 </div>
-                <Spark spark={data?.volumeSpark || null} viewBox="0 0 150 44" className="mstat-sp" />
               </>
             )}
           </div>
@@ -215,13 +203,6 @@ export default function HomeMarketOverview() {
             </svg>
             Floor Price
           </div>
-          <div className={`mtab ${tab === "chart" ? "active" : ""}`} onClick={() => setTab("chart")}>
-            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="10" cy="10" r="7.4" />
-              <path d="M2.6 10h14.8M10 2.6c2.2 2.3 2.2 12.1 0 14.8-2.2-2.7-2.2-12.5 0-14.8z" />
-            </svg>
-            Global Chart
-          </div>
           <div className={`mtab ${tab === "coins" ? "active" : ""}`} onClick={() => setTab("coins")}>
             <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5">
               <ellipse cx="10" cy="5.4" rx="6.4" ry="2.6" />
@@ -231,11 +212,7 @@ export default function HomeMarketOverview() {
             Related Coins
           </div>
         </div>
-        <div
-          className="msort"
-          style={{ visibility: tab === "chart" ? "hidden" : "visible" }}
-          onClick={() => setSortAsc((v) => !v)}
-        >
+        <div className="msort" onClick={() => setSortAsc((v) => !v)}>
           Market Cap{" "}
           <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="1.6">
             <path d={sortAsc ? "M2.5 7.5L6 4l3.5 3.5" : "M2.5 4.5L6 8l3.5-3.5"} />
@@ -255,13 +232,12 @@ export default function HomeMarketOverview() {
               <div className="mcel mc-chg">24h</div>
               <div className="mcel mc-chg">7d</div>
               <div className="mcel mc-chg">30d</div>
-              <div className="mcel mc-spark">Last 7 Days</div>
               <div className="mcel mc-num">Market Cap</div>
               <div className="mcel mc-num">24h Volume</div>
               <div className="mcel mc-sales">24h Sales</div>
             </div>
             {isPending
-              ? Array.from({ length: 6 }, (_, i) => (
+              ? Array.from({ length: 10 }, (_, i) => (
                   <div className="mrow" key={`floor-skel-${i}`}>
                     <div className="mcel mc-star">
                       <div className="pd-skel" style={{ width: 13, height: 13 }} />
@@ -290,9 +266,6 @@ export default function HomeMarketOverview() {
                     </div>
                     <div className="mcel mc-chg">
                       <div className="pd-skel" style={{ width: 48, height: 10, marginLeft: "auto" }} />
-                    </div>
-                    <div className="mcel mc-spark">
-                      <div className="pd-skel" style={{ width: 118, height: 34 }} />
                     </div>
                     <div className="mcel mc-num">
                       <div className="pd-skel" style={{ width: 90, height: 12, marginLeft: "auto" }} />
@@ -342,7 +315,6 @@ export default function HomeMarketOverview() {
                     <div className="mcel mc-chg">
                       <Pct value={row.change30d} />
                     </div>
-                    <Spark spark={row.sparkline} viewBox="0 0 120 34" className="mc-spark" />
                     <div className="mcel mc-num">
                       <div className="mfp">{row.marketCapUsd}</div>
                       <div className="mfu">{row.marketCapNative}</div>
@@ -354,70 +326,6 @@ export default function HomeMarketOverview() {
                     <div className="mcel mc-sales">{row.sales24h}</div>
                   </div>
                 ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="mpanel" hidden={tab !== "chart"}>
-        <div className="mchart-top">
-          <div>
-            <div className="mchart-l">NFT Market Cap</div>
-            <div className="mchart-v">{isPending ? <span className="pd-skel" style={{ display: "inline-block", width: 180, height: 24 }} /> : data ? formatUsdFull(data.chart.marketCapUsd) : "—"}</div>
-            <div className="mchart-d">
-              <Pct value={data?.chart.changePct} />
-              <span className="mchart-dl">{data?.chart.changeCaption ?? "past 30 days"}</span>
-            </div>
-          </div>
-          <div className="tf">
-            {(["7D", "30D", "1Y"] as ChartRange[]).map((range) => (
-              <div
-                key={range}
-                className={`to ${chartRange === range ? "active" : ""}`}
-                onClick={() => setChartRange(range)}
-                style={{ cursor: "pointer" }}
-              >
-                {range}
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className={`mchart-box ${data?.chart.pos === false ? "neg" : "pos"}`}>
-          {isPending ? (
-            <div className="pd-skel" style={{ width: "100%", height: "100%" }} />
-          ) : data?.chart.polyline ? (
-            <svg className="mbig" viewBox="0 0 1000 220" preserveAspectRatio="none">
-              <polyline
-                points={data.chart.polyline}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
-              />
-              <polygon points={data.chart.area} fill="currentColor" opacity=".08" />
-            </svg>
-          ) : null}
-        </div>
-        <div className="mchart-axis">
-          {(data?.chart.axis || []).map((label, i) => (
-            <span key={`${label}-${i}`}>{label}</span>
-          ))}
-        </div>
-        <div className="mchart-grid">
-          <div className="mchart-cell">
-            <div className="mchart-cl">24h Volume</div>
-            <div className="mchart-cv">{isPending ? "—" : data?.chartStats.volume24h ?? "—"}</div>
-          </div>
-          <div className="mchart-cell">
-            <div className="mchart-cl">Collections Tracked</div>
-            <div className="mchart-cv">{isPending ? "—" : data?.chartStats.collectionsTracked ?? "—"}</div>
-          </div>
-          <div className="mchart-cell">
-            <div className="mchart-cl">NFT Dominance</div>
-            <div className="mchart-cv">{isPending ? "—" : data?.chartStats.nftDominance ?? "—"}</div>
-          </div>
-          <div className="mchart-cell">
-            <div className="mchart-cl">30d High</div>
-            <div className="mchart-cv">{isPending ? "—" : data?.chartStats.high30d ?? "—"}</div>
           </div>
         </div>
       </div>

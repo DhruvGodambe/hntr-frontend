@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-const OPENSEA_API_BASE = "https://api.opensea.io/api/v2";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export const OPENSEA_COLLECTION_SLUGS = {
   CryptoPunks: "cryptopunks",
@@ -152,31 +152,11 @@ export interface OpenSeaListing {
   openseaUrl: string;
 }
 
-function getApiKey(): string | undefined {
-  const key = process.env.NEXT_PUBLIC_OPENSEA_API_KEY;
-  return key?.replace(/^["']|["']$/g, "").trim();
-}
-
-function getHeaders(): Record<string, string> {
-  const key = getApiKey();
-  return key ? { "X-API-KEY": key } : {};
-}
-
 async function fetchOpenSea<T>(path: string, method: "GET" | "POST" = "GET", body?: unknown): Promise<T> {
-  const isClient = typeof window !== "undefined";
-  const url = isClient
-    ? `/api/opensea?path=${encodeURIComponent(path)}`
-    : `${OPENSEA_API_BASE}${path}`;
+  const url = `${API_BASE}/api/market/opensea?path=${encodeURIComponent(path)}`;
   const res = await fetch(url, {
     method,
-    headers: isClient
-      ? body
-        ? { "Content-Type": "application/json" }
-        : {}
-      : {
-          ...getHeaders(),
-          ...(body ? { "Content-Type": "application/json" } : {}),
-        },
+    headers: body ? { "Content-Type": "application/json" } : {},
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
   if (!res.ok) {
@@ -514,7 +494,6 @@ async function enrichListingsWithImages(
 /** Fetches stats + NFTs for all known collections. */
 export function useOpenSeaCollections() {
   const slugs = Object.values(OPENSEA_COLLECTION_SLUGS);
-  const key = getApiKey();
 
   return useQuery({
     queryKey: ["opensea", "collections", slugs],
@@ -539,7 +518,6 @@ export function useOpenSeaCollections() {
 
       return record;
     },
-    enabled: !!key,
     staleTime: 60_000,
     refetchInterval: 120_000,
   });
@@ -547,8 +525,6 @@ export function useOpenSeaCollections() {
 
 /** Fetches the best listings for a single collection, enriched with metadata. */
 export function useOpenSeaListings(slug: string, limit = 8) {
-  const key = getApiKey();
-
   return useQuery({
     queryKey: ["opensea", "listings", slug, limit],
     queryFn: async () => {
@@ -569,7 +545,7 @@ export function useOpenSeaListings(slug: string, limit = 8) {
 
       return enrichListingsWithImages(listings, nfts);
     },
-    enabled: !!key && !!slug,
+    enabled: !!slug,
     staleTime: 60_000,
     refetchInterval: 120_000,
   });
@@ -586,7 +562,6 @@ export function formatUsd(ethPrice: number, ethUsd = 2900): string {
 /** Fetches the best listings for all known collections, enriched with metadata. */
 export function useOpenSeaMarketplaceListings(limitPerCollection = 4) {
   const slugs = Object.values(OPENSEA_COLLECTION_SLUGS);
-  const key = getApiKey();
 
   return useQuery({
     queryKey: ["opensea", "marketplace", slugs, limitPerCollection],
@@ -622,7 +597,6 @@ export function useOpenSeaMarketplaceListings(limitPerCollection = 4) {
         })
         .flat();
     },
-    enabled: !!key,
     staleTime: 60_000,
     refetchInterval: 120_000,
   });
@@ -631,7 +605,6 @@ export function useOpenSeaMarketplaceListings(limitPerCollection = 4) {
 /** Recent sales across known marketplace collections. */
 export function useOpenSeaMarketplaceSales(limitPerCollection = 3) {
   const slugs = Object.values(OPENSEA_COLLECTION_SLUGS);
-  const key = getApiKey();
 
   return useQuery({
     queryKey: ["opensea", "sales", slugs, limitPerCollection],
@@ -651,7 +624,6 @@ export function useOpenSeaMarketplaceSales(limitPerCollection = 3) {
         .flat()
         .sort((a, b) => b.timestamp - a.timestamp);
     },
-    enabled: !!key,
     staleTime: 60_000,
     refetchInterval: 120_000,
   });
@@ -674,7 +646,6 @@ function changeForTimeframe(stats: OpenSeaCollectionStats, tf: MarketTimeFrame):
 /** Homepage market overview: floors, volumes, and ranked lists for a timeframe. */
 export function useOpenSeaHomeMarket(timeFrame: MarketTimeFrame = "24H") {
   const slugs = [...OPENSEA_HOME_MARKET_SLUGS];
-  const key = getApiKey();
 
   return useQuery({
     queryKey: ["opensea", "home-market", slugs, timeFrame],
@@ -708,7 +679,6 @@ export function useOpenSeaHomeMarket(timeFrame: MarketTimeFrame = "24H") {
         topFlyers: byChange.slice(0, 5),
       };
     },
-    enabled: !!key,
     staleTime: 60_000,
     refetchInterval: 120_000,
   });
