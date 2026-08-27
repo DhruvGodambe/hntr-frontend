@@ -2,18 +2,21 @@
 
 import MainLayout from "../components/MainLayout";
 import CollectionHeroBanner from "../components/CollectionHeroBanner";
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "nextjs-toploader/app";
-import {
-  formatFloorPrice,
-  formatUsd,
-  OPENSEA_COLLECTION_SLUGS,
-  poolDisplayName,
-  toPoolRouteId,
-  useOpenSeaCollections,
-  useOpenSeaMarketplaceListings,
-  useOpenSeaMarketplaceSales,
-} from "@/lib/opensea";
+import FilterEmptyState from "../components/FilterEmptyState";
+import { useState } from "react";
+import { OPENSEA_COLLECTION_SLUGS } from "@/lib/opensea";
+// import { useEffect, useMemo, useState } from "react";
+// import { useRouter } from "nextjs-toploader/app";
+// import {
+//   formatFloorPrice,
+//   formatUsd,
+//   OPENSEA_COLLECTION_SLUGS,
+//   poolDisplayName,
+//   toPoolRouteId,
+//   useOpenSeaCollections,
+//   useOpenSeaMarketplaceListings,
+//   useOpenSeaMarketplaceSales,
+// } from "@/lib/opensea";
 
 const RING_CIRC = 201.06;
 const LISTING_SRC_LOGOS = [
@@ -476,136 +479,131 @@ function getPosMobileMeta(row: ListedRow | SoldRow | ProgressRow, view: PosView)
 }
 
 export default function CollectionPage() {
-  const router = useRouter();
   const [collections, setCollections] = useState(COLLECTIONS);
   const [collectionsOpen, setCollectionsOpen] = useState(true);
   const [posView, setPosView] = useState<PosView>("listed");
-  const [ringPcts, setRingPcts] = useState<Record<number, number>>({});
-  const {
-    data: openSeaCollections,
-    isLoading: isLoadingCollections,
-    error: collectionsError,
-  } = useOpenSeaCollections();
-  const { data: marketplaceListings, isLoading: listingsLoading } =
-    useOpenSeaMarketplaceListings(4);
-  const { data: marketplaceSales } = useOpenSeaMarketplaceSales(2);
+  const displayedCollections = collections;
+  const rows = [] as typeof POS_DATA[typeof posView];
 
-  const ethUsd = 2900;
-
-  const displayedCollections = useMemo(() => {
-    if (!openSeaCollections) return collections;
-    return collections.map((c) => {
-      const slug = OPENSEA_COLLECTION_SLUGS[c.name as keyof typeof OPENSEA_COLLECTION_SLUGS];
-      const stats = openSeaCollections[slug]?.stats;
-      return { ...c, count: stats?.nftCount || c.count };
-    });
-  }, [collections, openSeaCollections]);
-
-  const coOwnedNfts = useMemo<CoOwnedNft[]>(() => {
-    const checked = new Set(collections.filter((c) => c.checked).map((c) => c.name));
-    const checkedSlugs = new Set<string>(
-      Object.entries(OPENSEA_COLLECTION_SLUGS)
-        .filter(([name]) => checked.has(name))
-        .map(([, slug]) => slug),
-    );
-
-    const listings = (marketplaceListings || []).filter((listing) =>
-      checkedSlugs.has(listing.collection),
-    );
-
-    if (listings.length) {
-      return listings.map((listing, index) => {
-        const price = listing.priceEth || 0;
-        return {
-          id: index + 1,
-          slug: listing.collection,
-          rawTokenId: listing.tokenId,
-          name: poolDisplayName(listing.collection),
-          tokenId: `#${listing.tokenId}`,
-          img: listing.imageUrl || "",
-          pool: "OPENSEA",
-          sharePct: 0,
-          listedPrice: price > 0 ? price.toFixed(2) : "—",
-          listedUsd: price > 0 ? formatUsd(price) : "—",
-          myShare: "—",
-          myShareUsd: "—",
-          profit: "—",
-          status: "Listed",
-          delay: `${index * 0.04}s`,
-        };
-      });
-    }
-
-    if (listingsLoading) return [];
-
-    const out: CoOwnedNft[] = [];
-    for (const [name, slug] of Object.entries(OPENSEA_COLLECTION_SLUGS)) {
-      if (!checked.has(name)) continue;
-      const { stats, nfts } = openSeaCollections?.[slug] || { stats: null, nfts: [] };
-      for (const nft of nfts.slice(0, 2)) {
-        const floor = stats?.floorPrice ?? 0;
-        out.push({
-          id: out.length + 1,
-          slug,
-          rawTokenId: nft.tokenId,
-          name,
-          tokenId: `#${nft.tokenId}`,
-          img: nft.imageUrl || "",
-          pool: "OPENSEA",
-          sharePct: 0,
-          listedPrice: floor > 0 ? floor.toFixed(2) : "—",
-          listedUsd: floor > 0 ? formatUsd(floor) : "—",
-          myShare: "—",
-          myShareUsd: "—",
-          profit: "—",
-          status: "Listed",
-          delay: `${out.length * 0.04}s`,
-        });
-      }
-    }
-    return out;
-  }, [openSeaCollections, collections, marketplaceListings, listingsLoading]);
-
-  const livePosData = useMemo(() => {
-    const listed: ListedRow[] = (marketplaceListings || []).slice(0, 8).map((listing) => ({
-      src: "OpenSea",
-      coll: poolDisplayName(listing.collection),
-      token: `#${listing.tokenId}`,
-      price: `${listing.priceEth.toFixed(2)} ETH`,
-      priceUsd: formatUsd(listing.priceEth),
-      apr: "—",
-      profit: "—",
-      profitUsd: "—",
-    }));
-    const sold: SoldRow[] = (marketplaceSales || []).slice(0, 8).map((sale) => ({
-      src: "OpenSea",
-      coll: poolDisplayName(sale.collection),
-      token: `#${sale.tokenId}`,
-      price: "",
-      priceUsd: "",
-      apr: "",
-      bought: "—",
-      boughtUsd: "—",
-      sold: `${sale.priceEth.toFixed(2)} ETH`,
-      soldUsd: formatUsd(sale.priceEth),
-      profit: "—",
-      profitUsd: "—",
-    }));
-    return { listed, sold, progress: [] as ProgressRow[] };
-  }, [marketplaceListings, marketplaceSales]);
-
-  useEffect(() => {
-    const timers = coOwnedNfts.map((nft, i) =>
-      setTimeout(() => {
-        setRingPcts((prev) => ({ ...prev, [nft.id]: nft.sharePct }));
-      }, 200 + i * 80)
-    );
-    return () => timers.forEach(clearTimeout);
-  }, [coOwnedNfts]);
-
-  const goToPoolDetail = (slug: string, tokenId: string) => {
-    router.push(`/pool/${toPoolRouteId(slug, tokenId)}`);
-  };
+  // Collection is not live yet — restore the block below when launching.
+  // const router = useRouter();
+  // const [ringPcts, setRingPcts] = useState<Record<number, number>>({});
+  // const {
+  //   data: openSeaCollections,
+  //   isLoading: isLoadingCollections,
+  //   error: collectionsError,
+  // } = useOpenSeaCollections();
+  // const { data: marketplaceListings, isLoading: listingsLoading } =
+  //   useOpenSeaMarketplaceListings(4);
+  // const { data: marketplaceSales } = useOpenSeaMarketplaceSales(2);
+  // const ethUsd = 2900;
+  // const displayedCollections = useMemo(() => {
+  //   if (!openSeaCollections) return collections;
+  //   return collections.map((c) => {
+  //     const slug = OPENSEA_COLLECTION_SLUGS[c.name as keyof typeof OPENSEA_COLLECTION_SLUGS];
+  //     const stats = openSeaCollections[slug]?.stats;
+  //     return { ...c, count: stats?.nftCount || c.count };
+  //   });
+  // }, [collections, openSeaCollections]);
+  // const coOwnedNfts = useMemo<CoOwnedNft[]>(() => {
+  //   const checked = new Set(collections.filter((c) => c.checked).map((c) => c.name));
+  //   const checkedSlugs = new Set<string>(
+  //     Object.entries(OPENSEA_COLLECTION_SLUGS)
+  //       .filter(([name]) => checked.has(name))
+  //       .map(([, slug]) => slug),
+  //   );
+  //   const listings = (marketplaceListings || []).filter((listing) =>
+  //     checkedSlugs.has(listing.collection),
+  //   );
+  //   if (listings.length) {
+  //     return listings.map((listing, index) => {
+  //       const price = listing.priceEth || 0;
+  //       return {
+  //         id: index + 1,
+  //         slug: listing.collection,
+  //         rawTokenId: listing.tokenId,
+  //         name: poolDisplayName(listing.collection),
+  //         tokenId: `#${listing.tokenId}`,
+  //         img: listing.imageUrl || "",
+  //         pool: "OPENSEA",
+  //         sharePct: 0,
+  //         listedPrice: price > 0 ? price.toFixed(2) : "—",
+  //         listedUsd: price > 0 ? formatUsd(price) : "—",
+  //         myShare: "—",
+  //         myShareUsd: "—",
+  //         profit: "—",
+  //         status: "Listed",
+  //         delay: `${index * 0.04}s`,
+  //       };
+  //     });
+  //   }
+  //   if (listingsLoading) return [];
+  //   const out: CoOwnedNft[] = [];
+  //   for (const [name, slug] of Object.entries(OPENSEA_COLLECTION_SLUGS)) {
+  //     if (!checked.has(name)) continue;
+  //     const { stats, nfts } = openSeaCollections?.[slug] || { stats: null, nfts: [] };
+  //     for (const nft of nfts.slice(0, 2)) {
+  //       const floor = stats?.floorPrice ?? 0;
+  //       out.push({
+  //         id: out.length + 1,
+  //         slug,
+  //         rawTokenId: nft.tokenId,
+  //         name,
+  //         tokenId: `#${nft.tokenId}`,
+  //         img: nft.imageUrl || "",
+  //         pool: "OPENSEA",
+  //         sharePct: 0,
+  //         listedPrice: floor > 0 ? floor.toFixed(2) : "—",
+  //         listedUsd: floor > 0 ? formatUsd(floor) : "—",
+  //         myShare: "—",
+  //         myShareUsd: "—",
+  //         profit: "—",
+  //         status: "Listed",
+  //         delay: `${out.length * 0.04}s`,
+  //       });
+  //     }
+  //   }
+  //   return out;
+  // }, [openSeaCollections, collections, marketplaceListings, listingsLoading]);
+  // const livePosData = useMemo(() => {
+  //   const listed: ListedRow[] = (marketplaceListings || []).slice(0, 8).map((listing) => ({
+  //     src: "OpenSea",
+  //     coll: poolDisplayName(listing.collection),
+  //     token: `#${listing.tokenId}`,
+  //     price: `${listing.priceEth.toFixed(2)} ETH`,
+  //     priceUsd: formatUsd(listing.priceEth),
+  //     apr: "—",
+  //     profit: "—",
+  //     profitUsd: "—",
+  //   }));
+  //   const sold: SoldRow[] = (marketplaceSales || []).slice(0, 8).map((sale) => ({
+  //     src: "OpenSea",
+  //     coll: poolDisplayName(sale.collection),
+  //     token: `#${sale.tokenId}`,
+  //     price: "",
+  //     priceUsd: "",
+  //     apr: "",
+  //     bought: "—",
+  //     boughtUsd: "—",
+  //     sold: `${sale.priceEth.toFixed(2)} ETH`,
+  //     soldUsd: formatUsd(sale.priceEth),
+  //     profit: "—",
+  //     profitUsd: "—",
+  //   }));
+  //   return { listed, sold, progress: [] as ProgressRow[] };
+  // }, [marketplaceListings, marketplaceSales]);
+  // useEffect(() => {
+  //   const timers = coOwnedNfts.map((nft, i) =>
+  //     setTimeout(() => {
+  //       setRingPcts((prev) => ({ ...prev, [nft.id]: nft.sharePct }));
+  //     }, 200 + i * 80)
+  //   );
+  //   return () => timers.forEach(clearTimeout);
+  // }, [coOwnedNfts]);
+  // const goToPoolDetail = (slug: string, tokenId: string) => {
+  //   router.push(`/pool/${toPoolRouteId(slug, tokenId)}`);
+  // };
+  // const rows = (livePosData[posView]?.length ? livePosData[posView] : POS_DATA[posView]) as typeof POS_DATA[typeof posView];
 
   const toggleCollection = (name: string) => {
     setCollections((prev) =>
@@ -613,12 +611,11 @@ export default function CollectionPage() {
     );
   };
 
-  const rows = (livePosData[posView]?.length ? livePosData[posView] : POS_DATA[posView]) as typeof POS_DATA[typeof posView];
-
   return (
     <MainLayout>
       <div className="feed" id="feed-collection">
         <div className="coll-body">
+          {/* Coming Soon overlay — restore when Collection launches
           <div className="coll-coming-soon">
             <div className="coll-coming-soon-card">
               <div className="coll-coming-soon-kicker">HNTR Collection</div>
@@ -628,6 +625,7 @@ export default function CollectionPage() {
               </div>
             </div>
           </div>
+          */}
           <CollectionHeroBanner />
 
             {/* STAT STRIP */}
@@ -703,9 +701,8 @@ export default function CollectionPage() {
                       >
                         <div className={`coll-check${coll.checked ? " checked" : ""}`}></div>
                         <span className="coll-name">{coll.name}</span>
-                        <span className="coll-count">
-                          {isLoadingCollections && coll.count === 0 ? "..." : coll.count}
-                        </span>
+                        <span className="coll-count">0</span>
+                        {/* {isLoadingCollections && coll.count === 0 ? "..." : coll.count} */}
                       </div>
                     ))}
                   </div>
@@ -738,6 +735,11 @@ export default function CollectionPage() {
               <div className="coll-main-right">
                 <div className="coll-sh" style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
                   <div className="coll-sh-title">Current Co-Owned NFTs</div>
+                  <span className="filter-empty-count" aria-live="polite">
+                    <span className="filter-empty-count-icon" aria-hidden="true" />
+                    0 ITEMS
+                  </span>
+                  {/*
                   {listingsLoading && <span className="pd-skel" style={{ width: 96, height: 10 }} aria-hidden="true" />}
                   {!listingsLoading && collectionsError && (
                     <span style={{ color: "#ff6b6b", fontSize: "12px" }}>
@@ -747,8 +749,12 @@ export default function CollectionPage() {
                   {!isLoadingCollections && !collectionsError && openSeaCollections && Object.keys(openSeaCollections).length > 0 && (
                     <span style={{ color: "var(--sage)", fontSize: "12px" }}>Live OpenSea data</span>
                   )}
+                  */}
                 </div>
 
+                <FilterEmptyState variant="nc" ghostCount={4} />
+
+                {/* Live NFT grid — restore when Collection launches
                 <div className="nc-grid" id="ncGrid">
                   {listingsLoading && coOwnedNfts.length === 0 &&
                     [0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
@@ -767,7 +773,6 @@ export default function CollectionPage() {
                   {coOwnedNfts.map((nft, index) => {
                     const animatedPct = ringPcts[nft.id] ?? 0;
                     const ringOffset = RING_CIRC - (animatedPct / 100) * RING_CIRC;
-
                     return (
                       <div key={nft.id} className="nc" style={{ animationDelay: nft.delay }}>
                         <div className="nc-img-wrap">
@@ -892,10 +897,10 @@ export default function CollectionPage() {
                     );
                   })}
                 </div>
-
                 <div className="coll-show-more">
                   <button className="coll-show-more-btn">SHOW MORE</button>
                 </div>
+                */}
               </div>
             </div>
 
@@ -968,7 +973,8 @@ export default function CollectionPage() {
                 );
               })}
               <div className="coll-pos-count">
-                Showing 1–{rows.length} of {POS_TOTALS[posView]} entries
+                Showing 0 of 0 entries
+                {/* Showing 1–{rows.length} of {POS_TOTALS[posView]} entries */}
               </div>
             </div>
 
@@ -983,6 +989,12 @@ export default function CollectionPage() {
                   </tr>
                 </thead>
                 <tbody id="posTable">
+                  <tr>
+                    <td colSpan={POS_HEADS[posView].length} style={{ textAlign: "center", color: "var(--t2)", padding: "24px 0" }}>
+                      No items found
+                    </td>
+                  </tr>
+                  {/* Live position rows — restore when Collection launches
                   {posView === "listed" &&
                     POS_DATA.listed.map((r) => (
                       <tr key={`${r.src}-${r.token}`} className="pos-tr">
@@ -1014,7 +1026,6 @@ export default function CollectionPage() {
                         </td>
                       </tr>
                     ))}
-
                   {posView === "sold" &&
                     POS_DATA.sold.map((r) => (
                       <tr key={`${r.src}-${r.token}`} className="pos-tr">
@@ -1048,7 +1059,6 @@ export default function CollectionPage() {
                         </td>
                       </tr>
                     ))}
-
                   {posView === "progress" &&
                     POS_DATA.progress.map((r) => (
                       <tr key={`${r.src}-${r.token}`} className="pos-tr">
@@ -1080,12 +1090,14 @@ export default function CollectionPage() {
                         </td>
                       </tr>
                     ))}
+                  */}
                 </tbody>
               </table>
               </div>
               <div className="pos-footer">
                 <div className="pos-count" id="posCount">
-                  Showing 1-{rows.length} of {POS_TOTALS[posView]} entries
+                  Showing 0 of 0 entries
+                  {/* Showing 1-{rows.length} of {POS_TOTALS[posView]} entries */}
                 </div>
                 <div className="pos-pages">
                   <button className="pos-pg">‹</button>

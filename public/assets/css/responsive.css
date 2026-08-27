@@ -606,6 +606,16 @@ body.dark .mkt-filter-tab.active {
     grid-template-columns: 1fr 1fr !important;
   }
 
+  .mov {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  .mov-stats {
+    grid-column: 1 / -1 !important;
+    grid-template-rows: none !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
   .pools-grid,
   #panel-pools .np-grid {
     grid-template-columns: 1fr 1fr !important;
@@ -2037,6 +2047,29 @@ body.dark .mkt-filter-tab.active {
     border-radius: 0 !important;
     overflow: visible !important;
     margin-bottom: 24px !important;
+  }
+
+  #feed-home .mov {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+  }
+
+  #feed-home .mov-stats {
+    grid-column: 1 / -1 !important;
+    grid-template-rows: none !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  #feed-home .mstat,
+  #feed-home .mcard {
+    background: var(--e1) !important;
+    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+  }
+
+  #feed-home .mstat {
+    padding: 12px 13px !important;
   }
 
   #feed-home .mk {
@@ -3616,7 +3649,8 @@ body.dark .mkt-filter-tab.active {
     display: none !important;
   }
 
-  #feed-collection .nc-grid {
+  #feed-collection .nc-grid,
+  #feed-collection .filter-empty-ghosts {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 11px !important;
     margin-bottom: 0 !important;
@@ -4062,7 +4096,8 @@ body.dark .mkt-filter-tab.active {
     display: none !important;
   }
 
-  #feed-marketplace .vault-grid {
+  #feed-marketplace .vault-grid,
+  #feed-marketplace .filter-empty-ghosts {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 11px !important;
     margin-bottom: 0 !important;
@@ -5152,7 +5187,9 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-marketplace .vault-grid,
-  #feed-collection .nc-grid {
+  #feed-collection .nc-grid,
+  #feed-marketplace .filter-empty-ghosts,
+  #feed-collection .filter-empty-ghosts {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 

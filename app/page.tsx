@@ -10,15 +10,13 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import MainLayout from "./components/MainLayout";
 import HomeHeroBanner from "./components/HomeHeroBanner";
+import HomeMarketOverview from "./components/HomeMarketOverview";
 import { initReveal, setBannerResources } from "../lib/banners";
 import { DEPOSIT_CTA_LABEL } from "../lib/deposit-modal";
 import { hasSeenIntro, markIntroSeen } from "../lib/intro-state";
 import { useRouter } from "nextjs-toploader/app";
 import {
-  formatChangePct,
   formatUsd,
-  MarketTimeFrame,
-  useOpenSeaHomeMarket,
   useOpenSeaListings,
   useOpenSeaMarketplaceListings,
   useOpenSeaMarketplaceSales,
@@ -177,49 +175,6 @@ const FALLBACK_SALES_CARDS = [
   { img: "/assets/images/image-9.jpg", name: "Pudgy Penguins #6754", bought: "4.41", sale: "4.85", profit: "+10%", openseaUrl: "https://opensea.io" }
 ];
 
-const FALLBACK_MARKET = {
-  totalVolume: 42819,
-  activeCollections: 1204,
-  top: [
-    { name: "CryptoPunks", floorPrice: 30.19, change: 0.18, thumb: "🧱" },
-    { name: "Autoglyphs", floorPrice: 81.0, change: -8.88, thumb: "✒" },
-    { name: "Fidenza by Tyler Hobbs", floorPrice: 16.4, change: -0.38, thumb: "🎨" },
-    { name: "Bored Ape Yacht Club", floorPrice: 7.7994, change: 2.44, thumb: "🦧" },
-    { name: "Pudgy Penguins", floorPrice: 4.3499, change: 6.38, thumb: "🐧" },
-  ],
-  trending: [
-    { name: "Nakamigos", floorPrice: 0.1358, volume: 4881, thumb: "🍜" },
-    { name: "NORMIES", floorPrice: 0.0544, volume: 77317, thumb: "🐻" },
-    { name: "Kaito Genesis", floorPrice: 1.3589, volume: 34152, thumb: "⚡" },
-    { name: "Lil Pudgys", floorPrice: 0.9888, volume: 96610, thumb: "🐸" },
-    { name: "Invisible Friends", floorPrice: 0.1244, volume: 27075, thumb: "👻" },
-  ],
-  topFlyers: [
-    { name: "Kaito Genesis", floorPrice: 0.15, change: 41.65, thumb: "⚡" },
-    { name: "VoxFriends", floorPrice: 1.039, change: 28.79, thumb: "🌿" },
-    { name: "Bored Ape Kennel Club", floorPrice: 0.308, change: 13.48, thumb: "🐕" },
-    { name: "Pudgy Rods", floorPrice: 0.125, change: -5.07, thumb: "🐧" },
-    { name: "Terraforms by Mathcastles", floorPrice: 0.5001, change: -6.64, thumb: "🌍" },
-  ],
-};
-
-function collectionThumb(name: string, imageUrl?: string): string {
-  if (imageUrl) return imageUrl;
-  const n = name.toLowerCase();
-  if (n.includes("punk")) return "🧱";
-  if (n.includes("glyph")) return "✒";
-  if (n.includes("fidenza")) return "🎨";
-  if (n.includes("bored ape") || n.includes("bayc")) return "🦧";
-  if (n.includes("kennel")) return "🐕";
-  if (n.includes("pudgy")) return "🐧";
-  if (n.includes("nakamigo")) return "🍜";
-  if (n.includes("doodle")) return "🎨";
-  if (n.includes("azuki")) return "🎴";
-  if (n.includes("invisible")) return "👻";
-  if (n.includes("lil")) return "🐸";
-  return "◆";
-}
-
 function ListingCard({
   img,
   name,
@@ -305,7 +260,6 @@ export default function HomePage() {
   const [hideCaret, setHideCaret] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [marketTimeFrame, setMarketTimeFrame] = useState<MarketTimeFrame>("24H");
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches
   );
@@ -323,7 +277,6 @@ export default function HomePage() {
   const { data: azukiListings } = useOpenSeaListings("azuki", 1);
   const { data: openSeaListings } = useOpenSeaMarketplaceListings(3);
   const { data: openSeaSales } = useOpenSeaMarketplaceSales(3);
-  const { data: openSeaMarket } = useOpenSeaHomeMarket(marketTimeFrame);
 
   const strategyPools = useMemo(() => {
     const liveBySlug: Record<
@@ -461,26 +414,6 @@ export default function HomePage() {
     return live.length ? live : FALLBACK_SALES_CARDS;
   }, [openSeaSales]);
 
-  const market = useMemo(() => {
-    if (!openSeaMarket?.top?.length) return FALLBACK_MARKET;
-
-    const mapRow = (c: (typeof openSeaMarket.top)[number]) => ({
-      name: c.name,
-      floorPrice: c.floorPrice,
-      change: c.change,
-      volume: Math.round((c.volume || 0) * 2900),
-      thumb: collectionThumb(c.name, c.imageUrl),
-      imageUrl: c.imageUrl,
-    });
-
-    return {
-      totalVolume: openSeaMarket.totalVolume,
-      activeCollections: openSeaMarket.activeCollections,
-      top: openSeaMarket.top.map(mapRow),
-      trending: openSeaMarket.trending.map(mapRow),
-      topFlyers: openSeaMarket.topFlyers.map(mapRow),
-    };
-  }, [openSeaMarket]);
   const cardCount = strategyPools.length;
   const npViewportRef = useRef<HTMLDivElement | null>(null);
   const npGridRef = useRef<HTMLDivElement | null>(null);
@@ -1722,139 +1655,7 @@ export default function HomePage() {
                 )}
               </div>
 
-              <div className="mkt">
-                <div className="mh">
-                  <div>
-                    <div className="st">Market Overview</div>
-                    <div className="sub">Real-time NFT liquidity and floor data across major collections.</div>
-                  </div>
-                  <div className="tf">
-                    <div 
-                      className={`to ${marketTimeFrame === '24H' ? 'active' : ''}`}
-                      onClick={() => setMarketTimeFrame('24H')}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      24H
-                    </div>
-                    <div 
-                      className={`to ${marketTimeFrame === '7D' ? 'active' : ''}`}
-                      onClick={() => setMarketTimeFrame('7D')}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      7D
-                    </div>
-                    <div 
-                      className={`to ${marketTimeFrame === '30D' ? 'active' : ''}`}
-                      onClick={() => setMarketTimeFrame('30D')}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      30D
-                    </div>
-                  </div>
-                </div>
-                <div className="mkp">
-                  <div className="mk">
-                    <div className="mkl">Total Volume</div>
-                    <div className="mkv">
-                      {market.totalVolume.toLocaleString(undefined, { maximumFractionDigits: 0 })}{" "}
-                      <span className="mku">ETH</span>
-                    </div>
-                  </div>
-                  <div className="mk">
-                    <div className="mkl">Active Collections</div>
-                    <div className="mkv">{market.activeCollections.toLocaleString()}</div>
-                  </div>
-                  <div className="mk">
-                    <div className="mkl">ETH Gas</div>
-                    <div className="mkv">12 <span className="mku">Gwei</span></div>
-                  </div>
-                  <div className="mk">
-                    <div className="mkl">NFT Dominance</div>
-                    <div className="mkv">8.4 <span className="mku">%</span></div>
-                  </div>
-                </div>
-                <div className="mtt">
-                  <div>
-                    <div className="mttl"><span className="mdt"></span> Top</div>
-                    {market.top.map((row, i) => {
-                      const changeLabel = formatChangePct(row.change);
-                      const isPos = row.change >= 0;
-                      const thumbIsUrl = typeof row.thumb === "string" && row.thumb.startsWith("http");
-                      return (
-                        <div className="mr" key={`top-${row.name}-${i}`}>
-                          <div className="mrth">
-                            {thumbIsUrl ? (
-                              <img src={row.thumb} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 6 }} />
-                            ) : (
-                              row.thumb
-                            )}
-                          </div>
-                          <div className="mri">
-                            <div className="mrn">{row.name}</div>
-                            <div className="mrf">
-                              Floor: {row.floorPrice.toFixed(4)} <span className="eth-ic"></span>
-                            </div>
-                          </div>
-                          <div className={`mrc ${isPos ? "pos" : "neg"}`} data-base={changeLabel}>
-                            {changeLabel}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div>
-                    <div className="mttl"><span className="mdt"></span> Trending</div>
-                    {market.trending.map((row, i) => {
-                      const thumbIsUrl = typeof row.thumb === "string" && row.thumb.startsWith("http");
-                      return (
-                        <div className="mr" key={`trend-${row.name}-${i}`}>
-                          <div className="mrth">
-                            {thumbIsUrl ? (
-                              <img src={row.thumb} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 6 }} />
-                            ) : (
-                              row.thumb
-                            )}
-                          </div>
-                          <div className="mri">
-                            <div className="mrn">{row.name}</div>
-                            <div className="mrf">
-                              Floor: {row.floorPrice.toFixed(4)} Ξ · Vol: ${(row.volume || 0).toLocaleString()}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div>
-                    <div className="mttl"><span className="mdt"></span> Top Flyers</div>
-                    {market.topFlyers.map((row, i) => {
-                      const changeLabel = formatChangePct(row.change);
-                      const isPos = row.change >= 0;
-                      const thumbIsUrl = typeof row.thumb === "string" && row.thumb.startsWith("http");
-                      return (
-                        <div className="mr" key={`flyer-${row.name}-${i}`}>
-                          <div className="mrth">
-                            {thumbIsUrl ? (
-                              <img src={row.thumb} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 6 }} />
-                            ) : (
-                              row.thumb
-                            )}
-                          </div>
-                          <div className="mri">
-                            <div className="mrn">{row.name}</div>
-                            <div className="mrf">
-                              Floor: {row.floorPrice.toFixed(4)} <span className="eth-ic"></span>
-                            </div>
-                          </div>
-                          <div className={`mrc ${isPos ? "pos" : "neg"}`} data-base={changeLabel}>
-                            {changeLabel}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+              <HomeMarketOverview />
 
               <div className="sh">
                 <div>

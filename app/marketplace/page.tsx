@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useAccount } from "wagmi";
 import MainLayout from "../components/MainLayout";
-import {
-  OPENSEA_COLLECTION_SLUGS,
-  useOpenSeaCollections,
-  useOpenSeaMarketplaceListings,
-} from "@/lib/opensea";
+import FilterEmptyState from "../components/FilterEmptyState";
+// import { useMemo, useState } from "react";
+// import {
+//   OPENSEA_COLLECTION_SLUGS,
+//   useOpenSeaCollections,
+//   useOpenSeaMarketplaceListings,
+// } from "@/lib/opensea";
 
 const MARKET_FILTER_TABS = ["All", "CryptoPunks", "BAYC", "Azuki", "Fidenza"] as const;
 
@@ -161,65 +163,60 @@ export default function MarketplacePage() {
     Fidenza: false,
   });
 
-  const {
-    data: openSeaCollections,
-    isLoading: isLoadingCollections,
-    error: collectionsError,
-  } = useOpenSeaCollections();
-  const {
-    data: openSeaListings,
-    isLoading: isLoadingListings,
-    error: listingsError,
-  } = useOpenSeaMarketplaceListings(4);
+  const collections = HARDCODED_COLLECTIONS.map((c) => ({ ...c, count: 0 }));
 
-  const collections = useMemo(() => {
-    if (!openSeaCollections) return HARDCODED_COLLECTIONS;
-    return HARDCODED_COLLECTIONS.map((c) => {
-      const slug = OPENSEA_COLLECTION_SLUGS[c.name as keyof typeof OPENSEA_COLLECTION_SLUGS];
-      const stats = openSeaCollections[slug]?.stats;
-      return { ...c, count: stats?.nftCount || c.count };
-    });
-  }, [openSeaCollections]);
-
-  const nfts = useMemo(() => {
-    if (isLoadingListings) return [];
-    if (!openSeaListings?.length) return HARDCODED_NFTS;
-
-    return openSeaListings.map((listing) => {
-      const priceEth = listing.priceEth || 0;
-      // Fabricate a "bought" price around 80% of the listing price for demo UI
-      const boughtEth = priceEth > 0 ? Number((priceEth * 0.8).toFixed(2)) : 0;
-      const profitPct = boughtEth > 0 ? ((priceEth - boughtEth) / boughtEth) * 100 : 0;
-
-      return {
-        name: listing.name,
-        img: listing.imageUrl || "",
-        boughtPrice: boughtEth.toFixed(2),
-        sellPrice: priceEth.toFixed(2),
-        profit: `${profitPct >= 0 ? "+" : ""}${profitPct.toFixed(1)}%`,
-        source: "OpenSea",
-        sourceImg: "/assets/images/image-1.png",
-        openseaUrl: listing.openseaUrl,
-        fallback: !listing.imageUrl,
-      };
-    });
-  }, [openSeaListings, isLoadingListings]);
-
-  const filteredNfts = useMemo(
-    () => nfts.filter((nft) => nftMatchesFilter(nft.name, marketFilter)),
-    [nfts, marketFilter],
-  );
+  // Marketplace is not live yet — restore the block below when launching.
+  // const {
+  //   data: openSeaCollections,
+  //   isLoading: isLoadingCollections,
+  //   error: collectionsError,
+  // } = useOpenSeaCollections();
+  // const {
+  //   data: openSeaListings,
+  //   isLoading: isLoadingListings,
+  //   error: listingsError,
+  // } = useOpenSeaMarketplaceListings(4);
+  // const collections = useMemo(() => {
+  //   if (!openSeaCollections) return HARDCODED_COLLECTIONS;
+  //   return HARDCODED_COLLECTIONS.map((c) => {
+  //     const slug = OPENSEA_COLLECTION_SLUGS[c.name as keyof typeof OPENSEA_COLLECTION_SLUGS];
+  //     const stats = openSeaCollections[slug]?.stats;
+  //     return { ...c, count: stats?.nftCount || c.count };
+  //   });
+  // }, [openSeaCollections]);
+  // const nfts = useMemo(() => {
+  //   if (isLoadingListings) return [];
+  //   if (!openSeaListings?.length) return HARDCODED_NFTS;
+  //   return openSeaListings.map((listing) => {
+  //     const priceEth = listing.priceEth || 0;
+  //     const boughtEth = priceEth > 0 ? Number((priceEth * 0.8).toFixed(2)) : 0;
+  //     const profitPct = boughtEth > 0 ? ((priceEth - boughtEth) / boughtEth) * 100 : 0;
+  //     return {
+  //       name: listing.name,
+  //       img: listing.imageUrl || "",
+  //       boughtPrice: boughtEth.toFixed(2),
+  //       sellPrice: priceEth.toFixed(2),
+  //       profit: `${profitPct >= 0 ? "+" : ""}${profitPct.toFixed(1)}%`,
+  //       source: "OpenSea",
+  //       sourceImg: "/assets/images/image-1.png",
+  //       openseaUrl: listing.openseaUrl,
+  //       fallback: !listing.imageUrl,
+  //     };
+  //   });
+  // }, [openSeaListings, isLoadingListings]);
+  // const filteredNfts = useMemo(
+  //   () => nfts.filter((nft) => nftMatchesFilter(nft.name, marketFilter)),
+  //   [nfts, marketFilter],
+  // );
+  // const openListing = (nft: (typeof nfts)[number]) => {
+  //   const url = (nft as any).openseaUrl || getListingUrl(nft.source);
+  //   window.open(url, "_blank", "noopener,noreferrer");
+  // };
+  // const isLoading = isLoadingCollections || isLoadingListings;
 
   const toggleCollection = (name: string) => {
     setCheckedCollections((prev) => ({ ...prev, [name]: !prev[name] }));
   };
-
-  const openListing = (nft: (typeof nfts)[number]) => {
-    const url = (nft as any).openseaUrl || getListingUrl(nft.source);
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
-  const isLoading = isLoadingCollections || isLoadingListings;
 
   return (
     <MainLayout>
@@ -351,9 +348,8 @@ export default function MarketplacePage() {
                   >
                     <div className={`coll-check${checkedCollections[c.name] ? " checked" : ""}`} />
                     <span className="coll-name">{c.name}</span>
-                    <span className="coll-count">
-                      {isLoadingCollections && c.count === 0 ? "..." : c.count}
-                    </span>
+                    <span className="coll-count">0</span>
+                    {/* {isLoadingCollections && c.count === 0 ? "..." : c.count} */}
                   </div>
                 ))}
               </div>
@@ -385,22 +381,15 @@ export default function MarketplacePage() {
 
           <div className="vault-right">
             <div className="grid-toolbar">
-              <div className="sort-lbl">
-                Sort: <span className="sort-val">Floor High to Low</span>
+              <div className="sort-lbl" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span className="filter-empty-count" aria-live="polite">
+                  <span className="filter-empty-count-icon" aria-hidden="true" />
+                  0 ITEMS
+                </span>
+                <span>
+                  Sort: <span className="sort-val">Floor High to Low</span>
+                </span>
               </div>
-              {isLoading && (
-                <div className="pd-skel" style={{ marginLeft: "auto", width: 96, height: 10 }} aria-hidden="true" />
-              )}
-              {!isLoading && (collectionsError || listingsError) && (
-                <div className="sort-lbl" style={{ marginLeft: "auto", color: "#ff6b6b" }}>
-                  OpenSea unavailable — fallback data
-                </div>
-              )}
-              {!isLoading && !collectionsError && !listingsError && openSeaListings && openSeaListings.length > 0 && (
-                <div className="sort-lbl" style={{ marginLeft: "auto", color: "var(--sage)" }}>
-                  Live OpenSea data
-                </div>
-              )}
               <div className="grid-icons">
                 <button className="gi active">
                   <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
@@ -423,6 +412,22 @@ export default function MarketplacePage() {
               </div>
             </div>
 
+            <FilterEmptyState variant="vault" ghostCount={4} />
+
+            {/* Live listings grid — restore when Marketplace launches
+            {isLoading && (
+              <div className="pd-skel" style={{ marginLeft: "auto", width: 96, height: 10 }} aria-hidden="true" />
+            )}
+            {!isLoading && (collectionsError || listingsError) && (
+              <div className="sort-lbl" style={{ marginLeft: "auto", color: "#ff6b6b" }}>
+                OpenSea unavailable — fallback data
+              </div>
+            )}
+            {!isLoading && !collectionsError && !listingsError && openSeaListings && openSeaListings.length > 0 && (
+              <div className="sort-lbl" style={{ marginLeft: "auto", color: "var(--sage)" }}>
+                Live OpenSea data
+              </div>
+            )}
             <div className="vault-grid">
               {isLoadingListings &&
                 [0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
@@ -498,10 +503,10 @@ export default function MarketplacePage() {
                 </div>
               ))}
             </div>
-
             <div className="show-more-wrap">
               <button className="show-more-btn">SHOW MORE</button>
             </div>
+            */}
 
             <div className="net-act">
               <div className="net-act-hdr">
@@ -510,6 +515,7 @@ export default function MarketplacePage() {
               </div>
 
               <div className="mkt-act-mobile">
+                {/*
                 {MARKET_ACTIVITY_ROWS.map((row) => (
                   <div key={row.asset} className="mkt-act-row">
                     <div className="mkt-act-main">
@@ -524,6 +530,7 @@ export default function MarketplacePage() {
                     <div className="mkt-act-price">{row.price}</div>
                   </div>
                 ))}
+                */}
               </div>
 
               <div className="net-act-desktop net-table-scroll table-scroll">
@@ -538,6 +545,12 @@ export default function MarketplacePage() {
                     </tr>
                   </thead>
                   <tbody id="netTable">
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: "center", color: "var(--t2)", padding: "24px 0" }}>
+                        No activity yet.
+                      </td>
+                    </tr>
+                    {/*
                     {MARKET_ACTIVITY_ROWS.map((row) => (
                       <tr key={row.asset}>
                         <td className="td-asset">{row.asset}</td>
@@ -552,6 +565,7 @@ export default function MarketplacePage() {
                         <td className="td-time">{row.time}</td>
                       </tr>
                     ))}
+                    */}
                   </tbody>
                 </table>
               </div>
