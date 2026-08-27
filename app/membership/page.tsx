@@ -438,44 +438,6 @@ export default function MembershipPage() {
               </table>
             </div>
           </div>
-
-          {/* INFO CARDS */}
-          <div className="info-grid">
-            <div className="info-card">
-              <div className="info-card-hdr">
-                <div className="info-icon">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M6 1a5 5 0 1 1 0 10A5 5 0 0 1 6 1z" stroke="var(--olive)" strokeWidth="1.2"></path>
-                    <path d="M6 5v3M6 3.5v.5" stroke="var(--olive)" strokeWidth="1.2" strokeLinecap="round"></path>
-                  </svg>
-                </div>
-                <div className="info-title">Institutional Assurance</div>
-              </div>
-              <div className="info-text">
-                All membership funds are securely locked in smart contracts, ensuring the integrity of the
-                unilevel commission structure and lending liquidity pools.
-              </div>
-            </div>
-            <div className="info-card">
-              <div className="info-card-hdr">
-                <div className="info-icon">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path
-                      d="M6 1l1.5 3h3l-2.5 2 1 3L6 7.5 3 9l1-3L1.5 4h3L6 1z"
-                      stroke="var(--olive)"
-                      strokeWidth="1.2"
-                      strokeLinejoin="round"
-                    ></path>
-                  </svg>
-                </div>
-                <div className="info-title">Compliance Ready</div>
-              </div>
-              <div className="info-text">
-                Our platform adheres to strict institutional standards, offering full transparency and real-time
-                auditing for all financial transactions and staking activities.
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </MainLayout>

@@ -2917,6 +2917,10 @@ body.dark .mkt-filter-tab.active {
     background: var(--gain) !important;
   }
 
+  #feed-network .net-rc-live-dot.net-rc-dot-soon {
+    background: var(--red) !important;
+  }
+
   #feed-network .net-stat .info-i {
     display: none !important;
   }

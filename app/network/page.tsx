@@ -49,7 +49,7 @@ const TX_TYPE_LABEL: Record<TransactionEntry["type"], string> = {
   UPGRADE: "Membership Upgrade",
   COMMISSION_CLAIM: "Commission Claimed",
   COMPANY_WALLET_WITHDRAWN: "Company Wallet Withdrawal",
-  LEADERSHIP_PAYOUT: "Leadership Bonus",
+  LEADERSHIP_PAYOUT: "Global Sales Bonus",
   ACHIEVEMENT_BONUS: "Rank Bonus",
 };
 
@@ -139,7 +139,7 @@ const TX_TYPE_FILTER_OPTIONS = [
   { value: "claimed", label: "Commission Claimed" },
   { value: "purchase", label: "Membership Purchase" },
   { value: "upgrade", label: "Membership Upgrade" },
-  { value: "leadership", label: "Leadership Bonus" },
+  { value: "leadership", label: "Global Sales Bonus" },
   { value: "rankBonus", label: "Rank Bonus" },
 ] as const;
 
@@ -670,7 +670,7 @@ export default function NetworkPage() {
               <div className="net-stat">
                 <div className="net-stat-lbl" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   Locked in Pool
-                  <span className="info-i" data-tip="20% of every referral commission is locked in the pool wallet per the HNTR tokenomics.">
+                  <span className="info-i" data-tip="20% is redirected into NFT Strategy Pools — co-owned NFT positions">
                     i
                   </span>
                 </div>
@@ -758,7 +758,7 @@ export default function NetworkPage() {
                     ? "AUTO-DEPOSITED"
                     : "ELIGIBLE"
                   : "NO SHARES",
-                name: "Leadership Bonus",
+                name: "Global Sales Bonus",
                 desc: leadershipDesc,
                 poolBalance: leadershipPoolLabel,
                 totalEarnings: `$${totalLeadershipReceived.toFixed(2)}`,
@@ -811,7 +811,7 @@ export default function NetworkPage() {
                 ),
                 tag: "COMING SOON",
                 name: "NFT Strategy Rewards",
-                desc: "One-time milestone incentives for achieving new Hunter tiers.",
+                desc: "Claim your profit upon successful NFT Strategy sale",
                 amount: "$0.00",
                 delay: ".20s",
                 claimable: false,
@@ -826,7 +826,7 @@ export default function NetworkPage() {
                 ),
                 tag: "COMING SOON",
                 name: "OTC Desk",
-                desc: "Recurring monthly stipend for active Hunter Elite status holders.",
+                desc: "Private OTC desk for off-market NFT deals. Profit share 0–100% per deal.",
                 amount: "$0.00",
                 delay: ".25s",
                 claimable: false,
@@ -847,7 +847,7 @@ export default function NetworkPage() {
                 ),
                 tag: "COMING SOON",
                 name: "Liquidity Provider",
-                desc: "Variable rewards for beta testing and governance participation.",
+                desc: "Deploy capital as LP on major NFT lending markets — low-risk yield, separate from floor flips",
                 amount: "$0.00",
                 delay: ".30s",
                 claimable: false,
@@ -861,7 +861,10 @@ export default function NetworkPage() {
               >
                 <div className="net-rc-header">
                   <div className="net-rc-header-main">
-                    <span className="net-rc-live-dot" aria-hidden="true"></span>
+                    <span
+                      className={`net-rc-live-dot${reward.tag === "COMING SOON" ? " net-rc-dot-soon" : ""}`}
+                      aria-hidden="true"
+                    ></span>
                     <div className="net-rc-name">{reward.name}</div>
                   </div>
                   <div className="net-rc-tag">{reward.tag}</div>
