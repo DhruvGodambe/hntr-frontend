@@ -145,6 +145,22 @@ const TX_TYPE_FILTER_OPTIONS = [
 
 const TX_PAGE_SIZE = 10;
 
+/** Not-live reward tiers — red status dot + COMING SOON badge. */
+const UPCOMING_NETWORK_REWARDS = {
+  nftStrategy: {
+    name: "NFT Strategy Rewards",
+    desc: "Claim your profit upon successful NFT Strategy sale",
+  },
+  otcDesk: {
+    name: "OTC Desk",
+    desc: "Private OTC desk for off-market NFT deals. Profit share 0–100% per deal.",
+  },
+  liquidityProvider: {
+    name: "Liquidity Provider",
+    desc: "Deploy capital as LP on major NFT lending markets — low-risk yield, separate from floor flips",
+  },
+} as const;
+
 function getPageNumbers(current: number, total: number) {
   if (total <= 1) return total === 1 ? [1] : [];
   if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
@@ -758,7 +774,7 @@ export default function NetworkPage() {
                     ? "MONTHLY"
                     : "ELIGIBLE"
                   : "NO SHARES",
-                name: "Leadership Bonus",
+                name: "Global Sales Bonus",
                 desc: leadershipDesc,
                 poolBalance: leadershipPoolLabel,
                 totalEarnings: `$${totalLeadershipReceived.toFixed(2)}`,
@@ -810,8 +826,9 @@ export default function NetworkPage() {
                   </>
                 ),
                 tag: "COMING SOON",
-                name: "NFT Strategy Rewards",
-                desc: "Claim your profit upon successful NFT Strategy sale",
+                soon: true,
+                name: UPCOMING_NETWORK_REWARDS.nftStrategy.name,
+                desc: UPCOMING_NETWORK_REWARDS.nftStrategy.desc,
                 amount: "$0.00",
                 delay: ".20s",
                 claimable: false,
@@ -825,8 +842,9 @@ export default function NetworkPage() {
                   </>
                 ),
                 tag: "COMING SOON",
-                name: "OTC Desk",
-                desc: "Private OTC desk for off-market NFT deals. Profit share 0–100% per deal.",
+                soon: true,
+                name: UPCOMING_NETWORK_REWARDS.otcDesk.name,
+                desc: UPCOMING_NETWORK_REWARDS.otcDesk.desc,
                 amount: "$0.00",
                 delay: ".25s",
                 claimable: false,
@@ -846,8 +864,9 @@ export default function NetworkPage() {
                   </>
                 ),
                 tag: "COMING SOON",
-                name: "Liquidity Provider",
-                desc: "Deploy capital as LP on major NFT lending markets — low-risk yield, separate from floor flips",
+                soon: true,
+                name: UPCOMING_NETWORK_REWARDS.liquidityProvider.name,
+                desc: UPCOMING_NETWORK_REWARDS.liquidityProvider.desc,
                 amount: "$0.00",
                 delay: ".30s",
                 claimable: false,
@@ -855,14 +874,14 @@ export default function NetworkPage() {
               },
             ].map((reward, i) => (
               <div
-                className={`net-reward-card${reward.tag === "COMING SOON" ? " net-reward-soon" : ""}`}
+                className={`net-reward-card${"soon" in reward && reward.soon ? " net-reward-soon" : ""}`}
                 style={{ "--delay": reward.delay } as React.CSSProperties}
                 key={i}
               >
                 <div className="net-rc-header">
                   <div className="net-rc-header-main">
                     <span
-                      className={`net-rc-live-dot${reward.tag === "COMING SOON" ? " net-rc-dot-soon" : ""}`}
+                      className={`net-rc-live-dot${"soon" in reward && reward.soon ? " net-rc-dot-soon" : ""}`}
                       aria-hidden="true"
                     ></span>
                     <div className="net-rc-name">{reward.name}</div>
