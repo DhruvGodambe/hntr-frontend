@@ -4814,6 +4814,25 @@ body.dark .membership-pay-summary.is-error{color:#e08a7a}
 .cross{color:var(--t0);font-size:13px;opacity:.4}
 .highlight-row td{background:rgba(94,107,85,.04)}
 
+.package-benefits-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px 18px 18px;
+}
+.package-benefit-card{
+  background:var(--e3);border-radius:10px;padding:14px 16px;border:0.5px solid var(--bd0);
+}
+.package-benefit-title{
+  font-family:var(--fd);font-size:11px;font-weight:700;color:var(--t4);margin-bottom:8px;line-height:1.35;
+}
+.package-benefit-list{
+  margin:0;padding-left:16px;display:grid;gap:6px;font-size:10px;color:var(--t2);line-height:1.45;
+}
+.payment-rules-list{
+  margin:0;padding:14px 18px 18px 34px;display:grid;gap:8px;font-size:10px;color:var(--t2);line-height:1.45;
+}
+@media (max-width: 900px){
+  .package-benefits-grid{grid-template-columns:1fr}
+}
+
 /* BOTTOM INFO CARDS */
 .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
 .info-card{

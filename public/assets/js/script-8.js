@@ -1,9 +1,9 @@
 
 var SU_TIERS=[
-  {no:'Tier 01',name:'Bronze',price:'50',uni:'4 Levels',dep:'$400 Max Deposit'},
+  {no:'Tier 01',name:'Bronze',price:'50',uni:'3 Levels',dep:'$400 Max Deposit'},
   {no:'Tier 02',name:'Silver',price:'250',uni:'6 Levels',dep:'$1,500 Max Deposit'},
-  {no:'Tier 03',name:'Gold',price:'750',uni:'10 Levels',dep:'$4,000 Max Deposit',rec:true},
-  {no:'Tier 04',name:'Platinum',price:'1,500',uni:'12 Levels',dep:'$8,000 Max Deposit'},
+  {no:'Tier 03',name:'Gold',price:'750',uni:'9 Levels',dep:'$4,000 Max Deposit',rec:true},
+  {no:'Tier 04',name:'Platinum',price:'1,500',uni:'12 Levels',dep:'$8,000 Max Deposit',extra:'OTC Desk & NFT Lending'},
   {no:'Tier 05',name:'Diamond',price:'2,500',uni:'12 Levels',dep:'$25,000 Max Deposit',extra:'OTC Desk & NFT Lending'},
 ];
 function initSuTiers(){
@@ -33,9 +33,9 @@ function suSelectTier(name){
 }
 function showMembershipSuccess(name){
   var T={
-    Bronze:{amt:'50 USDT',uni:'4 Levels',pool:'All Strategy Pools'},
+    Bronze:{amt:'50 USDT',uni:'3 Levels',pool:'All Strategy Pools'},
     Silver:{amt:'250 USDT',uni:'6 Levels',pool:'All Strategy Pools'},
-    Gold:{amt:'750 USDT',uni:'10 Levels',pool:'All Strategy Pools'},
+    Gold:{amt:'750 USDT',uni:'9 Levels',pool:'All Strategy Pools'},
     Platinum:{amt:'1,500 USDT',uni:'12 Levels',pool:'All Strategy Pools'},
     Diamond:{amt:'2,500 USDT',uni:'12 Levels',pool:'All Strategy Pools'}
   }[name]||{amt:'—',uni:'—',pool:'—'};

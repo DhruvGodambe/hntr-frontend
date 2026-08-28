@@ -314,9 +314,9 @@ export default function NetworkPage() {
     : hasLeadershipShares
     ? `You have ${leadershipShares} share${leadershipShares === 1 ? "" : "s"} as ${leadershipStatus.rank}. ` +
       (totalLeadershipReceived > 0
-        ? `$${totalLeadershipReceived.toFixed(2)} lifetime auto-deposited. Est. next: $${estimatedLeadershipPayout.toFixed(2)}.`
+        ? `$${totalLeadershipReceived.toFixed(2)} received from the 5% monthly leadership pool.`
         : `Est. next payout $${estimatedLeadershipPayout.toFixed(2)} from the current $${leadershipStatus.poolBalanceUSD.toFixed(2)} pool.`)
-    : "You don't have any shares. Reach Hunter rank or above to earn a share of the monthly leadership pool.";
+    : "Monthly leadership pool (5%) distributed to Hunter rank and above based on shares — Hunter=1, Elite Hunter=3, Master Hunter=7, Legend Hunter=15.";
 
   const achievementLifetimePaid = achievementStatus?.lifetimePaidUSD ?? 0;
   const achievementPending = achievementStatus?.pendingUSD ?? 0;
@@ -344,7 +344,7 @@ export default function NetworkPage() {
   const achievementPoolLabel = formatPoolWalletBalances(achievementStatus?.walletBalances);
   const achievementDesc =
     achievementStatus?.message ||
-    "No rank bonus yet — reach Scout or above to unlock one-time achievement bonuses.";
+    "One-time rank achievement bonuses from Scout ($25) through Legend Hunter ($500,000), paid same-day after qualification (manual distribution).";
   const claimableByTokenLabel = formatClaimableByToken(summary?.tokens);
 
   const [siteOrigin, setSiteOrigin] = useState("");
@@ -755,10 +755,10 @@ export default function NetworkPage() {
                 ),
                 tag: hasLeadershipShares
                   ? totalLeadershipReceived > 0
-                    ? "AUTO-DEPOSITED"
+                    ? "MONTHLY"
                     : "ELIGIBLE"
                   : "NO SHARES",
-                name: "Global Sales Bonus",
+                name: "Leadership Bonus",
                 desc: leadershipDesc,
                 poolBalance: leadershipPoolLabel,
                 totalEarnings: `$${totalLeadershipReceived.toFixed(2)}`,

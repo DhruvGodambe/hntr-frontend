@@ -371,7 +371,7 @@ function toMembershipWalletError(
 }
 
 const TIER_COPY: Record<string, { uni: string; pool: string }> = {
-  Bronze: { uni: "4 Levels", pool: "All Strategy Pools" },
+  Bronze: { uni: "3 Levels", pool: "All Strategy Pools" },
   Silver: { uni: "6 Levels", pool: "All Strategy Pools" },
   Gold: { uni: "9 Levels", pool: "All Strategy Pools" },
   Platinum: { uni: "12 Levels", pool: "All Strategy Pools" },

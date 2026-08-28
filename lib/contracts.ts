@@ -64,7 +64,7 @@ export const hntrMembershipAbi = parseAbi([
 ]);
 
 export const TIERS = [
-  { name: "Bronze", priceUsd: 50, levels: 4, maxDeposit: "$400" },
+  { name: "Bronze", priceUsd: 50, levels: 3, maxDeposit: "$400" },
   { name: "Silver", priceUsd: 250, levels: 6, maxDeposit: "$1,500" },
   { name: "Gold", priceUsd: 750, levels: 9, maxDeposit: "$4,000" },
   { name: "Platinum", priceUsd: 1500, levels: 12, maxDeposit: "$8,000" },
@@ -72,6 +72,114 @@ export const TIERS = [
 ] as const;
 
 export type TierName = (typeof TIERS)[number]["name"];
+
+/** Platinum and Diamond unlock Tailor OTC Desk + NFT Lending Platform. */
+export const TIERS_WITH_OTC = new Set<TierName>(["Platinum", "Diamond"]);
+
+export const RANKS = [
+  {
+    name: "Scout",
+    teamVolumeUsd: 1_000,
+    requiredMembership: "Bronze ($50)",
+    achievementBonusUsd: 25,
+    leadershipShares: null as number | null,
+  },
+  {
+    name: "Tracker",
+    teamVolumeUsd: 10_000,
+    requiredMembership: "Silver ($250)",
+    achievementBonusUsd: 150,
+    leadershipShares: null,
+  },
+  {
+    name: "Ranger",
+    teamVolumeUsd: 50_000,
+    requiredMembership: "Gold ($750)",
+    achievementBonusUsd: 750,
+    leadershipShares: null,
+  },
+  {
+    name: "Hunter",
+    teamVolumeUsd: 250_000,
+    requiredMembership: "Platinum ($1,500)",
+    achievementBonusUsd: 5_000,
+    leadershipShares: 1,
+  },
+  {
+    name: "Elite Hunter",
+    teamVolumeUsd: 1_000_000,
+    requiredMembership: "Platinum ($1,500)",
+    achievementBonusUsd: 25_000,
+    leadershipShares: 3,
+  },
+  {
+    name: "Master Hunter",
+    teamVolumeUsd: 5_000_000,
+    requiredMembership: "Diamond ($2,500)",
+    achievementBonusUsd: 100_000,
+    leadershipShares: 7,
+  },
+  {
+    name: "Legend Hunter",
+    teamVolumeUsd: 25_000_000,
+    requiredMembership: "Diamond ($2,500)",
+    achievementBonusUsd: 500_000,
+    leadershipShares: 15,
+  },
+] as const;
+
+export const PACKAGE_BENEFITS = [
+  {
+    title: "Educational Section (All Tiers)",
+    items: [
+      "NFT collections and market history",
+      "Market analysis and trend forecasting",
+      "How to get started in NFTs",
+      "Security best practices and wallet safety",
+      "Video tutorials and step-by-step guides",
+      "Pool strategies and investment education",
+      "Ongoing updates on blue-chip projects",
+    ],
+  },
+  {
+    title: "Pool Strategy (All Tiers — Limited by Package)",
+    items: [
+      "Fully on-chain, transparent, and smart contract managed",
+      "Users deposit ETH (or approved assets)",
+      "Once the pool target is reached, the smart contract automatically buys a floor NFT from a blue-chip collection",
+      "The NFT is listed for sale at a 10% premium",
+      "Upon sale, participants claim their original deposit + proportional profit (after minimal fees)",
+    ],
+  },
+  {
+    title: "Tailor OTC Desk (Platinum & Diamond Only)",
+    items: [
+      "Exclusive access to curated private deals, collection offers, and OTC opportunities",
+      "Professionally managed by the HNTR team",
+      "Profit potential: 0% to 100%+ per deal",
+      "25% platform fee on profits; 75% distributed monthly to participants (pro-rated by capital)",
+    ],
+  },
+  {
+    title: "NFT Lending Platform (Platinum & Diamond Only)",
+    items: [
+      "Deposit ETH, USDC, or approved assets",
+      "HNTR team manages lending via top protocols (Gondi, NFTfi, Bendao, etc.)",
+      "100% of APR/yields passed to depositors (HNTR takes 0% cut on yields)",
+      "Monthly or protocol-cycle payouts",
+    ],
+  },
+] as const;
+
+export const PAYMENT_RULES = [
+  "All Unilevel (not rank or pool) commissions follow an 80/20 rule: 80% instantly withdrawable and 20% directed into the first available pool",
+  "Membership payments: USDT / USDC",
+  "Network commissions: USDT / USDC — paid instantly via smart contract",
+  "Pool deposits: ETH only",
+  "Pool rewards: ETH only — paid instantly via smart contract",
+  "Leadership bonus: monthly (manual distribution)",
+  "Rank bonuses: same-day (manual distribution)",
+] as const;
 
 /**
  * Unilevel commission structure — mirrors HNTRMembership.sol gates.

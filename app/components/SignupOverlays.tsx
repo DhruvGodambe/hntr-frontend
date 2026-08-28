@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAccount } from "wagmi";
 import { api, ApiError } from "../../lib/api";
 import { ensureAuth } from "../../lib/auth";
-import { TIERS } from "../../lib/contracts";
+import { TIERS, TIERS_WITH_OTC } from "../../lib/contracts";
 import { handleAppError, resolveAppError } from "../../lib/errors";
 import { purchaseOrUpgradeTier, useMembershipQuote } from "../../lib/membership";
 import { useConnectWallet } from "../../lib/useConnectWallet";
@@ -832,7 +832,7 @@ export default function SignupOverlays() {
                             <div className="su-feat-s">{tier.maxDeposit} Max Deposit</div>
                           </div>
                         </div>
-                        {tier.name === "Diamond" && (
+                        {TIERS_WITH_OTC.has(tier.name) && (
                           <div className="su-feat">
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                               <path
@@ -844,7 +844,7 @@ export default function SignupOverlays() {
                               />
                             </svg>
                             <div>
-                              <div className="su-feat-t">OTC Desk & NFT Lending</div>
+                              <div className="su-feat-t">Tailor OTC Desk & NFT Lending</div>
                             </div>
                           </div>
                         )}

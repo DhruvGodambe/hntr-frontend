@@ -16,7 +16,7 @@ import {
   useMembershipQuote,
 } from "../../lib/membership";
 import { useDashboardData } from "../../lib/rewards";
-import { COMMISSION_LEVELS, TIERS } from "../../lib/contracts";
+import { COMMISSION_LEVELS, PACKAGE_BENEFITS, PAYMENT_RULES, RANKS, TIERS, TIERS_WITH_OTC } from "../../lib/contracts";
 import { api, ApiError } from "../../lib/api";
 import PaymentTokenToggle from "../components/PaymentTokenToggle";
 import MembershipPaySummary from "../components/MembershipPaySummary";
@@ -250,7 +250,7 @@ export default function MembershipPage() {
                 isCurrent ||
                 isLower ||
                 (isSelected && quoteQuery.data?.insufficientBalance === true);
-              const hasExtra = tier.name === "Diamond";
+              const hasExtra = TIERS_WITH_OTC.has(tier.name);
               const buttonLabel = tierButtonLabel(tier.name, {
                 isCurrent,
                 isLower,
@@ -299,6 +299,20 @@ export default function MembershipPage() {
                         <circle cx="6" cy="6" r="4.5" stroke={isHighlighted ? "rgba(242,239,234,.7)" : "currentColor"} strokeWidth="1.2"></circle>
                         <path d="M3.5 6l1.5 1.5L8.5 4" stroke={isHighlighted ? "rgba(242,239,234,.9)" : "currentColor"} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"></path>
                       </svg>
+                      <span className="tier-feature-text">Full Educational Section</span>
+                    </div>
+                    <div className="tier-feature">
+                      <svg className="tier-feature-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <circle cx="6" cy="6" r="4.5" stroke={isHighlighted ? "rgba(242,239,234,.7)" : "currentColor"} strokeWidth="1.2"></circle>
+                        <path d="M3.5 6l1.5 1.5L8.5 4" stroke={isHighlighted ? "rgba(242,239,234,.9)" : "currentColor"} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"></path>
+                      </svg>
+                      <span className="tier-feature-text">Pool Strategy Access</span>
+                    </div>
+                    <div className="tier-feature">
+                      <svg className="tier-feature-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <circle cx="6" cy="6" r="4.5" stroke={isHighlighted ? "rgba(242,239,234,.7)" : "currentColor"} strokeWidth="1.2"></circle>
+                        <path d="M3.5 6l1.5 1.5L8.5 4" stroke={isHighlighted ? "rgba(242,239,234,.9)" : "currentColor"} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"></path>
+                      </svg>
                       <span className="tier-feature-text">{tier.levels} Unilevel Levels</span>
                     </div>
                     <div className="tier-feature">
@@ -306,14 +320,7 @@ export default function MembershipPage() {
                         <circle cx="6" cy="6" r="4.5" stroke={isHighlighted ? "rgba(242,239,234,.7)" : "currentColor"} strokeWidth="1.2"></circle>
                         <path d="M3.5 6l1.5 1.5L8.5 4" stroke={isHighlighted ? "rgba(242,239,234,.9)" : "currentColor"} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"></path>
                       </svg>
-                      <span className="tier-feature-text">All Strategy Pools</span>
-                    </div>
-                    <div className="tier-feature">
-                      <svg className="tier-feature-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <circle cx="6" cy="6" r="4.5" stroke={isHighlighted ? "rgba(242,239,234,.7)" : "currentColor"} strokeWidth="1.2"></circle>
-                        <path d="M3.5 6l1.5 1.5L8.5 4" stroke={isHighlighted ? "rgba(242,239,234,.9)" : "currentColor"} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"></path>
-                      </svg>
-                      <span className="tier-feature-text">{tier.maxDeposit} Max Deposit</span>
+                      <span className="tier-feature-text">{tier.maxDeposit} Max Deposit per Pool</span>
                     </div>
                     {hasExtra && (
                       <div className="tier-feature">
@@ -321,7 +328,7 @@ export default function MembershipPage() {
                           <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.2"></circle>
                           <path d="M3.5 6l1.5 1.5L8.5 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"></path>
                         </svg>
-                        <span className="tier-feature-text">OTC Desk & NFT Lending</span>
+                        <span className="tier-feature-text">Tailor OTC Desk & NFT Lending</span>
                       </div>
                     )}
                   </div>
@@ -353,6 +360,7 @@ export default function MembershipPage() {
               <div className="cmp-title">Commission Structure</div>
               <div className="cmp-sub">
                 Each downline level pays the listed rate. Levels 4–12 require both the membership tier and the network rank.
+                Example — a $1,000 membership sale pays $650 instantly across all 12 levels (65% total).
               </div>
             </div>
             <div className="table-scroll">
@@ -398,7 +406,23 @@ export default function MembershipPage() {
                   </tr>
                 </thead>
                 <tbody>
+                  <tr>
+                    <td>Educational Section</td>
+                    {TIERS.map((tier) => (
+                      <td key={tier.name} className={tier.name === "Diamond" ? "apex-col" : ""}>
+                        <span className="check">✓</span>
+                      </td>
+                    ))}
+                  </tr>
                   <tr className="highlight-row">
+                    <td>Pool Strategy Access</td>
+                    {TIERS.map((tier) => (
+                      <td key={tier.name} className={tier.name === "Diamond" ? "apex-col" : ""}>
+                        <span className="check">✓</span>
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
                     <td>Unilevel Levels</td>
                     {TIERS.map((tier) => (
                       <td key={tier.name} className={tier.name === "Diamond" ? "apex-col" : ""}>
@@ -406,16 +430,8 @@ export default function MembershipPage() {
                       </td>
                     ))}
                   </tr>
-                  <tr>
-                    <td>Strategy Pool Access</td>
-                    {TIERS.map((tier) => (
-                      <td key={tier.name} className={tier.name === "Diamond" ? "apex-col" : ""}>
-                        All Pools
-                      </td>
-                    ))}
-                  </tr>
                   <tr className="highlight-row">
-                    <td>Max Strategy Deposit</td>
+                    <td>Max Deposit per Pool</td>
                     {TIERS.map((tier) => (
                       <td key={tier.name} className={tier.name === "Diamond" ? "apex-col" : ""}>
                         {tier.maxDeposit}
@@ -426,7 +442,7 @@ export default function MembershipPage() {
                     <td>Tailor OTC Desk & NFT Lending Platform</td>
                     {TIERS.map((tier) => (
                       <td key={tier.name} className={tier.name === "Diamond" ? "apex-col" : ""}>
-                        {tier.name === "Diamond" || tier.name === "Platinum" ? (
+                        {TIERS_WITH_OTC.has(tier.name) ? (
                           <span className="check">✓</span>
                         ) : (
                           <span className="cross">✕</span>
@@ -437,6 +453,73 @@ export default function MembershipPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          {/* PACKAGE BENEFITS */}
+          <div className="comparison">
+            <div className="cmp-hdr">
+              <div className="cmp-title">Detailed Package Benefits</div>
+              <div className="cmp-sub">Full feature breakdown for every membership tier.</div>
+            </div>
+            <div className="package-benefits-grid">
+              {PACKAGE_BENEFITS.map((section) => (
+                <div className="package-benefit-card" key={section.title}>
+                  <div className="package-benefit-title">{section.title}</div>
+                  <ul className="package-benefit-list">
+                    {section.items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* RANK STRUCTURE */}
+          <div className="comparison">
+            <div className="cmp-hdr">
+              <div className="cmp-title">Rank Structure & Requirements</div>
+              <div className="cmp-sub">
+                Lifetime cumulative team volume with balanced leg rules (40/40/20). You must maintain the minimum required active membership.
+              </div>
+            </div>
+            <div className="table-scroll">
+              <table className="cmp-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: "18%" }}>Rank</th>
+                    <th style={{ width: "18%" }}>Required Team Volume</th>
+                    <th style={{ width: "22%" }}>Minimum Membership</th>
+                    <th style={{ width: "18%" }}>Achievement Bonus</th>
+                    <th style={{ width: "14%" }}>Leadership Shares</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {RANKS.map((row, idx) => (
+                    <tr key={row.name} className={idx % 2 === 0 ? "highlight-row" : ""}>
+                      <td>{row.name}</td>
+                      <td>${row.teamVolumeUsd.toLocaleString()}</td>
+                      <td>{row.requiredMembership}</td>
+                      <td>${row.achievementBonusUsd.toLocaleString()}</td>
+                      <td>{row.leadershipShares ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* PAYMENT & PAYOUT RULES */}
+          <div className="comparison">
+            <div className="cmp-hdr">
+              <div className="cmp-title">Payment & Payout Rules</div>
+              <div className="cmp-sub">How memberships, commissions, pools, and bonuses are settled on-chain and off-chain.</div>
+            </div>
+            <ul className="payment-rules-list">
+              {PAYMENT_RULES.map((rule) => (
+                <li key={rule}>{rule}</li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
