@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { api } from "./api";
 
 export type MarketTimeFrame = "24H" | "7D" | "30D";
 
@@ -37,11 +38,11 @@ export type FloorNftRow = {
   change24h: number | null;
   change7d: number | null;
   change30d: number | null;
+  sparkline: Sparkline | null;
   marketCapUsd: string;
   marketCapNative: string;
   volumeNative: string;
   volumeUsd: string;
-  sales24h: string;
 };
 
 export type RelatedCoin = {
@@ -62,8 +63,10 @@ export type RelatedCoin = {
 export type CoinGeckoMarketOverview = {
   marketCapUsd: number;
   marketCapChangePct: number | null;
+  marketCapSparkline: Sparkline | null;
   volumeUsd: number;
   volumeChangePct: number | null;
+  volumeSparkline: Sparkline | null;
   volumeLabel: string;
   trending: TrendingNft[];
   dominance: DominanceNft[];
@@ -87,6 +90,7 @@ type NftMarket = {
   floor_price_in_usd_24h_percentage_change?: number;
   floor_price_24h_percentage_change?: PctPair;
   floor_price_7d_percentage_change?: PctPair;
+  floor_price_14d_percentage_change?: PctPair;
   floor_price_30d_percentage_change?: PctPair;
   market_cap_24h_percentage_change?: PctPair;
   volume_24h_percentage_change?: PctPair;
@@ -104,6 +108,20 @@ type TrendingResponse = {
     floor_price_in_native_currency?: number;
     floor_price_24h_percentage_change?: number;
   }>;
+};
+
+type ChartPair = [number, number];
+type ChartSeries = ChartPair[] | { usd?: ChartPair[] } | null | undefined;
+
+type GlobalNftChart = {
+  market_cap?: ChartSeries;
+  market_cap_usd?: ChartSeries;
+  market_cap_chart?: ChartSeries;
+  volume_24h?: ChartSeries;
+  volume_24h_usd?: ChartSeries;
+  volume_24h_chart?: ChartSeries;
+  h24_volume?: ChartSeries;
+  h24_volume_usd?: ChartSeries;
 };
 
 type CoinMarket = {
@@ -275,6 +293,85 @@ function downsample(values: number[], maxPoints: number): number[] {
   return out;
 }
 
+function chartPairsToValues(input: ChartSeries): number[] {
+  const pairs = Array.isArray(input) ? input : input?.usd;
+  if (!Array.isArray(pairs)) return [];
+  return pairs
+    .map((point) => (Array.isArray(point) ? Number(point[1]) : Number(point)))
+    .filter((n) => Number.isFinite(n));
+}
+
+function sliceChart(values: number[], timeFrame: MarketTimeFrame): number[] {
+  if (!values.length) return [];
+  if (timeFrame === "30D" || timeFrame === "7D") return values;
+  const n = Math.max(8, Math.round(values.length / 7));
+  return values.slice(-n);
+}
+
+function interpolateAnchors(anchors: Array<{ t: number; v: number }>, points: number): number[] {
+  const uniq: Array<{ t: number; v: number }> = [];
+  for (const a of anchors) {
+    if (!Number.isFinite(a.t) || !Number.isFinite(a.v)) continue;
+    const last = uniq[uniq.length - 1];
+    if (last && last.t === a.t) last.v = a.v;
+    else uniq.push({ t: a.t, v: a.v });
+  }
+  if (uniq.length === 0) return [];
+  if (uniq.length === 1) return Array.from({ length: points }, () => uniq[0].v);
+  const out: number[] = [];
+  for (let i = 0; i < points; i++) {
+    const t = i / (points - 1);
+    let a = uniq[0];
+    let b = uniq[uniq.length - 1];
+    for (let j = 0; j < uniq.length - 1; j++) {
+      if (t >= uniq[j].t && t <= uniq[j + 1].t) {
+        a = uniq[j];
+        b = uniq[j + 1];
+        break;
+      }
+    }
+    const span = b.t - a.t || 1;
+    const u = Math.min(1, Math.max(0, (t - a.t) / span));
+    const s = u * u * (3 - 2 * u);
+    out.push(a.v + (b.v - a.v) * s);
+  }
+  return out;
+}
+
+/** Build a 7d sparkline from CoinGecko % changes when historical chart series are not on the Demo plan. */
+function seriesFromChanges(
+  change24h: number | null,
+  change7d: number | null,
+  change30d: number | null,
+  window: "7d" | "30d" = "7d",
+): number[] {
+  const now = 1;
+  const rel = (pct: number | null) =>
+    pct == null || !Number.isFinite(pct) || pct <= -99.9 ? null : now / (1 + pct / 100);
+
+  const v24 = rel(change24h);
+  const v7 = rel(change7d);
+  const v30 = rel(change30d);
+  const anchors: Array<{ t: number; v: number }> = [];
+
+  if (window === "30d") {
+    if (v30 != null) anchors.push({ t: 0, v: v30 });
+    if (v7 != null) anchors.push({ t: 23 / 30, v: v7 });
+    if (v24 != null) anchors.push({ t: 29 / 30, v: v24 });
+  } else {
+    if (v7 != null) anchors.push({ t: 0, v: v7 });
+    else if (v30 != null) anchors.push({ t: 0, v: v30 });
+    if (v24 != null) anchors.push({ t: 6 / 7, v: v24 });
+  }
+  anchors.push({ t: 1, v: now });
+  if (anchors.length < 2) return [];
+  return interpolateAnchors(anchors, 24);
+}
+
+function sparkFromValues(values: number[], width: number, height: number, pad = 1.8): Sparkline | null {
+  return seriesToPolyline(downsample(values, 26), width, height, pad);
+}
+
 function weightedPct(items: Array<{ weight: number; pct: number | null }>): number | null {
   let sum = 0;
   let weight = 0;
@@ -322,16 +419,18 @@ async function fetchOverviewRaw() {
   const coinsPath =
     `coins/markets?vs_currency=usd&ids=${RELATED_COIN_IDS}&order=market_cap_desc&sparkline=true&price_change_percentage=24h,7d`;
 
-  const [markets, trendingResult, coinsResult] = await Promise.all([
+  const [markets, trendingResult, coinsResult, globalChart] = await Promise.all([
     fetchNftMarkets(),
     fetchCoinGeckoOptional<TrendingResponse>("search/trending"),
     fetchCoinGeckoOptional<CoinMarket[]>(coinsPath),
+    fetchCoinGeckoOptional<GlobalNftChart>("nfts/market_chart/global?days=7"),
   ]);
 
   return {
     markets,
     trending: trendingResult?.nfts || [],
     coins: Array.isArray(coinsResult) ? coinsResult : [],
+    globalChart,
   };
 }
 
@@ -339,18 +438,24 @@ function buildOverview(
   raw: Awaited<ReturnType<typeof fetchOverviewRaw>>,
   timeFrame: MarketTimeFrame,
 ): CoinGeckoMarketOverview {
-  const { markets, trending, coins } = raw;
+  const { markets, trending, coins, globalChart } = raw;
 
   const totalMcap = markets.reduce((sum, m) => sum + (m.market_cap?.usd || 0), 0);
   const volume24h = markets.reduce((sum, m) => sum + (m.volume_24h?.usd || 0), 0);
   const marketCapUsd = totalMcap;
 
+  const mcapChange24h = weightedPct(
+    markets.map((m) => ({ weight: m.market_cap?.usd || 0, pct: pctValue(m.market_cap_24h_percentage_change) })),
+  );
+  const mcapChange7d = weightedPct(
+    markets.map((m) => ({ weight: m.market_cap?.usd || 0, pct: pctValue(m.floor_price_7d_percentage_change) })),
+  );
+  const mcapChange30d = weightedPct(
+    markets.map((m) => ({ weight: m.market_cap?.usd || 0, pct: pctValue(m.floor_price_30d_percentage_change) })),
+  );
+
   const marketCapChangePct =
-    timeFrame === "24H"
-      ? weightedPct(markets.map((m) => ({ weight: m.market_cap?.usd || 0, pct: pctValue(m.market_cap_24h_percentage_change) })))
-      : timeFrame === "7D"
-        ? weightedPct(markets.map((m) => ({ weight: m.market_cap?.usd || 0, pct: pctValue(m.floor_price_7d_percentage_change) })))
-        : weightedPct(markets.map((m) => ({ weight: m.market_cap?.usd || 0, pct: pctValue(m.floor_price_30d_percentage_change) })));
+    timeFrame === "24H" ? mcapChange24h : timeFrame === "7D" ? mcapChange7d : mcapChange30d;
 
   const volumeChangePct = weightedPct(
     markets.map((m) => ({
@@ -358,6 +463,35 @@ function buildOverview(
       pct: pctValue(m.volume_24h_percentage_change) ?? asNumber(m.volume_in_usd_24h_percentage_change),
     })),
   );
+
+  const globalMcap = sliceChart(
+    chartPairsToValues(
+      globalChart?.market_cap_chart || globalChart?.market_cap_usd || globalChart?.market_cap,
+    ),
+    timeFrame,
+  );
+  const globalVolume = sliceChart(
+    chartPairsToValues(
+      globalChart?.volume_24h_chart ||
+        globalChart?.volume_24h_usd ||
+        globalChart?.h24_volume_usd ||
+        globalChart?.volume_24h ||
+        globalChart?.h24_volume,
+    ),
+    timeFrame,
+  );
+
+  const marketCapSparkline =
+    sparkFromValues(globalMcap, 110, 40, 2.2) ||
+    sparkFromValues(
+      seriesFromChanges(mcapChange24h, mcapChange7d, mcapChange30d, timeFrame === "30D" ? "30d" : "7d"),
+      110,
+      40,
+      2.2,
+    );
+  const volumeSparkline =
+    sparkFromValues(globalVolume, 110, 40, 2.2) ||
+    sparkFromValues(seriesFromChanges(volumeChangePct, volumeChangePct, volumeChangePct, "7d"), 110, 40, 2.2);
 
   const trendingFromApi: TrendingNft[] = trending.slice(0, 3).map((n) => ({
     id: n.id || n.name || "",
@@ -405,7 +539,10 @@ function buildOverview(
 
   const rows: FloorNftRow[] = markets.slice(0, 10).map((m, index) => {
     const symbol = m.native_currency_symbol || "ETH";
-    const sales = asNumber(m.one_day_sales);
+    const change24h =
+      pctValue(m.floor_price_24h_percentage_change) ?? asNumber(m.floor_price_in_usd_24h_percentage_change);
+    const change7d = pctValue(m.floor_price_7d_percentage_change);
+    const change30d = pctValue(m.floor_price_30d_percentage_change);
     return {
       id: m.id,
       rank: index + 1,
@@ -416,15 +553,19 @@ function buildOverview(
       buyUrl: buyUrlFor(m.id),
       floorNative: formatNativeAmount(m.floor_price?.native_currency, symbol),
       floorUsd: formatUsdPrice(m.floor_price?.usd),
-      change24h:
-        pctValue(m.floor_price_24h_percentage_change) ?? asNumber(m.floor_price_in_usd_24h_percentage_change),
-      change7d: pctValue(m.floor_price_7d_percentage_change),
-      change30d: pctValue(m.floor_price_30d_percentage_change),
+      change24h,
+      change7d,
+      change30d,
+      sparkline: sparkFromValues(
+        seriesFromChanges(change24h, change7d, pctValue(m.floor_price_14d_percentage_change) ?? change30d, "7d"),
+        110,
+        30,
+        1.8,
+      ),
       marketCapUsd: formatUsdFull(m.market_cap?.usd),
       marketCapNative: formatNativeAmount(m.market_cap?.native_currency, symbol),
       volumeNative: formatNativeAmount(m.volume_24h?.native_currency, symbol),
       volumeUsd: formatUsdFull(m.volume_24h?.usd),
-      sales24h: sales == null ? "—" : String(Math.round(sales)),
     };
   });
 
@@ -449,14 +590,33 @@ function buildOverview(
   return {
     marketCapUsd,
     marketCapChangePct,
+    marketCapSparkline,
     volumeUsd: volume24h,
     volumeChangePct,
+    volumeSparkline,
     volumeLabel: "24h Trading Volume",
     trending: trendingRows,
     dominance,
     rows,
     coins: related,
   };
+}
+
+export function useEthUsdPrice() {
+  return useQuery({
+    queryKey: ["market", "eth-usd"],
+    queryFn: async () => {
+      const data = await api.get<{ usd: number }>("/api/market/eth-usd");
+      const usd = Number(data?.usd);
+      if (!Number.isFinite(usd) || usd <= 0) {
+        throw new Error("ETH/USD price unavailable");
+      }
+      return usd;
+    },
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+    retry: 1,
+  });
 }
 
 export function useCoinGeckoMarketOverview(timeFrame: MarketTimeFrame = "24H") {

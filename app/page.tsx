@@ -1660,7 +1660,7 @@ export default function HomePage() {
               <div className="sh">
                 <div>
                   <div className="st">HNTR'S SALES</div>
-                  <div className="sub">Realised profit from closed positions</div>
+                  <div className="sub">All NFTs sold by HNTR</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <a

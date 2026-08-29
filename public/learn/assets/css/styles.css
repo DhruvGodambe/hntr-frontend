@@ -176,3 +176,108 @@
   ::selection { background: #0a0a0a; color: #fff; }
   [data-main]::-webkit-scrollbar, aside::-webkit-scrollbar { width: 10px; }
   [data-main]::-webkit-scrollbar-thumb, aside::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; border: 3px solid var(--bg); }
+
+  .hntr-art-article { max-width: 720px; }
+  .hntr-art-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .docs-mark,
+  img.docs-mark {
+    width: 44px !important;
+    height: 44px !important;
+    max-width: 44px !important;
+    border-radius: 11px;
+    display: block;
+    flex-shrink: 0;
+    object-fit: cover;
+  }
+  .hntr-art-brand-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    color: var(--strong);
+  }
+  .hntr-art-brand-name span {
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .hntr-art-kicker {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .hntr-art-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 34px;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 0 0 18px;
+    color: var(--strong);
+  }
+  .hntr-art-copy {
+    margin: 0 0 16px;
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--fg);
+  }
+  .hntr-art-copy em { font-style: italic; }
+  .hntr-wordmark-card {
+    margin: 26px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hntr-wordmark-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+  }
+  .hntr-art-callout {
+    display: flex;
+    gap: 13px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 15px 17px;
+    margin: 22px 0;
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+  .hntr-art-callout-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--strong);
+    color: var(--bg);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hntr-art-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 26px 0 0;
+  }
+  .hntr-art-tags span {
+    font-family: 'Space Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--strong);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 15px;
+  }

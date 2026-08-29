@@ -1,0 +1,30 @@
+ace Grotesk',sans-serif; font-weight:600; font-size:14.5px; color:var(--strong);">Fractional ownership</dt><dd style="margin:0; font-size:14.5px; line-height:1.55;">Owning a share of an asset alongside others rather than the whole thing. HNTR pools let hunters co-own premium NFTs together.</dd></div>
+            <div style="display:grid; grid-template-columns:150px 1fr; gap:16px; padding:14px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border);"><dt style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14.5px; color:var(--strong);">Wallet</dt><dd style="margin:0; font-size:14.5px; line-height:1.55;">The app or device that holds your crypto and NFTs and lets you connect to platforms like HNTR.</dd></div>
+          </dl>
+          <p style="font-size:13px; line-height:1.6; color:var(--muted); margin:28px 0 0; font-style:italic;">This guide is educational and does not constitute financial advice. NFT values can go down as well as up.</p>
+        </article>
+      </sc-if>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="">
+class Component extends DCLogic {
+  state = { active: 'hntr-art', query: '', theme: (() => { try { return localStorage.getItem('hntr-docs-theme') || 'light'; } catch (e) { return 'light'; } })() };
+
+  groups() {
+    return [
+      { label: 'The basics', items: [
+        { id: 'hntr-art', title: 'What is HNTR.art?' },
+        { id: 'what-is-nft', title: 'What even is an NFT?' },
+        { id: 'vs-crypto', title: 'NFTs vs. the crypto you own' },
+        { id: 'screenshot', title: 'Can\\u2019t I just screenshot it?' },
+        { id: 'value', title: 'Why are NFTs valuable?' },
+      ]},
+      { label: 'Meet HNTR', items: [
+        { id: 'hntr', title: 'Where HNTR fits in' },
+      ]},
+      { label: 'Getting started', items: [
+        { id: 

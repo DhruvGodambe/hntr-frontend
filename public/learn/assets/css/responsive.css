@@ -147,6 +147,26 @@
     height: auto !important;
   }
 
+  [data-main] img.docs-mark {
+    width: 44px !important;
+    height: 44px !important;
+    max-width: 44px !important;
+  }
+
+  .hntr-wordmark-card {
+    padding: 0 !important;
+  }
+
+  [data-main] img.hntr-wordmark-img {
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+  }
+
+  .hntr-art-title {
+    font-size: 26px !important;
+  }
+
   [data-main] [style*="grid-template-columns:150px"] {
     grid-template-columns: 1fr !important;
     gap: 8px !important;
@@ -163,6 +183,17 @@
     flex-direction: column !important;
     gap: 10px !important;
     padding: 14px !important;
+  }
+
+  .hntr-art-brand,
+  .hntr-art-callout,
+  .hntr-art-tags {
+    flex-direction: row !important;
+  }
+
+  .hntr-art-callout {
+    gap: 13px !important;
+    padding: 15px 17px !important;
   }
 
   [data-main] table {

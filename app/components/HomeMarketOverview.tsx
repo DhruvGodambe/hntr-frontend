@@ -107,10 +107,13 @@ export default function HomeMarketOverview() {
         <div className="mov-stats">
           <div className="mstat">
             {isPending ? (
-              <div>
-                <div className="pd-skel" style={{ width: 150, height: 20, marginBottom: 8 }} />
-                <div className="pd-skel" style={{ width: 110, height: 10 }} />
-              </div>
+              <>
+                <div>
+                  <div className="pd-skel" style={{ width: 150, height: 20, marginBottom: 8 }} />
+                  <div className="pd-skel" style={{ width: 110, height: 10 }} />
+                </div>
+                <div className="pd-skel mstat-sp" />
+              </>
             ) : (
               <>
                 <div>
@@ -119,15 +122,19 @@ export default function HomeMarketOverview() {
                     Market Cap <Pct value={data?.marketCapChangePct} className="mrc" />
                   </div>
                 </div>
+                <Spark spark={data?.marketCapSparkline ?? null} viewBox="0 0 110 40" className="mstat-sp" />
               </>
             )}
           </div>
           <div className="mstat">
             {isPending ? (
-              <div>
-                <div className="pd-skel" style={{ width: 130, height: 20, marginBottom: 8 }} />
-                <div className="pd-skel" style={{ width: 140, height: 10 }} />
-              </div>
+              <>
+                <div>
+                  <div className="pd-skel" style={{ width: 130, height: 20, marginBottom: 8 }} />
+                  <div className="pd-skel" style={{ width: 140, height: 10 }} />
+                </div>
+                <div className="pd-skel mstat-sp" />
+              </>
             ) : (
               <>
                 <div>
@@ -136,6 +143,7 @@ export default function HomeMarketOverview() {
                     {data?.volumeLabel ?? "24h Trading Volume"} <Pct value={data?.volumeChangePct} />
                   </div>
                 </div>
+                <Spark spark={data?.volumeSparkline ?? null} viewBox="0 0 110 40" className="mstat-sp" />
               </>
             )}
           </div>
@@ -232,9 +240,9 @@ export default function HomeMarketOverview() {
               <div className="mcel mc-chg">24h</div>
               <div className="mcel mc-chg">7d</div>
               <div className="mcel mc-chg">30d</div>
+              <div className="mcel mc-spark">Last 7 Days</div>
               <div className="mcel mc-num">Market Cap</div>
               <div className="mcel mc-num">24h Volume</div>
-              <div className="mcel mc-sales">24h Sales</div>
             </div>
             {isPending
               ? Array.from({ length: 10 }, (_, i) => (
@@ -267,14 +275,14 @@ export default function HomeMarketOverview() {
                     <div className="mcel mc-chg">
                       <div className="pd-skel" style={{ width: 48, height: 10, marginLeft: "auto" }} />
                     </div>
+                    <div className="mcel mc-spark">
+                      <div className="pd-skel" style={{ width: 110, height: 30 }} />
+                    </div>
                     <div className="mcel mc-num">
                       <div className="pd-skel" style={{ width: 90, height: 12, marginLeft: "auto" }} />
                     </div>
                     <div className="mcel mc-num">
                       <div className="pd-skel" style={{ width: 80, height: 12, marginLeft: "auto" }} />
-                    </div>
-                    <div className="mcel mc-sales">
-                      <div className="pd-skel" style={{ width: 24, height: 10, marginLeft: "auto" }} />
                     </div>
                   </div>
                 ))
@@ -315,6 +323,7 @@ export default function HomeMarketOverview() {
                     <div className="mcel mc-chg">
                       <Pct value={row.change30d} />
                     </div>
+                    <Spark spark={row.sparkline} viewBox="0 0 110 30" className="mc-spark" />
                     <div className="mcel mc-num">
                       <div className="mfp">{row.marketCapUsd}</div>
                       <div className="mfu">{row.marketCapNative}</div>
@@ -323,7 +332,6 @@ export default function HomeMarketOverview() {
                       <div className="mfp">{row.volumeNative}</div>
                       <div className="mfu">{row.volumeUsd}</div>
                     </div>
-                    <div className="mcel mc-sales">{row.sales24h}</div>
                   </div>
                 ))}
           </div>

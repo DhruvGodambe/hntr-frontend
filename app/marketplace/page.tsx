@@ -510,11 +510,18 @@ export default function MarketplacePage() {
 
             <div className="net-act">
               <div className="net-act-hdr">
-                <div className="net-act-title">Marketplace Activities</div>
+                <div className="net-act-title">Network Activity</div>
                 <div className="net-act-link">View All Activity →</div>
               </div>
 
               <div className="mkt-act-mobile">
+                <div className="nempty">
+                  <div className="nempty-fade" />
+                  <div className="nempty-msg">
+                    <div className="lempty-title">No results found</div>
+                    <div className="lempty-sub">Launchpad soon</div>
+                  </div>
+                </div>
                 {/*
                 {MARKET_ACTIVITY_ROWS.map((row) => (
                   <div key={row.asset} className="mkt-act-row">
@@ -534,40 +541,51 @@ export default function MarketplacePage() {
               </div>
 
               <div className="net-act-desktop net-table-scroll table-scroll">
-                <table className="net-table">
-                  <thead>
-                    <tr>
-                      <th>Asset</th>
-                      <th>Event</th>
-                      <th>Price</th>
-                      <th>Source</th>
-                      <th>Time</th>
-                    </tr>
-                  </thead>
-                  <tbody id="netTable">
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: "center", color: "var(--t2)", padding: "24px 0" }}>
-                        No activity yet.
-                      </td>
-                    </tr>
-                    {/*
-                    {MARKET_ACTIVITY_ROWS.map((row) => (
-                      <tr key={row.asset}>
-                        <td className="td-asset">{row.asset}</td>
-                        <td>
-                          <span className={`td-event ${row.eventClass}`}>{row.event}</span>
-                        </td>
-                        <td className="td-price">
-                          {row.price.replace(" ETH", "")}{" "}
-                          <span style={{ fontSize: "11px", color: "var(--t2)" }}>ETH</span>
-                        </td>
-                        <td className="td-source">{row.source}</td>
-                        <td className="td-time">{row.time}</td>
+                <div className="nempty">
+                  <table className="net-table">
+                    <thead>
+                      <tr>
+                        <th>Asset</th>
+                        <th>Event</th>
+                        <th>Price</th>
+                        <th>Source</th>
+                        <th>Time</th>
                       </tr>
-                    ))}
-                    */}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody id="netTable">
+                      {Array.from({ length: 5 }, (_, rowIdx) => (
+                        <tr className="nempty-row" key={`nempty-${rowIdx}`}>
+                          <td><div className="ne-bar" style={{ width: "62%" }} /></td>
+                          <td><div className="ne-bar" style={{ width: "44%" }} /></td>
+                          <td><div className="ne-bar" style={{ width: "38%" }} /></td>
+                          <td><div className="ne-bar" style={{ width: "50%" }} /></td>
+                          <td><div className="ne-bar" style={{ width: "34%" }} /></td>
+                        </tr>
+                      ))}
+                      {/*
+                      {MARKET_ACTIVITY_ROWS.map((row) => (
+                        <tr key={row.asset}>
+                          <td className="td-asset">{row.asset}</td>
+                          <td>
+                            <span className={`td-event ${row.eventClass}`}>{row.event}</span>
+                          </td>
+                          <td className="td-price">
+                            {row.price.replace(" ETH", "")}{" "}
+                            <span style={{ fontSize: "11px", color: "var(--t2)" }}>ETH</span>
+                          </td>
+                          <td className="td-source">{row.source}</td>
+                          <td className="td-time">{row.time}</td>
+                        </tr>
+                      ))}
+                      */}
+                    </tbody>
+                  </table>
+                  <div className="nempty-fade" />
+                  <div className="nempty-msg">
+                    <div className="lempty-title">No results found</div>
+                    <div className="lempty-sub">Launchpad soon</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

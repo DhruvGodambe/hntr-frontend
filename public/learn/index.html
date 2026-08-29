@@ -55,8 +55,34 @@
   <div data-main="" style="flex:1; height:100vh; overflow-y:auto;">
     <div style="max-width:760px; margin:0 auto; padding:52px 64px 120px; font-size:16px; line-height:1.7; color:var(--fg);">
 
+      <!-- hntr-art -->
+      <sc-if value="{{ show.hntrArt }}" hint-placeholder-val="{{ true }}">
+        <article class="hntr-art-article" data-screen-label="What is HNTR.art">
+          <div class="hntr-art-brand">
+            <img class="docs-mark" src="assets/images/1ff00a6f-66ab-404b-abb3-946ec19bb7ce.png" alt="HNTR">
+            <div class="hntr-art-brand-name">HNTR<span>.art</span></div>
+          </div>
+          <div class="hntr-art-kicker">Start here</div>
+          <h1 class="hntr-art-title">What is HNTR.art?</h1>
+          <p class="hntr-art-copy">HNTR is a next-generation Web3 platform that combines <em>co-owned NFT pools</em> with a powerful <em>referral system</em>.</p>
+          <p class="hntr-art-copy">It enables individuals and communities to collectively acquire premium NFTs, strategically flip them for profit, and share the returns transparently through smart contracts. The platform rewards word-of-mouth sharing and referrals, driving massive adoption by bringing hundreds of thousands of users into the NFT ecosystem.</p>
+          <div class="hntr-wordmark-card">
+            <img class="hntr-wordmark-img" src="assets/images/image.png" alt="HNTR wordmark">
+          </div>
+          <div class="hntr-art-callout">
+            <span class="hntr-art-callout-icon" aria-hidden="true">i</span>
+            <div>In short: HNTR makes high-value NFT ownership and flipping accessible to everyone — while rewarding powerful referrals and community participation.</div>
+          </div>
+          <div class="hntr-art-tags">
+            <span>Decentralized</span>
+            <span>Community-driven</span>
+            <span>Built for sustainable success</span>
+          </div>
+        </article>
+      </sc-if>
+
       <!-- what-is-nft -->
-      <sc-if value="{{ show.whatIsNft }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ show.whatIsNft }}">
         <article data-screen-label="What is an NFT">
           <div style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--muted); margin-bottom:14px;">The basics</div>
           <h1 style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:34px; line-height:1.08; letter-spacing:-0.02em; margin:0 0 18px; color:var(--strong);">So… what even is an NFT?</h1>
@@ -340,11 +366,12 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script="">
 class Component extends DCLogic {
-  state = { active: 'what-is-nft', query: '', theme: (() => { try { return localStorage.getItem('hntr-docs-theme') || 'light'; } catch (e) { return 'light'; } })() };
+  state = { active: 'hntr-art', query: '', theme: (() => { try { return localStorage.getItem('hntr-docs-theme') || 'light'; } catch (e) { return 'light'; } })() };
 
   groups() {
     return [
       { label: 'The basics', items: [
+        { id: 'hntr-art', title: 'What is HNTR.art?' },
         { id: 'what-is-nft', title: 'What even is an NFT?' },
         { id: 'vs-crypto', title: 'NFTs vs. the crypto you own' },
         { id: 'screenshot', title: 'Can\u2019t I just screenshot it?' },
@@ -407,6 +434,7 @@ class Component extends DCLogic {
     }).filter(g => g.hasItems);
 
     const show = {
+      hntrArt: active === 'hntr-art',
       whatIsNft: active === 'what-is-nft',
       vsCrypto: active === 'vs-crypto',
       screenshot: active === 'screenshot',

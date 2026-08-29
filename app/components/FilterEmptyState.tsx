@@ -21,7 +21,7 @@ export default function FilterEmptyState({
       </div>
       <div className="filter-empty-content">
         <div className="filter-empty-title">No items found</div>
-        <div className="filter-empty-sub">Coming soon</div>
+        <div className="filter-empty-sub">Launchpad soon</div>
       </div>
     </div>
   );
