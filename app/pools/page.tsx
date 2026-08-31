@@ -2,6 +2,7 @@
 
 import MainLayout from "../components/MainLayout";
 import PoolsHeroBanner from "../components/PoolsHeroBanner";
+import TableEmptyState from "../components/empty/TableEmptyState";
 import { DEPOSIT_CTA_LABEL } from "../../lib/deposit-modal";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "nextjs-toploader/app";
@@ -14,6 +15,8 @@ import {
   useOpenSeaMarketplaceSales,
   type PoolCollectionSlug,
 } from "@/lib/opensea";
+
+const ACTIVITY_COLUMNS = ["Wallet", "Bid Amount", "Collection", "Completion", "Action"];
 
 type ActivityRow = {
   id: string;
@@ -360,12 +363,14 @@ export default function PoolsPage() {
               </div>
               <div className="rta-live">
                 <div className="rta-dot"></div>
-                <span className="rta-live-desktop">OpenSea</span>
+                <span className="rta-live-desktop">Real-Time</span>
                 <span className="rta-live-mobile">LIVE</span>
               </div>
             </div>
 
             <div className="pools-dep-mobile">
+              <TableEmptyState compact />
+              {/* Live mobile sales list — restore when Strategies activity launches
               <div className="pools-dep-card">
                 {salesLoading && activityRows.length === 0 &&
                   [0, 1, 2, 3].map((i) => (
@@ -394,17 +399,18 @@ export default function PoolsPage() {
                     : `Showing 1–${Math.min(5, activityRows.length)} of ${activityRows.length} sales`}
                 </div>
               </div>
+              */}
             </div>
 
             <div className="pools-act-desktop table-scroll">
+              <TableEmptyState columns={ACTIVITY_COLUMNS} tableClassName="act-table" />
+              {/* Live activity table — restore when Strategies activity launches
               <table className="act-table">
                 <thead>
                   <tr>
-                    <th>Contract</th>
-                    <th>Sale Amount</th>
-                    <th>Collection</th>
-                    <th>Status</th>
-                    <th>Action</th>
+                    {ACTIVITY_COLUMNS.map((col) => (
+                      <th key={col}>{col}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody id="actTable">
@@ -457,6 +463,7 @@ export default function PoolsPage() {
                   ))}
                 </tbody>
               </table>
+              */}
             </div>
           </div>
         </div>

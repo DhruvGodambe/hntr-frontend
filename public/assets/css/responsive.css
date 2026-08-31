@@ -3654,7 +3654,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-collection .nc-grid,
-  #feed-collection .filter-empty-ghosts {
+  #feed-collection .ncempty-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 11px !important;
     margin-bottom: 0 !important;
@@ -4101,7 +4101,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-marketplace .vault-grid,
-  #feed-marketplace .filter-empty-ghosts {
+  #feed-marketplace .vempty-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 11px !important;
     margin-bottom: 0 !important;
@@ -5192,8 +5192,8 @@ body.dark .mkt-filter-tab.active {
 
   #feed-marketplace .vault-grid,
   #feed-collection .nc-grid,
-  #feed-marketplace .filter-empty-ghosts,
-  #feed-collection .filter-empty-ghosts {
+  #feed-marketplace .vempty-grid,
+  #feed-collection .ncempty-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
@@ -5257,5 +5257,27 @@ body.dark .mkt-filter-tab.active {
 
   .nav-r {
     gap: 5px;
+  }
+}
+
+/* ── EMPTY STATES (MOBILE) ── */
+@media (max-width: 900px) {
+  #feed-home .lempty-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 11px !important;
+  }
+
+  #feed-home .lempty-title,
+  #feed-marketplace .lempty-title,
+  #feed-collection .lempty-title {
+    font-size: 20px !important;
+  }
+
+  .sempty-card {
+    flex: 0 0 148px !important;
+  }
+
+  .nempty-compact {
+    min-height: 200px !important;
   }
 }

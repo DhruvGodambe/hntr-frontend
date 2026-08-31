@@ -64,7 +64,7 @@ export const hntrMembershipAbi = parseAbi([
 ]);
 
 export const TIERS = [
-  { name: "Bronze", priceUsd: 50, levels: 3, maxDeposit: "$400" },
+  { name: "Bronze", priceUsd: 50, levels: 4, maxDeposit: "$400" },
   { name: "Silver", priceUsd: 250, levels: 6, maxDeposit: "$1,500" },
   { name: "Gold", priceUsd: 750, levels: 9, maxDeposit: "$4,000" },
   { name: "Platinum", priceUsd: 1500, levels: 12, maxDeposit: "$8,000" },

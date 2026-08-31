@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useAccount } from "wagmi";
 import MainLayout from "../components/MainLayout";
-import FilterEmptyState from "../components/FilterEmptyState";
+import VaultEmptyState from "../components/empty/VaultEmptyState";
+import TableEmptyState from "../components/empty/TableEmptyState";
 // import { useMemo, useState } from "react";
 // import {
 //   OPENSEA_COLLECTION_SLUGS,
@@ -15,6 +16,8 @@ import FilterEmptyState from "../components/FilterEmptyState";
 const MARKET_FILTER_TABS = ["All", "CryptoPunks", "BAYC", "Azuki", "Fidenza"] as const;
 
 type MarketFilterTab = (typeof MARKET_FILTER_TABS)[number];
+
+const NET_ACTIVITY_COLUMNS = ["Asset", "Event", "Price", "Source", "Time"];
 
 const MARKET_ACTIVITY_ROWS = [
   {
@@ -412,7 +415,7 @@ export default function MarketplacePage() {
               </div>
             </div>
 
-            <FilterEmptyState variant="vault" ghostCount={4} />
+            <VaultEmptyState />
 
             {/* Live listings grid — restore when Marketplace launches
             {isLoading && (
@@ -515,13 +518,7 @@ export default function MarketplacePage() {
               </div>
 
               <div className="mkt-act-mobile">
-                <div className="nempty">
-                  <div className="nempty-fade" />
-                  <div className="nempty-msg">
-                    <div className="lempty-title">No results found</div>
-                    <div className="lempty-sub">Launchpad soon</div>
-                  </div>
-                </div>
+                <TableEmptyState compact />
                 {/*
                 {MARKET_ACTIVITY_ROWS.map((row) => (
                   <div key={row.asset} className="mkt-act-row">
@@ -541,51 +538,34 @@ export default function MarketplacePage() {
               </div>
 
               <div className="net-act-desktop net-table-scroll table-scroll">
-                <div className="nempty">
-                  <table className="net-table">
-                    <thead>
-                      <tr>
-                        <th>Asset</th>
-                        <th>Event</th>
-                        <th>Price</th>
-                        <th>Source</th>
-                        <th>Time</th>
+                <TableEmptyState columns={NET_ACTIVITY_COLUMNS} tableClassName="net-table" />
+                {/* Live activity rows — restore when Marketplace launches
+                <table className="net-table">
+                  <thead>
+                    <tr>
+                      {NET_ACTIVITY_COLUMNS.map((col) => (
+                        <th key={col}>{col}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody id="netTable">
+                    {MARKET_ACTIVITY_ROWS.map((row) => (
+                      <tr key={row.asset}>
+                        <td className="td-asset">{row.asset}</td>
+                        <td>
+                          <span className={`td-event ${row.eventClass}`}>{row.event}</span>
+                        </td>
+                        <td className="td-price">
+                          {row.price.replace(" ETH", "")}{" "}
+                          <span style={{ fontSize: "11px", color: "var(--t2)" }}>ETH</span>
+                        </td>
+                        <td className="td-source">{row.source}</td>
+                        <td className="td-time">{row.time}</td>
                       </tr>
-                    </thead>
-                    <tbody id="netTable">
-                      {Array.from({ length: 5 }, (_, rowIdx) => (
-                        <tr className="nempty-row" key={`nempty-${rowIdx}`}>
-                          <td><div className="ne-bar" style={{ width: "62%" }} /></td>
-                          <td><div className="ne-bar" style={{ width: "44%" }} /></td>
-                          <td><div className="ne-bar" style={{ width: "38%" }} /></td>
-                          <td><div className="ne-bar" style={{ width: "50%" }} /></td>
-                          <td><div className="ne-bar" style={{ width: "34%" }} /></td>
-                        </tr>
-                      ))}
-                      {/*
-                      {MARKET_ACTIVITY_ROWS.map((row) => (
-                        <tr key={row.asset}>
-                          <td className="td-asset">{row.asset}</td>
-                          <td>
-                            <span className={`td-event ${row.eventClass}`}>{row.event}</span>
-                          </td>
-                          <td className="td-price">
-                            {row.price.replace(" ETH", "")}{" "}
-                            <span style={{ fontSize: "11px", color: "var(--t2)" }}>ETH</span>
-                          </td>
-                          <td className="td-source">{row.source}</td>
-                          <td className="td-time">{row.time}</td>
-                        </tr>
-                      ))}
-                      */}
-                    </tbody>
-                  </table>
-                  <div className="nempty-fade" />
-                  <div className="nempty-msg">
-                    <div className="lempty-title">No results found</div>
-                    <div className="lempty-sub">Launchpad soon</div>
-                  </div>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
+                */}
               </div>
             </div>
           </div>

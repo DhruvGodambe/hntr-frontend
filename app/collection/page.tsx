@@ -2,7 +2,8 @@
 
 import MainLayout from "../components/MainLayout";
 import CollectionHeroBanner from "../components/CollectionHeroBanner";
-import FilterEmptyState from "../components/FilterEmptyState";
+import CollectionEmptyState from "../components/empty/CollectionEmptyState";
+import TableEmptyState from "../components/empty/TableEmptyState";
 import { useState } from "react";
 import { OPENSEA_COLLECTION_SLUGS } from "@/lib/opensea";
 // import { useEffect, useMemo, useState } from "react";
@@ -752,7 +753,7 @@ export default function CollectionPage() {
                   */}
                 </div>
 
-                <FilterEmptyState variant="nc" ghostCount={4} />
+                <CollectionEmptyState />
 
                 {/* Live NFT grid — restore when Collection launches
                 <div className="nc-grid" id="ncGrid">
@@ -934,6 +935,7 @@ export default function CollectionPage() {
             </div>
 
             <div className="coll-pos-mobile">
+              {rows.length === 0 ? <TableEmptyState compact /> : null}
               {rows.map((row) => {
                 const meta = getPosMobileMeta(row, posView);
                 return (
@@ -980,7 +982,10 @@ export default function CollectionPage() {
 
             <div className="pos-table-wrap coll-pos-desktop">
               <div className="table-scroll pos-table-scroll">
-              <table className="pos-table">
+              {rows.length === 0 ? (
+                <TableEmptyState columns={POS_HEADS[posView]} tableClassName="pos-table" />
+              ) : (
+                <table className="pos-table">
                 <thead>
                   <tr id="posHead">
                     {POS_HEADS[posView].map((h) => (
@@ -989,11 +994,6 @@ export default function CollectionPage() {
                   </tr>
                 </thead>
                 <tbody id="posTable">
-                  <tr>
-                    <td colSpan={POS_HEADS[posView].length} style={{ textAlign: "center", color: "var(--t2)", padding: "24px 0" }}>
-                      No items found
-                    </td>
-                  </tr>
                   {/* Live position rows — restore when Collection launches
                   {posView === "listed" &&
                     POS_DATA.listed.map((r) => (
@@ -1092,7 +1092,8 @@ export default function CollectionPage() {
                     ))}
                   */}
                 </tbody>
-              </table>
+                </table>
+              )}
               </div>
               <div className="pos-footer">
                 <div className="pos-count" id="posCount">

@@ -10,7 +10,8 @@ import { Fragment, ReactNode, useEffect, useLayoutEffect, useMemo, useState, use
 // import 'swiper/css/navigation';
 // import 'swiper/css/pagination';
 import MainLayout from "./components/MainLayout";
-import FilterEmptyState from "./components/FilterEmptyState";
+import ListingsEmptyState from "./components/empty/ListingsEmptyState";
+import SalesEmptyState from "./components/empty/SalesEmptyState";
 import HomeHeroBanner from "./components/HomeHeroBanner";
 import HomeMarketOverview from "./components/HomeMarketOverview";
 import { initReveal, setBannerResources } from "../lib/banners";
@@ -1594,11 +1595,7 @@ export default function HomePage() {
               </div>
 
               <div className="listings-section" style={{ marginBottom: '22px' }}>
-                <FilterEmptyState
-                  ghostCount={4}
-                  title="No items found"
-                  sub="Launching soon"
-                />
+                <ListingsEmptyState />
                 {/*
               <div className="listings-section" style={{ marginBottom: '22px' }}>
                 {isMobile ? (
@@ -1693,11 +1690,7 @@ export default function HomePage() {
               </div>
 
               <div className="listings-section" style={{ marginBottom: '22px' }}>
-                <FilterEmptyState
-                  ghostCount={4}
-                  title="No Sales found"
-                  sub="Launching soon"
-                />
+                <SalesEmptyState />
                 {/*
               <div className="sales-marquee" ref={salesMarqueeRef}>
                 <div className="sales-track" id="salesTrack" ref={salesTrackRef}>
