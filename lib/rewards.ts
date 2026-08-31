@@ -373,7 +373,7 @@ export function useClaimCommissions() {
       throw new Error("Nothing to claim right now.");
     }
 
-    await ensureAuth();
+    await ensureAuth({ interactive: true });
     const results: { symbol: string; txHash: string }[] = [];
     const failures: { symbol: string; message: string }[] = [];
     const publicClient = getPublicClient(config);

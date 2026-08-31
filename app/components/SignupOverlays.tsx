@@ -5,7 +5,7 @@ import { useAccount } from "wagmi";
 import { api, ApiError } from "../../lib/api";
 import { ensureAuth } from "../../lib/auth";
 import { TIERS, TIERS_WITH_OTC } from "../../lib/contracts";
-import { handleAppError, resolveAppError } from "../../lib/errors";
+import { handleAppError, isUserRejectedError, resolveAppError } from "../../lib/errors";
 import { purchaseOrUpgradeTier, useMembershipQuote } from "../../lib/membership";
 import { useConnectWallet } from "../../lib/useConnectWallet";
 import PaymentTokenToggle from "./PaymentTokenToggle";
@@ -277,7 +277,7 @@ export default function SignupOverlays() {
       let succeeded = false;
       const token = paymentTokenRef.current;
       try {
-        await ensureAuth();
+        await ensureAuth({ interactive: true });
 
         const result = await purchaseOrUpgradeTier(tierName, token, {
           onAwaitingWallet: () => {
@@ -345,7 +345,7 @@ export default function SignupOverlays() {
       if (!account) throw new Error("No wallet account available.");
 
       setAwaitingSignature(true);
-      await ensureAuth();
+      await ensureAuth({ interactive: true });
       setAwaitingSignature(false);
 
       try {
@@ -389,6 +389,15 @@ export default function SignupOverlays() {
         }
       }
     } catch (error) {
+      if (isUserRejectedError(error)) {
+        closeSignupFlow();
+        window.showToast?.({
+          title: "Signature rejected",
+          sub: "You were logged out and your wallet was disconnected.",
+          link: "",
+        });
+        return;
+      }
       notifyError("Connection failed", error);
     } finally {
       setConnectBusy(false);

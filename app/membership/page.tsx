@@ -89,7 +89,7 @@ export default function MembershipPage() {
 
   const ensureReadyToPurchase = async (walletAddress: string): Promise<boolean> => {
     try {
-      await ensureAuth();
+      await ensureAuth({ interactive: true });
       await api.get<{ profile: { username: string; tier: string } }>(
         `/api/users/wallet/${walletAddress.toLowerCase()}`,
         { auth: true },

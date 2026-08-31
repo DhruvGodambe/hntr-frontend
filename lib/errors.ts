@@ -64,6 +64,24 @@ function isUserRejected(message: string, code?: string): boolean {
   );
 }
 
+/** True when the wallet / user cancelled a signature or transaction prompt. */
+export function isUserRejectedError(error: unknown): boolean {
+  const code = getErrorCode(error);
+  const message = getErrorMessage(error);
+  if (isUserRejected(message, code)) return true;
+
+  if (error && typeof error === "object") {
+    const anyErr = error as {
+      name?: string;
+      cause?: { name?: string; code?: string | number };
+    };
+    if (anyErr.name === "UserRejectedRequestError") return true;
+    if (anyErr.cause?.name === "UserRejectedRequestError") return true;
+    if (anyErr.cause?.code === 4001 || String(anyErr.cause?.code) === "4001") return true;
+  }
+  return false;
+}
+
 function isInsufficientFunds(message: string, code?: string): boolean {
   if (code === "INSUFFICIENT_BALANCE" || code === "INSUFFICIENT_FUNDS") return true;
   const msg = message.toLowerCase();
@@ -86,9 +104,9 @@ export function resolveAppError(
   const code = getErrorCode(error);
   const message = getErrorMessage(error);
 
-  if (isUserRejected(message, code)) {
+  if (isUserRejectedError(error)) {
     return {
-      title: "Transaction cancelled",
+      title: "Request cancelled",
       sub: "You rejected the request in your wallet.",
       code: "USER_REJECTED",
     };
