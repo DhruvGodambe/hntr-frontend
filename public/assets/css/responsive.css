@@ -143,6 +143,11 @@
   display: none;
 }
 
+/* Shortened nav labels only exist for the mobile bottom nav. */
+.si-label-short {
+  display: none;
+}
+
 .mkt-filter-tab {
   flex: 0 0 auto;
   height: 30px;
@@ -921,7 +926,7 @@ body.dark .mkt-filter-tab.active {
     height: 10px !important;
   }
 
-  .sb.mobile-bottom-nav .si-mobile-extra,
+  /* Learn stays out of the dock; Membership is a primary destination. */
   .sb.mobile-bottom-nav .si-bot.si-mobile-extra {
     display: none !important;
   }
@@ -933,6 +938,39 @@ body.dark .mkt-filter-tab.active {
 
   .sb.mobile-bottom-nav .si-sep {
     display: none !important;
+  }
+
+  /* Six destinations share the dock, so tighten each item to fit. */
+  .sb.mobile-bottom-nav .si-label-full {
+    display: none !important;
+  }
+
+  .sb.mobile-bottom-nav .si-label-short {
+    display: block !important;
+  }
+
+  .sb.mobile-bottom-nav .si,
+  .sb.mobile-bottom-nav .si-bot .si {
+    padding: 5px 0 !important;
+    gap: 2px !important;
+    border-radius: 10px !important;
+  }
+
+  .sb.mobile-bottom-nav .si-icon {
+    width: 18px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+  }
+
+  .sb.mobile-bottom-nav .si-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .sb.mobile-bottom-nav .si-label {
+    font-size: 7px !important;
+    letter-spacing: 0.02em !important;
+    padding: 0 1px;
   }
 
   body:not(.dark) .sb.mobile-bottom-nav,
@@ -5289,6 +5327,6 @@ body.dark .mkt-filter-tab.active {
   }
 
   .nempty-compact .lempty-title {
-    font-size: 18px !important;
+    font-size: 20px !important;
   }
 }

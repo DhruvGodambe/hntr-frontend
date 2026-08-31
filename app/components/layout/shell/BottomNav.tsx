@@ -61,14 +61,16 @@ export default function BottomNav({
               <div className="si-icon">
                 <MarketNavIcon />
               </div>
-              <span className="si-label">Marketplace</span>
+              <span className="si-label si-label-full">Marketplace</span>
+              <span className="si-label si-label-short">Market</span>
             </Link>
 
             <Link href="/pools" className={`si ${currentPage === "pools" ? "active" : ""}`} data-page="pools">
               <div className="si-icon">
                 <StrategiesNavIcon />
               </div>
-              <span className="si-label">NFT Strategies</span>
+              <span className="si-label si-label-full">NFT Strategies</span>
+              <span className="si-label si-label-short">Strategies</span>
             </Link>
 
             <Link href="/collection" className={`si ${currentPage === "collection" ? "active" : ""}`} data-page="collection">
