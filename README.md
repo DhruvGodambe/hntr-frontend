@@ -2,6 +2,8 @@
 
 HNTR is a community-driven NFT investment platform that combines a powerful network marketing compensation plan with unique on-chain investment opportunities.
 
+
+
 ## 🌟 Overview (The Layman's Guide)
 
 Imagine a club where you not only get access to high-end NFT investments but also get rewarded for growing the community. That's HNTR.
