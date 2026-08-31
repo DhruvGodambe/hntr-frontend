@@ -30,7 +30,8 @@ body.dark[data-page="learn"] {
   font-family: "Space Grotesk", sans-serif;
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: #0c0c0e;
   cursor: pointer;
   transition: opacity 0.2s ease, visibility 0.2s ease;

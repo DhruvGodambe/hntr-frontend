@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { Fragment, ReactNode, useEffect, useLayoutEffect, useMemo, useState, useRef } from "react";
-import { motion } from "framer-motion";
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Navigation, Pagination } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
+// Home listings/sales carousel — restore when launching.
+// import { motion } from "framer-motion";
+// import { Swiper, SwiperSlide } from 'swiper/react';
+// import { Autoplay, Navigation, Pagination } from 'swiper/modules';
+// import 'swiper/css';
+// import 'swiper/css/navigation';
+// import 'swiper/css/pagination';
 import MainLayout from "./components/MainLayout";
+import FilterEmptyState from "./components/FilterEmptyState";
 import HomeHeroBanner from "./components/HomeHeroBanner";
 import HomeMarketOverview from "./components/HomeMarketOverview";
 import { initReveal, setBannerResources } from "../lib/banners";
@@ -18,8 +20,8 @@ import { useRouter } from "nextjs-toploader/app";
 import {
   formatUsd,
   useOpenSeaListings,
-  useOpenSeaMarketplaceListings,
-  useOpenSeaMarketplaceSales,
+  // useOpenSeaMarketplaceListings,
+  // useOpenSeaMarketplaceSales,
 } from "@/lib/opensea";
 
 const STRATEGY_POOLS = [
@@ -152,102 +154,101 @@ function renderTypedSegments(segments: Segment[], count: number, keyBase: string
   });
 }
 
-const MOBILE_LISTINGS_BATCH = 4;
+// const MOBILE_LISTINGS_BATCH = 4;
 
-const FALLBACK_LISTING_CARDS = [
-  { img: "/assets/images/image-11.jpg", name: "BAYC #9112", bought: "5.75", sell: "7.15", profit: "+19.3%", soon: false, openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-6.jpg", name: "BAYC #9112", bought: "4.75", sell: "9.75", profit: "+18.8%", soon: false, openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-3.jpg", name: "BAYC #9112", bought: "4.1", sell: "7.9", profit: "+18.8%", soon: false, openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-7.jpg", name: "BAYC #5621", bought: "6.2", sell: "8.5", profit: "+15.4%", soon: false, openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-5.jpg", name: "BAYC #7832", bought: "3.8", sell: "6.2", profit: "+17.5%", soon: false, openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-8.jpg", name: "BAYC #4521", bought: "5.2", sell: "7.8", profit: "+16.2%", soon: false, openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-4.jpg", name: "COMING SOON", bought: "--", sell: "--", profit: "--", soon: true, openseaUrl: "" },
-];
+// const FALLBACK_LISTING_CARDS = [
+//   { img: "/assets/images/image-11.jpg", name: "BAYC #9112", bought: "5.75", sell: "7.15", profit: "+19.3%", soon: false, openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-6.jpg", name: "BAYC #9112", bought: "4.75", sell: "9.75", profit: "+18.8%", soon: false, openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-3.jpg", name: "BAYC #9112", bought: "4.1", sell: "7.9", profit: "+18.8%", soon: false, openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-7.jpg", name: "BAYC #5621", bought: "6.2", sell: "8.5", profit: "+15.4%", soon: false, openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-5.jpg", name: "BAYC #7832", bought: "3.8", sell: "6.2", profit: "+17.5%", soon: false, openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-8.jpg", name: "BAYC #4521", bought: "5.2", sell: "7.8", profit: "+16.2%", soon: false, openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-4.jpg", name: "COMING SOON", bought: "--", sell: "--", profit: "--", soon: true, openseaUrl: "" },
+// ];
 
-const FALLBACK_SALES_CARDS = [
-  { img: "/assets/images/image-11.jpg", name: "Bored Ape YC #3425", bought: "7.50", sale: "8.25", profit: "+10%", openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-6.jpg", name: "Bored Ape YC #7821", bought: "8.64", sale: "9.50", profit: "+9.9%", openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-3.jpg", name: "CryptoPunks #5421", bought: "29.23", sale: "32.15", profit: "+10%", openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-7.jpg", name: "Bored Ape YC #9321", bought: "7.09", sale: "7.80", profit: "+10%", openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-5.jpg", name: "Azuki #1245", bought: "5.14", sale: "5.65", profit: "+9.9%", openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-8.jpg", name: "Bored Ape YC #4523", bought: "8.09", sale: "8.90", profit: "+10%", openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-4.jpg", name: "Doodles #2341", bought: "5.73", sale: "6.30", profit: "+9.9%", openseaUrl: "https://opensea.io" },
-  { img: "/assets/images/image-9.jpg", name: "Pudgy Penguins #6754", bought: "4.41", sale: "4.85", profit: "+10%", openseaUrl: "https://opensea.io" }
-];
+// const FALLBACK_SALES_CARDS = [
+//   { img: "/assets/images/image-11.jpg", name: "Bored Ape YC #3425", bought: "7.50", sale: "8.25", profit: "+10%", openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-6.jpg", name: "Bored Ape YC #7821", bought: "8.64", sale: "9.50", profit: "+9.9%", openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-3.jpg", name: "CryptoPunks #5421", bought: "29.23", sale: "32.15", profit: "+10%", openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-7.jpg", name: "Bored Ape YC #9321", bought: "7.09", sale: "7.80", profit: "+10%", openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-5.jpg", name: "Azuki #1245", bought: "5.14", sale: "5.65", profit: "+9.9%", openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-8.jpg", name: "Bored Ape YC #4523", bought: "8.09", sale: "8.90", profit: "+10%", openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-4.jpg", name: "Doodles #2341", bought: "5.73", sale: "6.30", profit: "+9.9%", openseaUrl: "https://opensea.io" },
+//   { img: "/assets/images/image-9.jpg", name: "Pudgy Penguins #6754", bought: "4.41", sale: "4.85", profit: "+10%", openseaUrl: "https://opensea.io" }
+// ];
 
-function ListingCard({
-  img,
-  name,
-  bought,
-  sell,
-  profit,
-  soon,
-  openseaUrl,
-}: {
-  img: string;
-  name: string;
-  bought: string;
-  sell: string;
-  profit: string;
-  soon: boolean;
-  openseaUrl?: string;
-}) {
-  const openListing = () => {
-    if (soon) return;
-    window.open(openseaUrl || "https://opensea.io", "_blank", "noopener,noreferrer");
-  };
+// function ListingCard({
+//   img,
+//   name,
+//   bought,
+//   sell,
+//   profit,
+//   soon,
+//   openseaUrl,
+// }: {
+//   img: string;
+//   name: string;
+//   bought: string;
+//   sell: string;
+//   profit: string;
+//   soon: boolean;
+//   openseaUrl?: string;
+// }) {
+//   const openListing = () => {
+//     if (soon) return;
+//     window.open(openseaUrl || "https://opensea.io", "_blank", "noopener,noreferrer");
+//   };
 
-  return (
-    <div
-      className="lc"
-      style={{ cursor: soon ? "not-allowed" : "pointer", opacity: soon ? 0.38 : 1 }}
-      onClick={openListing}
-    >
-      <img className="lcimg" src={img} alt={name} />
-      <div className="src-logo">
-        <svg viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="5" fill={soon ? "#9CA3AF" : "#2081E2"} />
-          <path
-            d="M16 8.5L8 13v6l8 4.5 8-4.5v-6L16 8.5z"
-            fill="white"
-            opacity={soon ? ".5" : ".9"}
-          />
-        </svg>
-      </div>
-      <div className="lcb">
-        <div className="lcn">{name}</div>
-        <div className="lcrow">
-          <div className="lck">BOUGHT</div>
-          <div className="lcv">
-            {bought} <span className="eth-ic"></span>
-          </div>
-        </div>
-        <div className="lcrow">
-          <div className="lck">SELL</div>
-          <div className="lcv">
-            {sell} <span className="eth-ic"></span>
-          </div>
-        </div>
-        <div className="lcrow">
-          <div className="lck">GROSS PROFIT</div>
-          <div className="lcg">{profit}</div>
-        </div>
-        <button
-          className="lcbtn"
-          type="button"
-          disabled={soon}
-          onClick={(e) => {
-            e.stopPropagation();
-            openListing();
-          }}
-        >
-          {soon ? "Coming Soon" : "View Listing"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
+//   return (
+//     <div
+//       className="lc"
+//       style={{ cursor: soon ? "not-allowed" : "pointer", opacity: soon ? 0.38 : 1 }}
+//       onClick={openListing}
+//     >
+//       <img className="lcimg" src={img} alt={name} />
+//       <div className="src-logo">
+//         <svg viewBox="0 0 32 32" fill="none">
+//           <rect width="32" height="32" rx="5" fill={soon ? "#9CA3AF" : "#2081E2"} />
+//           <path
+//             d="M16 8.5L8 13v6l8 4.5 8-4.5v-6L16 8.5z"
+//             fill="white"
+//             opacity={soon ? ".5" : ".9"}
+//           />
+//         </svg>
+//       </div>
+//       <div className="lcb">
+//         <div className="lcn">{name}</div>
+//         <div className="lcrow">
+//           <div className="lck">BOUGHT</div>
+//           <div className="lcv">
+//             {bought} <span className="eth-ic"></span>
+//           </div>
+//         </div>
+//         <div className="lcrow">
+//           <div className="lck">SELL</div>
+//           <div className="lcv">
+//             {sell} <span className="eth-ic"></span>
+//           </div>
+//         </div>
+//         <div className="lcrow">
+//           <div className="lck">GROSS PROFIT</div>
+//           <div className="lcg">{profit}</div>
+//         </div>
+//         <button
+//           className="lcbtn"
+//           type="button"
+//           disabled={soon}
+//           onClick={(e) => {
+//             e.stopPropagation();
+//             openListing();
+//           }}
+//         >
+//           {soon ? "Coming Soon" : "View Listing"}
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
 export default function HomePage() {
   const router = useRouter();
   const [loaderOut, setLoaderOut] = useState(false);
@@ -268,15 +269,16 @@ export default function HomePage() {
     contentWidth: 0,
     cardStep: 482,
   });
-  const [mobileListingsVisible, setMobileListingsVisible] = useState(MOBILE_LISTINGS_BATCH);
-  const [mobileListingsAnimFrom, setMobileListingsAnimFrom] = useState(MOBILE_LISTINGS_BATCH);
+  // Listings/sales are not live yet — restore the block below when launching.
+  // const [mobileListingsVisible, setMobileListingsVisible] = useState(MOBILE_LISTINGS_BATCH);
+  // const [mobileListingsAnimFrom, setMobileListingsAnimFrom] = useState(MOBILE_LISTINGS_BATCH);
 
   const { data: baycListings } = useOpenSeaListings("boredapeyachtclub", 1);
   const { data: pudgyListings } = useOpenSeaListings("pudgypenguins", 1);
   const { data: punksListings } = useOpenSeaListings("cryptopunks", 1);
   const { data: azukiListings } = useOpenSeaListings("azuki", 1);
-  const { data: openSeaListings } = useOpenSeaMarketplaceListings(3);
-  const { data: openSeaSales } = useOpenSeaMarketplaceSales(3);
+  // const { data: openSeaListings } = useOpenSeaMarketplaceListings(3);
+  // const { data: openSeaSales } = useOpenSeaMarketplaceSales(3);
 
   const strategyPools = useMemo(() => {
     const liveBySlug: Record<
@@ -340,85 +342,84 @@ export default function HomePage() {
     });
   }, [baycListings, pudgyListings, punksListings, azukiListings]);
 
-  const listingCards = useMemo(() => {
-    if (!openSeaListings?.length) return FALLBACK_LISTING_CARDS;
+//   const listingCards = useMemo(() => {
+//     if (!openSeaListings?.length) return FALLBACK_LISTING_CARDS;
 
-    const live = openSeaListings
-      .filter((l) => l.priceEth > 0)
-      .slice(0, 12)
-      .map((listing) => {
-        const sellEth = listing.priceEth;
-        const boughtEth = Number((sellEth * 0.8).toFixed(2));
-        const profitPct = boughtEth > 0 ? ((sellEth - boughtEth) / boughtEth) * 100 : 0;
-        return {
-          img: listing.imageUrl || "/assets/images/image-4.jpg",
-          name: listing.name,
-          bought: boughtEth.toFixed(2),
-          sell: sellEth.toFixed(2),
-          profit: `${profitPct >= 0 ? "+" : ""}${profitPct.toFixed(1)}%`,
-          soon: false,
-          openseaUrl: listing.openseaUrl,
-        };
-      });
+//     const live = openSeaListings
+//       .filter((l) => l.priceEth > 0)
+//       .slice(0, 12)
+//       .map((listing) => {
+//         const sellEth = listing.priceEth;
+//         const boughtEth = Number((sellEth * 0.8).toFixed(2));
+//         const profitPct = boughtEth > 0 ? ((sellEth - boughtEth) / boughtEth) * 100 : 0;
+//         return {
+//           img: listing.imageUrl || "/assets/images/image-4.jpg",
+//           name: listing.name,
+//           bought: boughtEth.toFixed(2),
+//           sell: sellEth.toFixed(2),
+//           profit: `${profitPct >= 0 ? "+" : ""}${profitPct.toFixed(1)}%`,
+//           soon: false,
+//           openseaUrl: listing.openseaUrl,
+//         };
+//       });
 
-    if (!live.length) return FALLBACK_LISTING_CARDS;
-    return [
-      ...live,
-      {
-        img: "/assets/images/image-4.jpg",
-        name: "COMING SOON",
-        bought: "--",
-        sell: "--",
-        profit: "--",
-        soon: true,
-        openseaUrl: "",
-      },
-    ];
-  }, [openSeaListings]);
+//     if (!live.length) return FALLBACK_LISTING_CARDS;
+//     return [
+//       ...live,
+//       {
+//         img: "/assets/images/image-4.jpg",
+//         name: "COMING SOON",
+//         bought: "--",
+//         sell: "--",
+//         profit: "--",
+//         soon: true,
+//         openseaUrl: "",
+//       },
+//     ];
+//   }, [openSeaListings]);
 
-  useEffect(() => {
-    setMobileListingsVisible(MOBILE_LISTINGS_BATCH);
-    setMobileListingsAnimFrom(MOBILE_LISTINGS_BATCH);
-  }, [listingCards.length]);
+//   useEffect(() => {
+//     setMobileListingsVisible(MOBILE_LISTINGS_BATCH);
+//     setMobileListingsAnimFrom(MOBILE_LISTINGS_BATCH);
+//   }, [listingCards.length]);
 
-  const visibleMobileListings = listingCards.slice(0, mobileListingsVisible);
-  const hasMoreMobileListings = mobileListingsVisible < listingCards.length;
+//   const visibleMobileListings = listingCards.slice(0, mobileListingsVisible);
+//   const hasMoreMobileListings = mobileListingsVisible < listingCards.length;
 
-  const loadMoreMobileListings = () => {
-    setMobileListingsAnimFrom(mobileListingsVisible);
-    setMobileListingsVisible((count) =>
-      Math.min(count + MOBILE_LISTINGS_BATCH, listingCards.length),
-    );
-  };
+//   const loadMoreMobileListings = () => {
+//     setMobileListingsAnimFrom(mobileListingsVisible);
+//     setMobileListingsVisible((count) =>
+//       Math.min(count + MOBILE_LISTINGS_BATCH, listingCards.length),
+//     );
+//   };
 
-  const salesCards = useMemo(() => {
-    if (!openSeaSales?.length) return FALLBACK_SALES_CARDS;
+//   const salesCards = useMemo(() => {
+//     if (!openSeaSales?.length) return FALLBACK_SALES_CARDS;
 
-    const live = openSeaSales
-      .filter((s) => s.priceEth > 0)
-      .slice(0, 16)
-      .map((sale) => {
-        const saleEth = sale.priceEth;
-        const boughtEth = Number((saleEth * 0.9).toFixed(2));
-        const profitPct = boughtEth > 0 ? ((saleEth - boughtEth) / boughtEth) * 100 : 0;
-        return {
-          img: sale.imageUrl || "/assets/images/image-4.jpg",
-          name: sale.name,
-          bought: boughtEth.toFixed(2),
-          sale: saleEth.toFixed(2),
-          profit: `${profitPct >= 0 ? "+" : ""}${profitPct.toFixed(1)}%`,
-          openseaUrl: sale.openseaUrl,
-        };
-      });
+//     const live = openSeaSales
+//       .filter((s) => s.priceEth > 0)
+//       .slice(0, 16)
+//       .map((sale) => {
+//         const saleEth = sale.priceEth;
+//         const boughtEth = Number((saleEth * 0.9).toFixed(2));
+//         const profitPct = boughtEth > 0 ? ((saleEth - boughtEth) / boughtEth) * 100 : 0;
+//         return {
+//           img: sale.imageUrl || "/assets/images/image-4.jpg",
+//           name: sale.name,
+//           bought: boughtEth.toFixed(2),
+//           sale: saleEth.toFixed(2),
+//           profit: `${profitPct >= 0 ? "+" : ""}${profitPct.toFixed(1)}%`,
+//           openseaUrl: sale.openseaUrl,
+//         };
+//       });
 
-    return live.length ? live : FALLBACK_SALES_CARDS;
-  }, [openSeaSales]);
-
+//     return live.length ? live : FALLBACK_SALES_CARDS;
+//   }, [openSeaSales]);
   const cardCount = strategyPools.length;
   const npViewportRef = useRef<HTMLDivElement | null>(null);
   const npGridRef = useRef<HTMLDivElement | null>(null);
-  const salesMarqueeRef = useRef<HTMLDivElement | null>(null);
-  const salesTrackRef = useRef<HTMLDivElement | null>(null);
+  // const salesMarqueeRef = useRef<HTMLDivElement | null>(null);
+  // const salesTrackRef = useRef<HTMLDivElement | null>(null);
   const { viewportWidth, contentWidth, cardStep } = sliderLayout;
   const desktopMaxOffset = Math.max(0, contentWidth - viewportWidth);
   const desktopMaxSlide =
@@ -544,7 +545,7 @@ export default function HomePage() {
     };
   }, [isMobile, loaderOut, cardCount]);
 
-  // Mobile strategies slider — grab/swipe scroll with snap
+  // Mobile strategies slider ΓÇö grab/swipe scroll with snap
   useEffect(() => {
     if (!isMobile) return;
     const viewport = npViewportRef.current;
@@ -628,214 +629,213 @@ export default function HomePage() {
   };
 
   // Drag-to-scroll sales marquee (mouse + touch) with infinite autoplay
-  useEffect(() => {
-    const marquee = salesMarqueeRef.current;
-    const track = salesTrackRef.current;
-    if (!marquee || !track) return;
+//   useEffect(() => {
+//     const marquee = salesMarqueeRef.current;
+//     const track = salesTrackRef.current;
+//     if (!marquee || !track) return;
 
-    track.classList.add("is-drag-controlled");
-    marquee.classList.add("is-drag-enabled");
+//     track.classList.add("is-drag-controlled");
+//     marquee.classList.add("is-drag-enabled");
 
-    let offset = 0;
-    let half = 0;
-    let paused = false;
-    let raf = 0;
-    let resumeTimer: ReturnType<typeof setTimeout> | null = null;
-    const speed = 0.45;
+//     let offset = 0;
+//     let half = 0;
+//     let paused = false;
+//     let raf = 0;
+//     let resumeTimer: ReturnType<typeof setTimeout> | null = null;
+//     const speed = 0.45;
 
-    const measure = () => {
-      half = track.scrollWidth / 2;
-    };
+//     const measure = () => {
+//       half = track.scrollWidth / 2;
+//     };
 
-    const wrap = (value: number) => {
-      if (half <= 0) return 0;
-      let x = value % half;
-      if (x > 0) x -= half;
-      if (x <= -half) x += half;
-      return x;
-    };
+//     const wrap = (value: number) => {
+//       if (half <= 0) return 0;
+//       let x = value % half;
+//       if (x > 0) x -= half;
+//       if (x <= -half) x += half;
+//       return x;
+//     };
 
-    const apply = () => {
-      track.style.transform = `translate3d(${offset}px,0,0)`;
-    };
+//     const apply = () => {
+//       track.style.transform = `translate3d(${offset}px,0,0)`;
+//     };
 
-    const tick = () => {
-      raf = requestAnimationFrame(tick);
-      if (!paused && half > 0) {
-        offset = wrap(offset - speed);
-        apply();
-      }
-    };
+//     const tick = () => {
+//       raf = requestAnimationFrame(tick);
+//       if (!paused && half > 0) {
+//         offset = wrap(offset - speed);
+//         apply();
+//       }
+//     };
 
-    let dragging = false;
-    let moved = false;
-    let pointerId: number | null = null;
-    let axis: "x" | "y" | null = null;
-    let startX = 0;
-    let startY = 0;
-    let startOffset = 0;
-    let lastX = 0;
-    let lastT = 0;
-    let velocity = 0;
-    let coasting = false;
+//     let dragging = false;
+//     let moved = false;
+//     let pointerId: number | null = null;
+//     let axis: "x" | "y" | null = null;
+//     let startX = 0;
+//     let startY = 0;
+//     let startOffset = 0;
+//     let lastX = 0;
+//     let lastT = 0;
+//     let velocity = 0;
+//     let coasting = false;
 
-    const clearResume = () => {
-      if (resumeTimer) {
-        clearTimeout(resumeTimer);
-        resumeTimer = null;
-      }
-    };
+//     const clearResume = () => {
+//       if (resumeTimer) {
+//         clearTimeout(resumeTimer);
+//         resumeTimer = null;
+//       }
+//     };
 
-    const scheduleResume = (delay = 900) => {
-      clearResume();
-      resumeTimer = setTimeout(() => {
-        paused = false;
-        coasting = false;
-        marquee.classList.remove("is-dragging");
-      }, delay);
-    };
+//     const scheduleResume = (delay = 900) => {
+//       clearResume();
+//       resumeTimer = setTimeout(() => {
+//         paused = false;
+//         coasting = false;
+//         marquee.classList.remove("is-dragging");
+//       }, delay);
+//     };
 
-    const startDrag = (clientX: number, clientY: number, id: number) => {
-      clearResume();
-      coasting = false;
-      pointerId = id;
-      startX = clientX;
-      startY = clientY;
-      startOffset = offset;
-      lastX = clientX;
-      lastT = performance.now();
-      velocity = 0;
-      axis = null;
-      moved = false;
-      dragging = true;
-      paused = true;
-    };
+//     const startDrag = (clientX: number, clientY: number, id: number) => {
+//       clearResume();
+//       coasting = false;
+//       pointerId = id;
+//       startX = clientX;
+//       startY = clientY;
+//       startOffset = offset;
+//       lastX = clientX;
+//       lastT = performance.now();
+//       velocity = 0;
+//       axis = null;
+//       moved = false;
+//       dragging = true;
+//       paused = true;
+//     };
 
-    const moveDrag = (clientX: number, clientY: number, e: Event) => {
-      if (!dragging) return;
-      const dx = clientX - startX;
-      const dy = clientY - startY;
+//     const moveDrag = (clientX: number, clientY: number, e: Event) => {
+//       if (!dragging) return;
+//       const dx = clientX - startX;
+//       const dy = clientY - startY;
 
-      if (axis === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
-        axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
-        if (axis === "y") {
-          dragging = false;
-          pointerId = null;
-          marquee.classList.remove("is-dragging");
-          scheduleResume(300);
-          return;
-        }
-        marquee.classList.add("is-dragging");
-      }
+//       if (axis === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+//         axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+//         if (axis === "y") {
+//           dragging = false;
+//           pointerId = null;
+//           marquee.classList.remove("is-dragging");
+//           scheduleResume(300);
+//           return;
+//         }
+//         marquee.classList.add("is-dragging");
+//       }
 
-      if (axis !== "x") return;
-      e.preventDefault();
-      moved = true;
-      const now = performance.now();
-      const dt = Math.max(8, now - lastT);
-      velocity = (clientX - lastX) / dt;
-      lastX = clientX;
-      lastT = now;
-      offset = wrap(startOffset + dx);
-      apply();
-    };
+//       if (axis !== "x") return;
+//       e.preventDefault();
+//       moved = true;
+//       const now = performance.now();
+//       const dt = Math.max(8, now - lastT);
+//       velocity = (clientX - lastX) / dt;
+//       lastX = clientX;
+//       lastT = now;
+//       offset = wrap(startOffset + dx);
+//       apply();
+//     };
 
-    const endDrag = () => {
-      if (!dragging && axis !== "x") {
-        pointerId = null;
-        return;
-      }
-      dragging = false;
-      pointerId = null;
+//     const endDrag = () => {
+//       if (!dragging && axis !== "x") {
+//         pointerId = null;
+//         return;
+//       }
+//       dragging = false;
+//       pointerId = null;
 
-      if (axis === "x" && moved) {
-        coasting = true;
-        const coast = () => {
-          if (!coasting) return;
-          velocity *= 0.92;
-          if (Math.abs(velocity) > 0.05) {
-            offset = wrap(offset + velocity * 16);
-            apply();
-            requestAnimationFrame(coast);
-          } else {
-            coasting = false;
-            scheduleResume(700);
-          }
-        };
-        requestAnimationFrame(coast);
-      } else {
-        scheduleResume(300);
-      }
-      axis = null;
-    };
+//       if (axis === "x" && moved) {
+//         coasting = true;
+//         const coast = () => {
+//           if (!coasting) return;
+//           velocity *= 0.92;
+//           if (Math.abs(velocity) > 0.05) {
+//             offset = wrap(offset + velocity * 16);
+//             apply();
+//             requestAnimationFrame(coast);
+//           } else {
+//             coasting = false;
+//             scheduleResume(700);
+//           }
+//         };
+//         requestAnimationFrame(coast);
+//       } else {
+//         scheduleResume(300);
+//       }
+//       axis = null;
+//     };
 
-    const onPointerDown = (e: PointerEvent) => {
-      if (e.pointerType === "mouse" && e.button !== 0) return;
-      startDrag(e.clientX, e.clientY, e.pointerId);
-      try {
-        marquee.setPointerCapture(e.pointerId);
-      } catch {
-        /* ignore */
-      }
-    };
+//     const onPointerDown = (e: PointerEvent) => {
+//       if (e.pointerType === "mouse" && e.button !== 0) return;
+//       startDrag(e.clientX, e.clientY, e.pointerId);
+//       try {
+//         marquee.setPointerCapture(e.pointerId);
+//       } catch {
+//         /* ignore */
+//       }
+//     };
 
-    const onPointerMove = (e: PointerEvent) => {
-      if (pointerId !== null && e.pointerId !== pointerId) return;
-      moveDrag(e.clientX, e.clientY, e);
-    };
+//     const onPointerMove = (e: PointerEvent) => {
+//       if (pointerId !== null && e.pointerId !== pointerId) return;
+//       moveDrag(e.clientX, e.clientY, e);
+//     };
 
-    const onPointerUp = (e: PointerEvent) => {
-      if (pointerId !== null && e.pointerId !== pointerId) return;
-      try {
-        if (pointerId !== null) marquee.releasePointerCapture(pointerId);
-      } catch {
-        /* ignore */
-      }
-      endDrag();
-    };
+//     const onPointerUp = (e: PointerEvent) => {
+//       if (pointerId !== null && e.pointerId !== pointerId) return;
+//       try {
+//         if (pointerId !== null) marquee.releasePointerCapture(pointerId);
+//       } catch {
+//         /* ignore */
+//       }
+//       endDrag();
+//     };
 
-    const onMouseEnter = () => {
-      if (!dragging) paused = true;
-    };
-    const onMouseLeave = () => {
-      if (!dragging && !coasting) paused = false;
-    };
+//     const onMouseEnter = () => {
+//       if (!dragging) paused = true;
+//     };
+//     const onMouseLeave = () => {
+//       if (!dragging && !coasting) paused = false;
+//     };
 
-    measure();
-    apply();
-    raf = requestAnimationFrame(tick);
+//     measure();
+//     apply();
+//     raf = requestAnimationFrame(tick);
 
-    const ro = new ResizeObserver(() => {
-      measure();
-      offset = wrap(offset);
-      apply();
-    });
-    ro.observe(track);
+//     const ro = new ResizeObserver(() => {
+//       measure();
+//       offset = wrap(offset);
+//       apply();
+//     });
+//     ro.observe(track);
 
-    marquee.addEventListener("pointerdown", onPointerDown);
-    marquee.addEventListener("pointermove", onPointerMove);
-    marquee.addEventListener("pointerup", onPointerUp);
-    marquee.addEventListener("pointercancel", onPointerUp);
-    marquee.addEventListener("mouseenter", onMouseEnter);
-    marquee.addEventListener("mouseleave", onMouseLeave);
+//     marquee.addEventListener("pointerdown", onPointerDown);
+//     marquee.addEventListener("pointermove", onPointerMove);
+//     marquee.addEventListener("pointerup", onPointerUp);
+//     marquee.addEventListener("pointercancel", onPointerUp);
+//     marquee.addEventListener("mouseenter", onMouseEnter);
+//     marquee.addEventListener("mouseleave", onMouseLeave);
 
-    return () => {
-      cancelAnimationFrame(raf);
-      clearResume();
-      coasting = false;
-      ro.disconnect();
-      marquee.removeEventListener("pointerdown", onPointerDown);
-      marquee.removeEventListener("pointermove", onPointerMove);
-      marquee.removeEventListener("pointerup", onPointerUp);
-      marquee.removeEventListener("pointercancel", onPointerUp);
-      marquee.removeEventListener("mouseenter", onMouseEnter);
-      marquee.removeEventListener("mouseleave", onMouseLeave);
-      track.classList.remove("is-drag-controlled");
-      marquee.classList.remove("is-drag-enabled", "is-dragging");
-      track.style.transform = "";
-    };
-  }, [loaderOut]);
-
+//     return () => {
+//       cancelAnimationFrame(raf);
+//       clearResume();
+//       coasting = false;
+//       ro.disconnect();
+//       marquee.removeEventListener("pointerdown", onPointerDown);
+//       marquee.removeEventListener("pointermove", onPointerMove);
+//       marquee.removeEventListener("pointerup", onPointerUp);
+//       marquee.removeEventListener("pointercancel", onPointerUp);
+//       marquee.removeEventListener("mouseenter", onMouseEnter);
+//       marquee.removeEventListener("mouseleave", onMouseLeave);
+//       track.classList.remove("is-drag-controlled");
+//       marquee.classList.remove("is-drag-enabled", "is-dragging");
+//       track.style.transform = "";
+//     };
+//   }, [loaderOut]);
   useEffect(() => {
     if (hasSeenIntro() || introSkippedRef.current) {
       setLoaderOut(true);
@@ -939,7 +939,7 @@ export default function HomePage() {
     // Force reflow to ensure accurate measurements
     void cv.offsetHeight;
     
-    // Always measure FROM synchronously before pinning — async measure left the
+    // Always measure FROM synchronously before pinning ΓÇö async measure left the
     // canvas fixed at CSS 100%/100% for a frame (fullscreen flash).
     const fromRect = cv.getBoundingClientRect();
     canvasFromRef.current = fromRect;
@@ -1119,7 +1119,7 @@ export default function HomePage() {
     }
   }, [introEnabled, progress]);
 
-  // Scroll handler — only while intro is active and not yet completed this session
+  // Scroll handler ΓÇö only while intro is active and not yet completed this session
   useEffect(() => {
     if (!introEnabled || introSkippedRef.current) return;
 
@@ -1293,7 +1293,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="intro-scrollhint" style={{ opacity: hintOpacity }}>
-          {isMobile ? "Swipe up to explore ↑" : "Scroll to explore ↓"}
+          {isMobile ? "Swipe up to explore Γåæ" : "Scroll to explore Γåô"}
         </div>
       </div>
       )}
@@ -1411,7 +1411,7 @@ export default function HomePage() {
                       disabled={!canGoPrev}
                       aria-label="Previous strategy"
                     >
-                      ←
+                      ΓåÉ
                     </button>
                     <button
                       type="button"
@@ -1420,7 +1420,7 @@ export default function HomePage() {
                       disabled={!canGoNext}
                       aria-label="Next strategy"
                     >
-                      →
+                      ΓåÆ
                     </button>
                   </div>
                   <Link href="/pools" className="va sh-strategies-view-all">
@@ -1534,11 +1534,11 @@ export default function HomePage() {
                               if (npcCard) {
                                 npcCard.classList.toggle("open");
                                 const caret = e.currentTarget.querySelector(".car");
-                                if (caret) caret.textContent = npcCard.classList.contains("open") ? "▴" : "▾";
+                                if (caret) caret.textContent = npcCard.classList.contains("open") ? "Γû┤" : "Γû╛";
                               }
                             }}
                           >
-                            <span className="car">▾</span>Pool Details
+                            <span className="car">Γû╛</span>Pool Details
                           </button>
                           <button className="npc-btn-p" type="button" disabled>
                             {DEPOSIT_CTA_LABEL}
@@ -1583,6 +1583,13 @@ export default function HomePage() {
                 </a>
               </div>
 
+              <div className="listings-section" style={{ marginBottom: '22px' }}>
+                <FilterEmptyState
+                  ghostCount={4}
+                  title="No items found"
+                  sub="Launching soon"
+                />
+                {/*
               <div className="listings-section" style={{ marginBottom: '22px' }}>
                 {isMobile ? (
                   <div className="lg listings-mobile-grid">
@@ -1654,6 +1661,8 @@ export default function HomePage() {
                   </button>
                 )}
               </div>
+                */}
+              </div>
 
               <HomeMarketOverview />
 
@@ -1673,6 +1682,13 @@ export default function HomePage() {
                 </div>
               </div>
 
+              <div className="listings-section" style={{ marginBottom: '22px' }}>
+                <FilterEmptyState
+                  ghostCount={4}
+                  title="No Sales found"
+                  sub="Launching soon"
+                />
+                {/*
               <div className="sales-marquee" ref={salesMarqueeRef}>
                 <div className="sales-track" id="salesTrack" ref={salesTrackRef}>
                   {[...salesCards, ...salesCards].map((sale, idx) => (
@@ -1706,6 +1722,8 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
+              </div>
+                */}
               </div>
 
               <footer className="home-footer" data-screen-label="Home Footer">

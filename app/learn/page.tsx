@@ -24,10 +24,6 @@ export default function LearnPage() {
   }, []);
 
   const goBack = () => {
-    if (window.history.length > 1) {
-      router.back();
-      return;
-    }
     router.push("/");
   };
 
@@ -43,9 +39,9 @@ export default function LearnPage() {
             strokeLinejoin="round"
           />
         </svg>
-        Back to platform
+        BACK TO PLATFORM
       </button>
-      <iframe className="learn-frame" title="HNTR Learn" src="/learn/index.html" />
+      <iframe className="learn-frame" title="HNTR Learn" src="/learn-content/index.html" />
     </>
   );
 }

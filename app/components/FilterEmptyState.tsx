@@ -3,11 +3,15 @@
 type FilterEmptyStateProps = {
   ghostCount?: number;
   variant?: "vault" | "nc";
+  title?: string;
+  sub?: string;
 };
 
 export default function FilterEmptyState({
   ghostCount = 4,
   variant = "vault",
+  title = "No items found",
+  sub = "Launchpad soon",
 }: FilterEmptyStateProps) {
   const ghostClass =
     variant === "nc" ? "filter-empty-ghost filter-empty-ghost-nc" : "filter-empty-ghost";
@@ -20,8 +24,8 @@ export default function FilterEmptyState({
         ))}
       </div>
       <div className="filter-empty-content">
-        <div className="filter-empty-title">No items found</div>
-        <div className="filter-empty-sub">Launchpad soon</div>
+        <div className="filter-empty-title">{title}</div>
+        <div className="filter-empty-sub">{sub}</div>
       </div>
     </div>
   );

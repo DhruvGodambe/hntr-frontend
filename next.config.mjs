@@ -7,6 +7,11 @@ const nextConfig = {
         source: "/vault",
         destination: "/marketplace",
         permanent: true
+      },
+      {
+        source: "/learn/index.html",
+        destination: "/learn",
+        permanent: false
       }
     ];
   }
