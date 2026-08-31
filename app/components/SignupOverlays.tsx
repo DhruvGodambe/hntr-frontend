@@ -349,7 +349,10 @@ export default function SignupOverlays() {
       setAwaitingSignature(false);
 
       try {
-        const profile = await api.get<{ profile: { username: string; tier: string } }>(`/api/users/wallet/${account}`);
+        const profile = await api.get<{ profile: { username: string; tier: string } }>(
+          `/api/users/wallet/${account}`,
+          { auth: true },
+        );
         setCurrentUsername(profile.profile.username);
         if (profile.profile.tier && profile.profile.tier !== "None") {
           window.showToast?.({

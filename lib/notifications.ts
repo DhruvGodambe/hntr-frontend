@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
 import { api } from "./api";
+import { ensureAuth } from "./auth";
 
 export type BackendNotificationType =
   | "COMMISSION_EARNED"
@@ -50,8 +51,12 @@ export function useNotifications(limit = 50) {
 
   return useQuery({
     queryKey: ["notifications", address, limit],
-    queryFn: () =>
-      api.get<NotificationsResponse>(`/api/network/${address}/notifications?limit=${limit}`),
+    queryFn: async () => {
+      await ensureAuth();
+      return api.get<NotificationsResponse>(`/api/network/${address}/notifications?limit=${limit}`, {
+        auth: true,
+      });
+    },
     enabled: isConnected && !!address,
     staleTime: 15_000,
     refetchInterval: 30_000,
@@ -63,8 +68,14 @@ export function useMarkNotificationsRead() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (ids?: string[]) =>
-      api.post<{ modified: number }>(`/api/network/${address}/notifications/read`, { ids }),
+    mutationFn: async (ids?: string[]) => {
+      await ensureAuth();
+      return api.post<{ modified: number }>(
+        `/api/network/${address}/notifications/read`,
+        { ids },
+        { auth: true },
+      );
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications", address] });
     },

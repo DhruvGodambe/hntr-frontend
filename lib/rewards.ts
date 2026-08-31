@@ -142,7 +142,10 @@ export function useDashboardData() {
 
   const summaryQuery = useQuery({
     queryKey: ["rewards-summary", address],
-    queryFn: () => api.get<RewardsSummary>(`/api/network/${address}/rewards-summary`),
+    queryFn: async () => {
+      await ensureAuth();
+      return api.get<RewardsSummary>(`/api/network/${address}/rewards-summary`, { auth: true });
+    },
     enabled: isConnected && !!address,
     staleTime: 5_000,
     refetchInterval: 10_000,
@@ -165,8 +168,13 @@ export function useTransactionHistory(limit = 10) {
 
   return useQuery({
     queryKey: ["transactions", address, limit],
-    queryFn: () =>
-      api.get<{ transactions: TransactionEntry[] }>(`/api/network/transactions/${address}?limit=${limit}`),
+    queryFn: async () => {
+      await ensureAuth();
+      return api.get<{ transactions: TransactionEntry[] }>(
+        `/api/network/transactions/${address}?limit=${limit}`,
+        { auth: true },
+      );
+    },
     enabled: isConnected && !!address,
     staleTime: 15_000,
   });
@@ -213,7 +221,12 @@ export function useLeadershipPayouts() {
 
   return useQuery({
     queryKey: ["leadership-payouts", address],
-    queryFn: () => api.get<{ payouts: LeadershipPayout[] }>(`/api/network/${address}/leadership-payouts`),
+    queryFn: async () => {
+      await ensureAuth();
+      return api.get<{ payouts: LeadershipPayout[] }>(`/api/network/${address}/leadership-payouts`, {
+        auth: true,
+      });
+    },
     enabled: isConnected && !!address,
     staleTime: 30_000,
     select: (data) => data.payouts,
@@ -226,7 +239,10 @@ export function useLeadershipStatus() {
 
   return useQuery({
     queryKey: ["leadership-status", address],
-    queryFn: () => api.get<LeadershipStatus>(`/api/network/${address}/leadership-status`),
+    queryFn: async () => {
+      await ensureAuth();
+      return api.get<LeadershipStatus>(`/api/network/${address}/leadership-status`, { auth: true });
+    },
     enabled: isConnected && !!address,
     staleTime: 30_000,
     refetchInterval: 60_000,
@@ -276,7 +292,10 @@ export function useAchievementStatus() {
 
   return useQuery({
     queryKey: ["achievement-status", address],
-    queryFn: () => api.get<AchievementStatus>(`/api/network/${address}/achievement-status`),
+    queryFn: async () => {
+      await ensureAuth();
+      return api.get<AchievementStatus>(`/api/network/${address}/achievement-status`, { auth: true });
+    },
     enabled: isConnected && !!address,
     staleTime: 30_000,
     refetchInterval: 60_000,
@@ -288,7 +307,10 @@ export function usePointsSummary() {
 
   return useQuery({
     queryKey: ["points-summary", address],
-    queryFn: () => api.get<PointsSummary>(`/api/network/${address}/points`),
+    queryFn: async () => {
+      await ensureAuth();
+      return api.get<PointsSummary>(`/api/network/${address}/points`, { auth: true });
+    },
     enabled: isConnected && !!address,
     staleTime: 15_000,
     refetchInterval: 30_000,
@@ -303,8 +325,9 @@ export function networkTreeQueryKey(username: string, depth: NetworkTreeDepth) {
   return ["network-tree", username, depth] as const;
 }
 
-export function fetchNetworkTree(username: string, depth: NetworkTreeDepth) {
-  return api.get<{ tree: NetworkTreeNode }>(`/api/network/${username}/tree?depth=${depth}`);
+export async function fetchNetworkTree(username: string, depth: NetworkTreeDepth) {
+  await ensureAuth();
+  return api.get<{ tree: NetworkTreeNode }>(`/api/network/${username}/tree?depth=${depth}`, { auth: true });
 }
 
 /** Real downline tree (up to `depth` levels) for the Topology Matrix Mapping visualization. */
