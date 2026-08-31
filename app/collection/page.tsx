@@ -935,7 +935,7 @@ export default function CollectionPage() {
             </div>
 
             <div className="coll-pos-mobile">
-              {rows.length === 0 ? <TableEmptyState compact /> : null}
+              {rows.length === 0 ? <TableEmptyState compact columns={POS_HEADS[posView]} /> : null}
               {rows.map((row) => {
                 const meta = getPosMobileMeta(row, posView);
                 return (

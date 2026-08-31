@@ -2717,7 +2717,14 @@ body.dark{
 .nempty .net-table tr:hover td,
 .nempty .pos-table tr:hover td,
 .nempty .act-table tr:hover td{background:transparent}
-.nempty-compact{min-height:180px}
+.nempty-compact{background:var(--e2);border:0.5px solid var(--bd1);box-shadow:var(--sh1)}
+.nempty-mini{width:100%;border-collapse:collapse;table-layout:fixed}
+.nempty-mini th{font-size:7px;text-transform:uppercase;letter-spacing:.08em;color:var(--t0);font-weight:500;font-family:var(--fm);padding:7px 10px;text-align:left;background:var(--e3);border-bottom:0.5px solid var(--bd0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nempty-mini td{padding:9px 10px;border-bottom:0.5px solid var(--bd0);vertical-align:middle}
+.nempty-mini tr:last-child td{border-bottom:none}
+.nempty-mini .ne-bar{height:6px}
+.nempty-compact .lempty-title{font-size:18px}
+.nempty-compact .lempty-sub{font-size:9px;letter-spacing:.14em}
 .lempty-title{font-size:26px;font-weight:700;letter-spacing:-.01em;color:var(--t4)}
 .lempty-sub{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--t1)}
 

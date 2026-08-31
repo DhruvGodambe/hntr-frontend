@@ -660,6 +660,8 @@ body.dark .mkt-filter-tab.active {
 
   .coll-main {
     flex-direction: column;
+    /* align-items:flex-start would shrink-to-fit once the axis is vertical */
+    align-items: stretch;
   }
 
   .hero-title {
@@ -3386,10 +3388,14 @@ body.dark .mkt-filter-tab.active {
   .coll-main {
     flex-direction: column !important;
     gap: 12px !important;
+    /* align-items:flex-start would shrink-to-fit once the axis is vertical */
+    align-items: stretch !important;
   }
 
   .coll-filters,
-  .coll-sidebar {
+  .coll-sidebar,
+  .coll-main > .vault-left,
+  .coll-main-right {
     width: 100% !important;
   }
 
@@ -5277,7 +5283,12 @@ body.dark .mkt-filter-tab.active {
     flex: 0 0 148px !important;
   }
 
+  /* Height comes from the mini ghost table, same as the desktop tables. */
   .nempty-compact {
-    min-height: 200px !important;
+    min-height: 0 !important;
+  }
+
+  .nempty-compact .lempty-title {
+    font-size: 18px !important;
   }
 }

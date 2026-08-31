@@ -518,7 +518,7 @@ export default function MarketplacePage() {
               </div>
 
               <div className="mkt-act-mobile">
-                <TableEmptyState compact />
+                <TableEmptyState compact columns={NET_ACTIVITY_COLUMNS} />
                 {/*
                 {MARKET_ACTIVITY_ROWS.map((row) => (
                   <div key={row.asset} className="mkt-act-row">

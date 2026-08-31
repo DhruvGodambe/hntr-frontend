@@ -369,7 +369,7 @@ export default function PoolsPage() {
             </div>
 
             <div className="pools-dep-mobile">
-              <TableEmptyState compact />
+              <TableEmptyState compact columns={ACTIVITY_COLUMNS} />
               {/* Live mobile sales list — restore when Strategies activity launches
               <div className="pools-dep-card">
                 {salesLoading && activityRows.length === 0 &&

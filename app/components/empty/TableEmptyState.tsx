@@ -6,8 +6,10 @@ type TableEmptyStateProps = {
   columns?: string[];
   rowCount?: number;
   tableClassName?: string;
-  /** Overlay only, for mobile card lists that have no table markup. */
+  /** Scaled-down variant for the mobile card lists. */
   compact?: boolean;
+  /** How many of `columns` the compact variant keeps before it gets too cramped. */
+  compactColumns?: number;
   title?: string;
   sub?: string;
 };
@@ -17,35 +19,30 @@ export default function TableEmptyState({
   rowCount = 5,
   tableClassName = "net-table",
   compact = false,
+  compactColumns = 3,
   title = "No results found",
   sub = "Launching soon",
 }: TableEmptyStateProps) {
   const overlay = <EmptyOverlay title={title} sub={sub} variant="table" />;
 
-  if (compact) {
-    return (
-      <div className="nempty nempty-compact" role="status" aria-live="polite">
-        {overlay}
-      </div>
-    );
-  }
-
-  const colCount = columns?.length ?? 5;
+  const heads = compact ? columns?.slice(0, compactColumns) : columns;
+  const colCount = heads?.length ?? (compact ? compactColumns : 5);
+  const rows = compact ? Math.min(rowCount, 4) : rowCount;
 
   return (
-    <div className="nempty" role="status" aria-live="polite">
-      <table className={tableClassName} aria-hidden="true">
-        {columns ? (
+    <div className={compact ? "nempty nempty-compact" : "nempty"} role="status" aria-live="polite">
+      <table className={compact ? "nempty-mini" : tableClassName} aria-hidden="true">
+        {heads ? (
           <thead>
             <tr>
-              {columns.map((head) => (
+              {heads.map((head) => (
                 <th key={head}>{head}</th>
               ))}
             </tr>
           </thead>
         ) : null}
         <tbody>
-          {Array.from({ length: rowCount }, (_, rowIdx) => (
+          {Array.from({ length: rows }, (_, rowIdx) => (
             <tr className="nempty-row" key={rowIdx}>
               {Array.from({ length: colCount }, (_, colIdx) => (
                 <td key={colIdx}>
