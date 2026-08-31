@@ -261,6 +261,7 @@ export default function HomePage() {
   const [hideCaret, setHideCaret] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [expandedPool, setExpandedPool] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches
   );
@@ -506,15 +507,20 @@ export default function HomePage() {
 
     const measure = () => {
       const nextViewportWidth = viewport.clientWidth;
-      const nextContentWidth = track.scrollWidth;
-      if (nextViewportWidth <= 0 || nextContentWidth <= 0) return;
-
       const cards = track.querySelectorAll<HTMLElement>(".npc");
+      if (nextViewportWidth <= 0 || cards.length === 0) return;
+
+      // scrollWidth is unreliable while overflow is visible (transform slider).
+      const firstRect = cards[0].getBoundingClientRect();
+      const lastRect = cards[cards.length - 1].getBoundingClientRect();
+      const nextContentWidth = lastRect.right - firstRect.left;
+      if (nextContentWidth <= 0) return;
+
       let nextCardStep = 482;
       if (cards.length >= 2) {
-        nextCardStep = cards[1].offsetLeft - cards[0].offsetLeft;
-      } else if (cards.length === 1) {
-        nextCardStep = cards[0].offsetWidth;
+        nextCardStep = cards[1].getBoundingClientRect().left - firstRect.left;
+      } else {
+        nextCardStep = firstRect.width;
       }
       if (nextCardStep <= 0) nextCardStep = 482;
 
@@ -1411,7 +1417,9 @@ export default function HomePage() {
                       disabled={!canGoPrev}
                       aria-label="Previous strategy"
                     >
-                      ΓåÉ
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <path d="M10 3 5 8l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                     </button>
                     <button
                       type="button"
@@ -1420,7 +1428,9 @@ export default function HomePage() {
                       disabled={!canGoNext}
                       aria-label="Next strategy"
                     >
-                      ΓåÆ
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                     </button>
                   </div>
                   <Link href="/pools" className="va sh-strategies-view-all">
@@ -1474,8 +1484,11 @@ export default function HomePage() {
                         }
                   }
                 >
-                {strategyPools.map((pool) => (
-                  <div className="npc" key={`${pool.slug}-${pool.tokenId}`}>
+                {strategyPools.map((pool) => {
+                  const poolKey = `${pool.slug}-${pool.tokenId}`;
+                  const isExpanded = expandedPool === poolKey;
+                  return (
+                  <div className={`npc${isExpanded ? " open" : ""}`} key={poolKey}>
                     <div className="npc-row">
                       <div className="npc-art" onClick={() => router.push("/pool/54587")} style={{ cursor: "pointer" }}>
                         <img src={pool.img} alt={`${pool.displayName} #${pool.tokenId}`} />
@@ -1529,16 +1542,12 @@ export default function HomePage() {
                         <div className="npc-act">
                           <button
                             className="npc-btn-d"
-                            onClick={(e) => {
-                              const npcCard = e.currentTarget.closest(".npc");
-                              if (npcCard) {
-                                npcCard.classList.toggle("open");
-                                const caret = e.currentTarget.querySelector(".car");
-                                if (caret) caret.textContent = npcCard.classList.contains("open") ? "Γû┤" : "Γû╛";
-                              }
-                            }}
+                            type="button"
+                            onClick={() =>
+                              setExpandedPool((current) => (current === poolKey ? null : poolKey))
+                            }
                           >
-                            <span className="car">Γû╛</span>Pool Details
+                            <span className="car">▾</span>Pool Details
                           </button>
                           <button className="npc-btn-p" type="button" disabled>
                             {DEPOSIT_CTA_LABEL}
@@ -1569,7 +1578,8 @@ export default function HomePage() {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
                 </div>
               </div>
 
