@@ -43,6 +43,7 @@ export type FloorNftRow = {
   marketCapNative: string;
   volumeNative: string;
   volumeUsd: string;
+  sales24h: string;
 };
 
 export type RelatedCoin = {
@@ -252,6 +253,12 @@ export function formatNativeAmount(n: number | null | undefined, symbol: string)
     minimumFractionDigits: Math.min(2, digits),
     maximumFractionDigits: digits,
   })} ${sym}`;
+}
+
+/** CoinGecko `one_day_sales` — count of sales in the trailing 24h window. */
+export function formatSales24h(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(n)) return "—";
+  return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 }
 
 export function formatPctArrow(n: number | null | undefined): { text: string; pos: boolean } {
@@ -566,6 +573,7 @@ function buildOverview(
       marketCapNative: formatNativeAmount(m.market_cap?.native_currency, symbol),
       volumeNative: formatNativeAmount(m.volume_24h?.native_currency, symbol),
       volumeUsd: formatUsdFull(m.volume_24h?.usd),
+      sales24h: formatSales24h(m.one_day_sales),
     };
   });
 

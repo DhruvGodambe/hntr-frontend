@@ -49,6 +49,8 @@ export interface RewardsSummary {
   claimableNow: number;
   lockedRemaining: number;
   totalRewarded: number;
+  /** Month-over-month commission earnings growth (%), vs prior calendar month (UTC). */
+  monthlyEarningsGrowthPercent: number;
   tokens: TokenBalance[];
 }
 

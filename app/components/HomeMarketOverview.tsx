@@ -243,6 +243,7 @@ export default function HomeMarketOverview() {
               <div className="mcel mc-spark">Last 7 Days</div>
               <div className="mcel mc-num">Market Cap</div>
               <div className="mcel mc-num">24h Volume</div>
+              <div className="mcel mc-sales">24h Sales</div>
             </div>
             {isPending
               ? Array.from({ length: 10 }, (_, i) => (
@@ -283,6 +284,9 @@ export default function HomeMarketOverview() {
                     </div>
                     <div className="mcel mc-num">
                       <div className="pd-skel" style={{ width: 80, height: 12, marginLeft: "auto" }} />
+                    </div>
+                    <div className="mcel mc-sales">
+                      <div className="pd-skel" style={{ width: 28, height: 12, marginLeft: "auto" }} />
                     </div>
                   </div>
                 ))
@@ -332,6 +336,7 @@ export default function HomeMarketOverview() {
                       <div className="mfp">{row.volumeNative}</div>
                       <div className="mfu">{row.volumeUsd}</div>
                     </div>
+                    <div className="mcel mc-sales">{row.sales24h}</div>
                   </div>
                 ))}
           </div>

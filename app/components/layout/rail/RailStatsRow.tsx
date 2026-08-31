@@ -9,6 +9,17 @@ type RailStatsRowProps = {
   variant?: "desktop" | "mobile";
 };
 
+function formatMonthlyGrowthLabel(percent: number | undefined): { text: string; className: string } {
+  const value = percent ?? 0;
+  if (value > 0) {
+    return { text: `↑+${value.toFixed(1)}% This Month`, className: "rsbc" };
+  }
+  if (value < 0) {
+    return { text: `↓${value.toFixed(1)}% This Month`, className: "rsbc neg" };
+  }
+  return { text: "0% This Month", className: "rsbg" };
+}
+
 export default function RailStatsRow({
   summary,
   hntrPoints,
@@ -16,6 +27,7 @@ export default function RailStatsRow({
   variant = "desktop",
 }: RailStatsRowProps) {
   const isMobile = variant === "mobile";
+  const growth = formatMonthlyGrowthLabel(summary?.monthlyEarningsGrowthPercent);
 
   return (
     <div className="r-div mobile-rail-stats-block">
@@ -30,7 +42,9 @@ export default function RailStatsRow({
               })}`,
             )}
           </div>
-          {!isMobile ? <div className="rsbc">{summary?.networkSize ?? 0} network members</div> : null}
+          {!isMobile ? (
+            <div className={growth.className}>{maskBalance(growth.text)}</div>
+          ) : null}
         </div>
         <div className={`rsb${isMobile ? " mobile-rsb" : ""}`}>
           <div className="rsbl" style={isMobile ? undefined : { display: "flex", alignItems: "center", gap: "4px" }}>
