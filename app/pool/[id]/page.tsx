@@ -689,9 +689,9 @@ export default function PoolDetailPage() {
   if (error || !data) {
     return (
       <MainLayout>
-        <div className="feed" id="feed-pooldetail" style={{ padding: "48px 24px" }}>
-          <div style={{ color: "var(--t1)", marginBottom: 8 }}>NFT not found</div>
-          <div style={{ color: "var(--t2)", fontSize: 13 }}>
+        <div className="feed pd-error" id="feed-pooldetail">
+          <div className="pd-error-title">NFT not found</div>
+          <div className="pd-error-sub">
             This pool id is not a live OpenSea token. Go back to Pools and pick a listing.
           </div>
         </div>

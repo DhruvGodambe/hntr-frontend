@@ -1134,7 +1134,51 @@ export default function NetworkPage() {
                 </div>
               </div>
             </div>
-            <div className="table-scroll">
+            <div className="txh-mobile">
+              {paginatedTransactions.length === 0 && (
+                <div className="txh-m-empty">
+                  {transactions.length === 0 ? "No reward activity yet." : "No transactions match your filters."}
+                </div>
+              )}
+              {paginatedTransactions.map((tx, i) => {
+                const isOutgoing =
+                  tx.type === "MembershipPurchased" ||
+                  tx.type === "MembershipUpgraded" ||
+                  tx.type === "PURCHASE" ||
+                  tx.type === "UPGRADE";
+                const isCommissionEarned = tx.type === "CommissionEarned" || tx.type === "COMMISSION_EARNED";
+                const hasLocked = isCommissionEarned && !!tx.lockedAmount && Number(tx.lockedAmount) > 0;
+                const statusClass = tx.status === "PENDING" ? "pending" : tx.status === "FAILED" ? "failed" : "confirmed";
+                const parts = formatTxDateParts(tx.timestamp);
+                const sourceUser = formatSourceUser(tx);
+                return (
+                  
+                  <div className="txh-m-row" key={`m-${tx.txHash || tx.type}-${i}`}>
+                    <div className="txh-m-main">
+                      <div className="txh-m-head">
+                        <span className="txh-m-type">{TX_TYPE_LABEL[tx.type] || tx.type}</span>
+                        <span className={`txh-m-dot ${statusClass}`} aria-hidden />
+                      </div>
+                      <div className="txh-m-source">
+                        {getTxSource(tx)}
+                        {sourceUser && sourceUser !== "—" ? ` · ${sourceUser}` : ""}
+                      </div>
+                      <div className="txh-m-dt">{parts ? `${parts.date} ${parts.time}` : "—"}</div>
+                    </div>
+                    <div className={`txh-m-amt${isOutgoing ? " out" : ""}`}>
+                      <div>
+                        {isOutgoing ? "-" : "+"}
+                        {formatTokenAmount(tx.amount)} {formatTokenLabel(tx.token)}
+                      </div>
+                      {hasLocked && (
+                        <div className="txh-m-locked">+ {formatTokenAmount(tx.lockedAmount)} locked (20%)</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="table-scroll txh-desktop">
               <table className="txh-table">
                 <thead>
                   <tr>

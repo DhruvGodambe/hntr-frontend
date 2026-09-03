@@ -1450,8 +1450,11 @@ export default function HomePage() {
                         marginBottom: "22px",
                         position: "relative",
                         width: "100%",
+                        // Reference: flex:0 0 calc(100% - 46px) inside a 16px-inset
+                        // scroller, i.e. viewport minus its 32px padding minus a
+                        // 46px peek of the next card.
                         ["--np-slide-width" as string]: viewportWidth
-                          ? `${Math.max(viewportWidth - 24, 280)}px`
+                          ? `${Math.max(viewportWidth - 78, 260)}px`
                           : "280px",
                       } as React.CSSProperties)
                     : {

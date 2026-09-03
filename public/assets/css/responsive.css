@@ -143,6 +143,23 @@
   display: none;
 }
 
+.txh-mobile {
+  display: none;
+}
+
+/* Pool-detail "not found" state (was inline styles on app/pool/[id]/page.tsx) */
+.pd-error {
+  padding: 48px 24px;
+}
+.pd-error-title {
+  color: var(--t1);
+  margin-bottom: 8px;
+}
+.pd-error-sub {
+  color: var(--t2);
+  font-size: 13px;
+}
+
 /* Shortened nav labels only exist for the mobile bottom nav. */
 .si-label-short {
   display: none;
@@ -680,6 +697,32 @@ body.dark .mkt-filter-tab.active {
 
 /* ── Mobile / small screens ── */
 @media (max-width: 900px) {
+  /* Geometry scale from the mobile design reference (handoff-mobile).
+     Shadow *shapes* are the reference's; the colour is the app's neutral
+     rgba(0,0,0,a) rather than the reference's warm rgba(60,70,50,a). */
+  body {
+    --m-pad-page: 16px;
+    --m-r-tile: 8px;
+    --m-r-media: 11px;
+    --m-r-card: 12px;
+    --m-r-hero: 14px;
+    --m-sh-card: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --m-sh-media: 0 1px 3px rgba(0, 0, 0, 0.07);
+    --m-sh-raised: 0 4px 14px rgba(0, 0, 0, 0.08);
+    --m-sh-hero: 0 4px 14px rgba(0, 0, 0, 0.12);
+    --m-sh-dock: 0 10px 30px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.12);
+    --m-hairline: 1px solid color-mix(in srgb, var(--line-ink) 6%, transparent);
+    --m-hairline-soft: 1px solid color-mix(in srgb, var(--line-ink) 5%, transparent);
+    --m-border: 1px solid color-mix(in srgb, var(--line-ink) 9%, transparent);
+  }
+
+  body.dark {
+    --m-sh-card: 0 1px 3px rgba(0, 0, 0, 0.28);
+    --m-sh-media: 0 1px 3px rgba(0, 0, 0, 0.28);
+    --m-sh-raised: 0 4px 14px rgba(0, 0, 0, 0.32);
+    --m-sh-hero: 0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+
   .rail-toggle-btn {
     display: none !important;
   }
@@ -699,6 +742,12 @@ body.dark .mkt-filter-tab.active {
   .nav-brand span:last-child {
     font-size: 17px !important;
     letter-spacing: 0.18em !important;
+  }
+
+  /* Reference tints the logomark tile per theme (--logomark). Mobile only,
+     so desktop keeps its single near-black chip. */
+  body.dark .nav-logomark {
+    background: #232327;
   }
 
   .nav-r {
@@ -795,20 +844,27 @@ body.dark .mkt-filter-tab.active {
 
   .sb.mobile-bottom-nav .mobile-nav-dock {
     display: flex;
-    align-items: stretch;
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
-    padding: 6px;
-    border-radius: 18px;
-    background: #f25623;
-    box-shadow:
-      0 8px 24px rgba(60, 70, 50, 0.28),
-      0 2px 6px rgba(0, 0, 0, 0.2);
+    padding: 8px 10px;
+    border-radius: 999px;
+    /* Reference contrasts the dock against the page: dark dock on the light
+       theme, light dock on the dark theme. */
+    background: var(--t4);
+    box-shadow: var(--m-sh-dock);
     pointer-events: auto;
+    overflow: hidden;
+  }
+
+  body.dark .sb.mobile-bottom-nav .mobile-nav-dock {
+    background: var(--cream);
   }
 
   .sb.mobile-bottom-nav .mobile-nav-track {
     display: flex;
-    align-items: stretch;
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
     min-height: 0;
     padding: 0;
@@ -816,41 +872,59 @@ body.dark .mkt-filter-tab.active {
     overflow: visible;
   }
 
+  /* Icon-only pills that morph into an icon+label pill on the active tab —
+     matches the mobile reference's "motion" dock behaviour. */
   .sb.mobile-bottom-nav .si,
   .sb.mobile-bottom-nav .si-bot .si {
     position: relative;
-    flex: 1 1 0 !important;
+    flex: 1 1 auto !important;
+    flex-shrink: 1 !important;
     min-width: 0 !important;
     max-width: none !important;
     width: auto !important;
-    height: auto !important;
+    height: 48px !important;
     margin: 0 !important;
-    padding: 6px 0 !important;
-    border-radius: 12px !important;
+    padding: 0 6px !important;
+    border-radius: 999px !important;
     border: none;
     display: flex !important;
-    flex-direction: column !important;
+    flex-direction: row !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 3px !important;
+    gap: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
-    color: rgba(242, 239, 234, 0.6) !important;
-    overflow: visible !important;
+    color: rgba(255, 255, 255, 0.58) !important;
+    overflow: hidden !important;
+    transform: scale(0.88);
     transition:
-      background 0.18s ease,
-      color 0.18s ease,
-      transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+      padding 0.5s cubic-bezier(0.34, 1.02, 0.28, 1),
+      flex-grow 0.5s cubic-bezier(0.34, 1.02, 0.28, 1),
+      transform 0.5s cubic-bezier(0.34, 1.02, 0.28, 1),
+      background-color 0.34s ease,
+      color 0.3s ease;
     -webkit-tap-highlight-color: transparent;
     text-decoration: none;
   }
 
+  body.dark .sb.mobile-bottom-nav .si,
+  body.dark .sb.mobile-bottom-nav .si-bot .si {
+    color: rgba(20, 20, 22, 0.48) !important;
+  }
+
   .sb.mobile-bottom-nav .si.active {
-    background: #f2efea !important;
-    color: #3a4231 !important;
+    flex: 0 0 auto !important;
+    padding: 0 16px !important;
+    background: var(--accent) !important;
+    color: #fff !important;
+    transform: scale(1);
   }
 
   .sb.mobile-bottom-nav .si:active:not(.locked) {
+    transform: scale(0.82);
+  }
+
+  .sb.mobile-bottom-nav .si.active:active:not(.locked) {
     transform: scale(0.94);
   }
 
@@ -860,9 +934,9 @@ body.dark .mkt-filter-tab.active {
     left: auto !important;
     transform: none !important;
     z-index: 1;
-    width: 20px !important;
-    min-width: 20px !important;
-    height: 20px !important;
+    width: 25px !important;
+    min-width: 25px !important;
+    height: 25px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -875,37 +949,51 @@ body.dark .mkt-filter-tab.active {
   }
 
   .sb.mobile-bottom-nav .si-icon svg {
-    width: 20px !important;
-    height: 20px !important;
+    width: 25px !important;
+    height: 25px !important;
   }
 
   .sb.mobile-bottom-nav .si-label {
-    display: block !important;
+    display: flex !important;
+    align-items: center;
     position: relative;
     z-index: 1;
-    opacity: 1 !important;
     pointer-events: none !important;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 13px !important;
     font-weight: 600 !important;
-    letter-spacing: 0.06em !important;
+    letter-spacing: 0.01em !important;
     line-height: 1.1 !important;
-    text-transform: uppercase;
+    text-transform: none;
     color: inherit !important;
-    text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
-    padding: 0 2px;
+    max-width: 0px;
+    opacity: 0;
+    padding: 0 !important;
+    transition:
+      max-width 0.5s cubic-bezier(0.34, 1.02, 0.28, 1),
+      opacity 0.3s ease,
+      padding-left 0.5s cubic-bezier(0.34, 1.02, 0.28, 1);
   }
 
-  .sb.mobile-bottom-nav .si:hover:not(.locked) {
-    background: rgba(242, 239, 234, 0.08) !important;
+  .sb.mobile-bottom-nav .si.active .si-label {
+    max-width: 96px;
+    opacity: 1;
+    padding-left: 7px !important;
+  }
+
+  .sb.mobile-bottom-nav .si:hover:not(.locked):not(.active) {
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  body.dark .sb.mobile-bottom-nav .si:hover:not(.locked):not(.active) {
+    background: rgba(0, 0, 0, 0.05) !important;
   }
 
   .sb.mobile-bottom-nav .si.active:hover {
-    background: #f2efea !important;
+    background: var(--accent) !important;
   }
 
   .sb.mobile-bottom-nav .si.locked {
@@ -916,8 +1004,8 @@ body.dark .mkt-filter-tab.active {
 
   .sb.mobile-bottom-nav .si-lock {
     position: absolute;
-    top: 4px;
-    right: calc(50% - 20px);
+    top: 2px;
+    right: 2px;
     display: flex;
   }
 
@@ -940,37 +1028,14 @@ body.dark .mkt-filter-tab.active {
     display: none !important;
   }
 
-  /* Six destinations share the dock, so tighten each item to fit. */
+  /* Only the active tab's label is shown (icon-only otherwise), so the
+     short label text is what gets revealed. */
   .sb.mobile-bottom-nav .si-label-full {
     display: none !important;
   }
 
   .sb.mobile-bottom-nav .si-label-short {
     display: block !important;
-  }
-
-  .sb.mobile-bottom-nav .si,
-  .sb.mobile-bottom-nav .si-bot .si {
-    padding: 5px 0 !important;
-    gap: 2px !important;
-    border-radius: 10px !important;
-  }
-
-  .sb.mobile-bottom-nav .si-icon {
-    width: 18px !important;
-    min-width: 18px !important;
-    height: 18px !important;
-  }
-
-  .sb.mobile-bottom-nav .si-icon svg {
-    width: 18px !important;
-    height: 18px !important;
-  }
-
-  .sb.mobile-bottom-nav .si-label {
-    font-size: 13px !important;
-    letter-spacing: 0.02em !important;
-    padding: 0 1px;
   }
 
   body:not(.dark) .sb.mobile-bottom-nav,
@@ -997,8 +1062,10 @@ body.dark .mkt-filter-tab.active {
   }
 
   /* Main content clears floating bottom nav — page scroll (works in Cursor preview) */
+  /* Reference puts all page inset on the scroll wrapper (16px 16px 96px),
+     so the outer content box contributes nothing. */
   .content {
-    padding: 4px 4px 0 !important;
+    padding: 0 !important;
     width: 100%;
     min-width: 0;
     flex: none !important;
@@ -1026,19 +1093,19 @@ body.dark .mkt-filter-tab.active {
     min-height: auto !important;
     overflow: visible !important;
     touch-action: pan-y;
-    padding: 8px 10px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+    /* Reference page wrapper: padding:16px 16px 96px (96px clears the dock). */
+    padding: var(--m-pad-page) var(--m-pad-page)
+      calc(96px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  #feed-home.feed {
-    padding: 8px 10px calc(84px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
+  #feed-home.feed,
   #feed-pools.feed,
   #feed-marketplace.feed,
   #feed-collection.feed,
   #feed-network.feed,
   #feed-membership.feed {
-    padding: 8px 10px calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: var(--m-pad-page) var(--m-pad-page)
+      calc(96px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   #feed-network .page-body {
@@ -1135,7 +1202,7 @@ body.dark .mkt-filter-tab.active {
     background: var(--e2);
     border-radius: 12px;
     padding: 14px;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     margin-bottom: 22px;
   }
 
@@ -1158,7 +1225,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   body:not(.dark) .mobile-home-rail-card .mobile-rav {
-    background: #ede9e3;
+    background: var(--pill);
   }
 
   body.dark .mobile-home-rail-card .mobile-rav {
@@ -1305,7 +1372,7 @@ body.dark .mkt-filter-tab.active {
   .mobile-home-rail-card .mobile-rpb {
     height: 5px;
     border-radius: 3px;
-    background: color-mix(in srgb, var(--t4) 12%, transparent);
+    background: var(--track);
     margin-bottom: 0;
   }
 
@@ -1314,8 +1381,11 @@ body.dark .mkt-filter-tab.active {
   }
 
   .mobile-home-rail-card .mobile-rpf {
-    background: #ec7a2c;
+    background: var(--accent);
     border-radius: 3px;
+    /* reference: animation:mBar 1s cubic-bezier(.22,1,.36,1) — barLoad is
+       the identical keyframe already defined in styles.css */
+    animation: barLoad 1s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .mobile-home-rail-card .rail-profile-block .rpb-wrap {
@@ -1344,7 +1414,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   .mobile-home-rail-card .mobile-rsb {
-    background: #f7f5f1 !important;
+    background: var(--inner) !important;
     border-radius: 8px;
     padding: 9px 11px !important;
     box-shadow: none !important;
@@ -1379,7 +1449,7 @@ body.dark .mkt-filter-tab.active {
 
   .mobile-home-rail-card .mobile-rrtl {
     margin: 8px 0;
-    font-size: 8px;
+    font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--t0);
@@ -1396,7 +1466,7 @@ body.dark .mkt-filter-tab.active {
     margin-bottom: 0 !important;
     padding: 10px 11px;
     min-width: 0;
-    background: #f7f5f1 !important;
+    background: var(--inner) !important;
     box-shadow: none !important;
     border: none !important;
     display: flex;
@@ -1517,7 +1587,7 @@ body.dark .mkt-filter-tab.active {
     border-radius: 9px;
     padding: 4px;
     margin-bottom: 10px;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.06);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border-bottom: none;
   }
 
@@ -1532,7 +1602,7 @@ body.dark .mkt-filter-tab.active {
     border: none;
     margin-bottom: 0;
     font-family: var(--fm);
-    font-size: 9px;
+    font-size: 12px;
     letter-spacing: 0.04em;
     line-height: 1;
     cursor: pointer;
@@ -1544,7 +1614,7 @@ body.dark .mkt-filter-tab.active {
 
   .mobile-home-activity .mobile-activity-tabs .at.active {
     background: #ec7a2c;
-    color: #f2efea;
+    color: var(--cream);
     font-weight: 700;
     border-bottom-color: transparent;
   }
@@ -1590,7 +1660,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   .mobile-home-activity .mobile-activity-feed .aa {
-    font-size: 9px;
+    font-size: 10px;
     margin-top: 2px;
   }
 
@@ -1691,7 +1761,7 @@ body.dark .mkt-filter-tab.active {
     min-height: 184px !important;
     border-radius: 14px !important;
     margin-bottom: 14px;
-    box-shadow: 0 4px 14px rgba(60, 70, 50, 0.16);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   }
 
   #feed-home .pbar {
@@ -1762,7 +1832,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   .hero-left {
-    padding: 18px 16px !important;
+    padding: 20px !important;
   }
 
   .hero-title {
@@ -1797,12 +1867,13 @@ body.dark .mkt-filter-tab.active {
 
   #feed-pools .pools-hero {
     aspect-ratio: auto !important;
-    height: 150px !important;
-    min-height: 150px !important;
+    height: auto !important;
+    min-height: 168px !important;
     border-radius: 14px !important;
     margin-bottom: 18px !important;
-    box-shadow: 0 4px 14px rgba(60, 70, 50, 0.16) !important;
-    display: block !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+    display: flex !important;
+    align-items: stretch !important;
   }
 
   body.dark #feed-pools .pools-hero {
@@ -1810,16 +1881,17 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-pools .pools-hero-content {
-    padding: 20px !important;
-    max-width: 230px !important;
+    padding: 18px 16px 18px 18px !important;
+    max-width: min(68%, 260px) !important;
+    box-sizing: border-box !important;
   }
 
   #feed-pools .pools-hero-title {
     font-family: var(--fd) !important;
-    font-size: 22px !important;
+    font-size: clamp(16px, 5.2vw, 20px) !important;
     font-weight: 700 !important;
     letter-spacing: 0.04em !important;
-    line-height: 1.05 !important;
+    line-height: 1.1 !important;
     margin-bottom: 0 !important;
     text-transform: none !important;
     color: #1e242b !important;
@@ -1832,13 +1904,16 @@ body.dark .mkt-filter-tab.active {
 
   #feed-pools .pools-hero-sub {
     font-family: var(--fm) !important;
-    font-size: 12px !important;
+    font-size: clamp(10px, 3.1vw, 12px) !important;
     font-weight: 400 !important;
     letter-spacing: 0.02em !important;
-    line-height: 1.5 !important;
+    line-height: 1.4 !important;
     text-transform: none !important;
-    max-width: 230px !important;
+    max-width: none !important;
+    width: 100% !important;
     margin-top: 8px !important;
+    margin-bottom: 0 !important;
+    overflow: visible !important;
     color: rgba(30, 36, 43, 0.72) !important;
     text-shadow: none !important;
   }
@@ -1855,7 +1930,7 @@ body.dark .mkt-filter-tab.active {
     min-height: 150px !important;
     border-radius: 14px !important;
     margin-bottom: 18px !important;
-    box-shadow: 0 4px 14px rgba(60, 70, 50, 0.16) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
     display: flex !important;
     align-items: stretch !important;
   }
@@ -1911,7 +1986,7 @@ body.dark .mkt-filter-tab.active {
     min-height: 150px !important;
     border-radius: 14px !important;
     margin-bottom: 18px !important;
-    box-shadow: 0 4px 14px rgba(60, 70, 50, 0.16) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
   }
 
   body.dark #feed-network .hero {
@@ -1962,7 +2037,7 @@ body.dark .mkt-filter-tab.active {
     min-height: 160px !important;
     border-radius: 14px !important;
     margin-bottom: 18px !important;
-    box-shadow: 0 4px 14px rgba(60, 70, 50, 0.16) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
   }
 
   body.dark #feed-membership .hero {
@@ -2075,7 +2150,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-home .mh .st {
     font-family: var(--fm) !important;
-    font-size: 9px !important;
+    font-size: 12px !important;
     font-weight: 700 !important;
     letter-spacing: 0.1em !important;
     text-transform: uppercase !important;
@@ -2110,7 +2185,7 @@ body.dark .mkt-filter-tab.active {
   #feed-home .mstat,
   #feed-home .mcard {
     background: var(--e1) !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
   }
 
   #feed-home .mstat {
@@ -2122,7 +2197,7 @@ body.dark .mkt-filter-tab.active {
     border: none !important;
     border-radius: 10px !important;
     padding: 12px 13px !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
   }
 
   #feed-home .mk:last-child {
@@ -2131,7 +2206,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-home .mkl {
     font-family: var(--fm) !important;
-    font-size: 7.5px !important;
+    font-size: 11px !important;
     letter-spacing: 0.06em !important;
     text-transform: uppercase !important;
     color: color-mix(in srgb, var(--t4) 40%, transparent) !important;
@@ -2146,7 +2221,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-home .mku {
-    font-size: 9px !important;
+    font-size: 11px !important;
     font-weight: 400 !important;
     color: color-mix(in srgb, var(--t4) 50%, transparent) !important;
   }
@@ -2157,7 +2232,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-home .sh .st {
     font-family: var(--fm) !important;
-    font-size: 9px !important;
+    font-size: 12px !important;
     font-weight: 700 !important;
     letter-spacing: 0.1em !important;
     text-transform: uppercase !important;
@@ -2165,7 +2240,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-home .sh .sub {
-    font-size: 10px !important;
+    font-size: 13px !important;
     color: color-mix(in srgb, var(--t4) 46%, transparent) !important;
     margin-top: 3px !important;
   }
@@ -2193,7 +2268,7 @@ body.dark .mkt-filter-tab.active {
     max-width: none !important;
     min-width: 0 !important;
     border-radius: 12px !important;
-    box-shadow: 0 4px 14px rgba(60, 70, 50, 0.09) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
     display: flex !important;
     flex-direction: column !important;
   }
@@ -2240,7 +2315,7 @@ body.dark .mkt-filter-tab.active {
     border-radius: 4px !important;
     font-size: 11px !important;
     letter-spacing: 0.05em !important;
-    background: rgba(43, 50, 36, 0.8) !important;
+    background: color-mix(in srgb, var(--t4) 80%, transparent) !important;
   }
 
   #panel-pools .npc-body,
@@ -2323,15 +2398,18 @@ body.dark .mkt-filter-tab.active {
 
   #panel-pools .npc-pb,
   #feed-pools .npc-pb {
-    height: 4px !important;
-    background: color-mix(in srgb, var(--t4) 12%, transparent) !important;
+    height: 5px !important;
+    border-radius: 3px !important;
+    background: var(--track) !important;
     margin-bottom: 12px !important;
   }
 
   #panel-pools .npc-pf,
   #feed-pools .npc-pf,
   #feed-home .npc-pf {
-    background: #ec7a2c !important;
+    background: var(--accent) !important;
+    border-radius: 3px !important;
+    animation: barLoad 0.9s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   #panel-pools .npc-act,
@@ -2383,7 +2461,7 @@ body.dark .mkt-filter-tab.active {
   #panel-pools .stat-strip .ss {
     border-radius: 10px !important;
     padding: 11px 12px !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
   }
 
   body.dark #feed-pools .stat-strip .ss,
@@ -2467,7 +2545,7 @@ body.dark .mkt-filter-tab.active {
     background: var(--e2);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
 
   body.dark #feed-pools .pools-dep-card {
@@ -2503,7 +2581,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   body:not(.dark) #feed-pools .pools-dep-badge {
-    background: #ede9e3;
+    background: var(--pill);
   }
 
   body.dark #feed-pools .pools-dep-badge {
@@ -2564,8 +2642,10 @@ body.dark .mkt-filter-tab.active {
     scroll-behavior: smooth;
     touch-action: pan-x;
     cursor: grab;
-    margin: 0 -10px 22px;
-    padding: 0 10px 4px;
+    /* Reference: margin:0 -16px 22px; padding:0 16px 4px — bleeds to the
+       screen edge against the 16px page inset. */
+    margin: 0 calc(-1 * var(--m-pad-page)) 22px;
+    padding: 0 var(--m-pad-page) 4px;
     scrollbar-width: none;
   }
 
@@ -2614,7 +2694,7 @@ body.dark .mkt-filter-tab.active {
     transition: none !important;
     width: max-content;
     min-width: 100%;
-    padding: 0 max(10px, calc((100% - var(--np-slide-width, 280px)) / 2)) 4px;
+    padding: 0 max(var(--m-pad-page), calc((100% - var(--np-slide-width, 280px)) / 2)) 4px;
   }
 
   #panel-home .npc {
@@ -2633,7 +2713,7 @@ body.dark .mkt-filter-tab.active {
     scroll-snap-align: center;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 14px rgba(60, 70, 50, 0.09);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   }
 
   body.dark #panel-home .np-grid-scroll .npc {
@@ -2723,7 +2803,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-home .sh-listings .st {
     font-family: var(--fm) !important;
-    font-size: 9px !important;
+    font-size: 12px !important;
     font-weight: 700 !important;
     letter-spacing: 0.1em !important;
     text-transform: uppercase !important;
@@ -2732,7 +2812,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-home .sh-listings .sub {
-    font-size: 10px !important;
+    font-size: 13px !important;
     color: color-mix(in srgb, var(--t4) 46%, transparent) !important;
     margin-top: 0 !important;
     margin-bottom: 12px !important;
@@ -2754,9 +2834,9 @@ body.dark .mkt-filter-tab.active {
     border-radius: 9px;
     margin-top: 0;
     margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     font-family: var(--fm);
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.08em;
     color: var(--t4);
@@ -2889,7 +2969,7 @@ body.dark .mkt-filter-tab.active {
   #feed-network .net-profile-card {
     height: 196px !important;
     border-radius: 14px !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
   }
 
   #feed-network .net-flip-front {
@@ -2938,10 +3018,10 @@ body.dark .mkt-filter-tab.active {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    padding: 13px !important;
-    border-radius: 11px !important;
+    padding: 11px 12px !important;
+    border-radius: 10px !important;
     background: var(--card) !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+    box-shadow: var(--m-sh-card) !important;
   }
 
   #feed-network .net-stat-val {
@@ -2962,7 +3042,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-network .net-stat-chg {
-    font-size: 8px !important;
+    font-size: 11px !important;
     color: color-mix(in srgb, var(--ink) 45%, transparent) !important;
   }
 
@@ -2987,7 +3067,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-network .net-section-hdr {
-    margin-bottom: 12px !important;
+    margin-bottom: 11px !important;
   }
 
   #feed-network .net-section-title {
@@ -3014,13 +3094,13 @@ body.dark .mkt-filter-tab.active {
     background: var(--card) !important;
     border-radius: 12px !important;
     padding: 14px !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
     transform: none !important;
   }
 
   #feed-network .net-reward-card:hover {
     transform: none !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
   }
 
   #feed-network .net-reward-soon {
@@ -3065,7 +3145,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-network .net-rc-pool-bal {
-    font-size: 9px !important;
+    font-size: 11px !important;
     margin-bottom: 6px !important;
   }
 
@@ -3098,7 +3178,7 @@ body.dark .mkt-filter-tab.active {
     border-radius: 12px !important;
     padding: 16px !important;
     margin-bottom: 24px !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
   }
 
   #feed-network .net-membership-banner-lbl {
@@ -3187,7 +3267,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-network .topo-vbtn.active {
     background: var(--accent, #ec7a2c) !important;
-    color: #F2EFEA !important;
+    color: var(--cream) !important;
     font-weight: 700 !important;
   }
 
@@ -3201,7 +3281,7 @@ body.dark .mkt-filter-tab.active {
     height: 300px !important;
     background: var(--inner) !important;
     border-radius: 12px !important;
-    box-shadow: inset 0 1px 3px rgba(60, 70, 50, 0.05) !important;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04) !important;
   }
 
   #feed-network .topo-canvas.topo-canvas--depth-6 {
@@ -3223,7 +3303,7 @@ body.dark .mkt-filter-tab.active {
     background: var(--card) !important;
     border-radius: 12px !important;
     padding: 16px !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
     gap: 0 !important;
   }
 
@@ -3313,24 +3393,117 @@ body.dark .mkt-filter-tab.active {
     line-height: 1.5 !important;
   }
 
+  /* Transaction history — reference renders this as a card list on mobile
+     (HNTR.art Mobile.dc.html:703-716), not a table. */
+  #feed-network .txh-desktop {
+    display: none !important;
+  }
+
+  #feed-network .txh-mobile {
+    display: block;
+    background: var(--card);
+    border-radius: var(--m-r-card);
+    overflow: hidden;
+    box-shadow: var(--m-sh-card);
+  }
+
   #feed-network .txh-title {
     font-size: 15.5px !important;
   }
 
-  #feed-network .txh-type {
-    font-size: 11px !important;
+  #feed-network .txh-m-row {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 13px 14px;
+    border-bottom: var(--m-hairline-soft);
   }
 
-  #feed-network .txh-source {
-    font-size: 13.5px !important;
+  #feed-network .txh-m-row:last-child {
+    border-bottom: none;
   }
 
-  #feed-network .txh-dt-date {
-    font-size: 11px !important;
+  #feed-network .txh-m-main {
+    flex: 1;
+    min-width: 0;
   }
 
-  #feed-network .txh-amount {
-    font-size: 15.5px !important;
+  #feed-network .txh-m-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 4px;
+  }
+
+  #feed-network .txh-m-type {
+    font-family: var(--fm);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--pill);
+    color: color-mix(in srgb, var(--ink) 70%, transparent);
+    white-space: nowrap;
+  }
+
+  #feed-network .txh-m-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--gain);
+    flex-shrink: 0;
+  }
+
+  #feed-network .txh-m-dot.pending {
+    background: var(--accent);
+  }
+
+  #feed-network .txh-m-dot.failed {
+    background: var(--red);
+  }
+
+  #feed-network .txh-m-source {
+    font-size: 13.5px;
+    color: var(--tx);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #feed-network .txh-m-dt {
+    font-family: var(--fm);
+    font-size: 11px;
+    color: color-mix(in srgb, var(--ink) 40%, transparent);
+    margin-top: 3px;
+  }
+
+  #feed-network .txh-m-amt {
+    flex-shrink: 0;
+    text-align: right;
+    font-family: var(--fm);
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--gain);
+    white-space: nowrap;
+  }
+
+  #feed-network .txh-m-amt.out {
+    color: color-mix(in srgb, var(--ink) 62%, transparent);
+  }
+
+  #feed-network .txh-m-locked {
+    font-size: 11px;
+    font-weight: 400;
+    color: color-mix(in srgb, var(--ink) 45%, transparent);
+    margin-top: 2px;
+  }
+
+  #feed-network .txh-m-empty {
+    padding: 24px 14px;
+    text-align: center;
+    font-size: 13px;
+    color: color-mix(in srgb, var(--ink) 50%, transparent);
   }
 
   #feed-network .txh-count {
@@ -3494,7 +3667,7 @@ body.dark .mkt-filter-tab.active {
   #feed-collection .coll-stat {
     border-radius: 10px !important;
     padding: 11px 12px !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
   }
 
   body.dark #feed-collection .coll-stat {
@@ -3540,9 +3713,14 @@ body.dark .mkt-filter-tab.active {
     flex-wrap: nowrap !important;
     gap: 6px !important;
     overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
     margin: 0 -16px 14px !important;
     padding: 0 16px !important;
-    width: auto !important;
+    /* Must be width-bound (not auto) for overflow-x:auto to actually
+       activate internal scrolling, instead of the row growing past the
+       viewport and getting clipped by the page overflow-x:hidden. */
+    width: 100% !important;
+    max-width: 100% !important;
     scrollbar-width: none;
   }
 
@@ -3567,7 +3745,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-collection .pos-tab.active {
     background: #ec7a2c !important;
-    color: #f2efea !important;
+    color: var(--cream) !important;
     box-shadow: none !important;
   }
 
@@ -3578,7 +3756,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-collection .pos-tab.active .pos-tab-dot {
-    background: #f2efea !important;
+    background: var(--cream) !important;
   }
 
   #feed-collection .coll-pos-desktop {
@@ -3631,14 +3809,14 @@ body.dark .mkt-filter-tab.active {
   #feed-collection .coll-pos-token {
     font-family: var(--fm);
     font-weight: 400;
-    font-size: 9px;
+    font-size: 11px;
     color: color-mix(in srgb, var(--t4) 45%, transparent);
   }
 
   #feed-collection .coll-pos-src {
     flex-shrink: 0;
     font-family: var(--fm);
-    font-size: 7.5px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.04em;
     color: color-mix(in srgb, var(--t4) 45%, transparent);
@@ -3652,7 +3830,7 @@ body.dark .mkt-filter-tab.active {
     border: 1px solid color-mix(in srgb, var(--t4) 7%, transparent);
     border-radius: 6px;
     font-family: var(--fm);
-    font-size: 7.5px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.05em;
     color: color-mix(in srgb, var(--t4) 65%, transparent);
@@ -3660,7 +3838,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   body:not(.dark) #feed-collection .coll-pos-view-btn {
-    background: #f7f5f1;
+    background: var(--inner);
   }
 
   body.dark #feed-collection .coll-pos-view-btn {
@@ -3685,7 +3863,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-collection .coll-pos-cell-k {
     font-family: var(--fm);
-    font-size: 7.5px;
+    font-size: 11px;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--t4) 38%, transparent);
@@ -3707,28 +3885,29 @@ body.dark .mkt-filter-tab.active {
 
   #feed-collection .coll-pos-bar {
     flex: 1;
-    height: 4px;
-    background: color-mix(in srgb, var(--t4) 12%, transparent);
-    border-radius: 2px;
+    height: 5px;
+    background: var(--track);
+    border-radius: 3px;
     overflow: hidden;
   }
 
   #feed-collection .coll-pos-bar-fill {
     height: 100%;
     background: var(--green);
-    border-radius: 2px;
+    border-radius: 3px;
+    animation: barLoad 0.9s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   #feed-collection .coll-pos-bar-pct {
     font-family: var(--fm);
-    font-size: 8px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--green);
   }
 
   #feed-collection .coll-pos-count {
     font-family: var(--fm);
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 0.04em;
     color: color-mix(in srgb, var(--t4) 40%, transparent);
     padding: 2px 2px 0;
@@ -3750,7 +3929,7 @@ body.dark .mkt-filter-tab.active {
     background: var(--e2) !important;
     border: none !important;
     border-radius: 11px !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.08) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07) !important;
   }
 
   body.dark #feed-collection .nc {
@@ -3759,7 +3938,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-collection .nc:hover {
     transform: none !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.08) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07) !important;
   }
 
   body.dark #feed-collection .nc:hover {
@@ -3780,16 +3959,16 @@ body.dark .mkt-filter-tab.active {
     left: 7px !important;
     padding: 2px 6px !important;
     border-radius: 3px !important;
-    background: rgba(43, 50, 36, 0.78) !important;
+    background: color-mix(in srgb, var(--t4) 78%, transparent) !important;
     backdrop-filter: none !important;
-    font-size: 7px !important;
+    font-size: 11px !important;
     letter-spacing: 0.05em !important;
-    color: #f2efea !important;
+    color: var(--cream) !important;
   }
 
   #feed-collection .nc-m-name {
     font-family: var(--fm) !important;
-    font-size: 9px !important;
+    font-size: 13.5px !important;
     font-weight: 700 !important;
     color: var(--t4) !important;
     margin-bottom: 9px !important;
@@ -3811,7 +3990,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-collection .nc-m-lbl {
     font-family: var(--fm) !important;
-    font-size: 7.5px !important;
+    font-size: 11px !important;
     color: color-mix(in srgb, var(--t4) 40%, transparent) !important;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -3819,7 +3998,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-collection .nc-m-val {
     font-family: var(--fm) !important;
-    font-size: 8.5px !important;
+    font-size: 13px !important;
     font-weight: 700 !important;
     color: var(--t4) !important;
   }
@@ -3844,7 +4023,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-collection .nc-m-pct {
     font-family: var(--fm) !important;
-    font-size: 8.5px !important;
+    font-size: 11px !important;
     font-weight: 700 !important;
     color: #ec7a2c !important;
   }
@@ -3861,7 +4040,7 @@ body.dark .mkt-filter-tab.active {
     border-radius: 8px;
     cursor: pointer;
     font-family: var(--fm) !important;
-    font-size: 8px !important;
+    font-size: 11px !important;
     font-weight: 700 !important;
     letter-spacing: 0.05em !important;
     color: color-mix(in srgb, var(--t4) 70%, transparent) !important;
@@ -4010,7 +4189,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-collection .pos-view-btn {
-    font-size: 9px !important;
+    font-size: 11px !important;
     height: 22px;
     padding: 0 10px;
   }
@@ -4027,7 +4206,7 @@ body.dark .mkt-filter-tab.active {
   #feed-collection .pos-raised-pct {
     display: block;
     font-family: var(--fm);
-    font-size: 9px !important;
+    font-size: 11px !important;
     color: var(--t1);
     margin-bottom: 3px;
     line-height: 1.2;
@@ -4064,8 +4243,8 @@ body.dark .mkt-filter-tab.active {
 
   #feed-marketplace .ps {
     border-radius: 10px !important;
-    padding: 12px 13px !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+    padding: 11px 12px !important;
+    box-shadow: var(--m-sh-card) !important;
   }
 
   body.dark #feed-marketplace .ps {
@@ -4099,7 +4278,7 @@ body.dark .mkt-filter-tab.active {
     margin-bottom: 18px !important;
     padding: 20px !important;
     background: #0a0c07 !important;
-    box-shadow: 0 4px 14px rgba(60, 70, 50, 0.16) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
     justify-content: center !important;
   }
 
@@ -4135,7 +4314,7 @@ body.dark .mkt-filter-tab.active {
     font-size: 24px !important;
     letter-spacing: 0.04em !important;
     line-height: 1.05 !important;
-    color: #f2efea !important;
+    color: var(--cream) !important;
   }
 
   #feed-marketplace .vault-sub {
@@ -4156,8 +4335,8 @@ body.dark .mkt-filter-tab.active {
     border-radius: 8px !important;
     font-family: var(--fd) !important;
     font-size: 15px !important;
-    background: #f2efea !important;
-    color: #3a4231 !important;
+    background: var(--cream) !important;
+    color: var(--t4) !important;
   }
 
   .mkt-filter-tabs {
@@ -4195,7 +4374,7 @@ body.dark .mkt-filter-tab.active {
   #feed-marketplace .vc {
     min-width: 0;
     border-radius: 11px !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.08) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07) !important;
   }
 
   body.dark #feed-marketplace .vc {
@@ -4211,7 +4390,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-marketplace .vc-name {
-    font-size: 9px !important;
+    font-size: 13.5px !important;
     margin-bottom: 8px !important;
   }
 
@@ -4220,13 +4399,13 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-marketplace .vc-k {
-    font-size: 7.5px !important;
+    font-size: 11px !important;
     color: color-mix(in srgb, var(--t4) 40%, transparent) !important;
   }
 
   #feed-marketplace .vc-v,
   #feed-marketplace .vc-g {
-    font-size: 8px !important;
+    font-size: 11px !important;
   }
 
   #feed-marketplace .lcbtn {
@@ -4237,7 +4416,7 @@ body.dark .mkt-filter-tab.active {
     margin-top: 20px;
     border-radius: 12px !important;
     padding: 14px 14px 4px !important;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
   }
 
   body.dark #feed-marketplace .net-act {
@@ -4314,7 +4493,7 @@ body.dark .mkt-filter-tab.active {
   .mkt-act-event {
     flex-shrink: 0;
     font-family: var(--fm);
-    font-size: 7px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.06em;
     padding: 2px 6px;
@@ -4333,7 +4512,7 @@ body.dark .mkt-filter-tab.active {
 
   .mkt-act-source {
     font-family: var(--fm);
-    font-size: 8.5px;
+    font-size: 13.5px;
     color: color-mix(in srgb, var(--t4) 44%, transparent);
     white-space: nowrap;
     overflow: hidden;
@@ -4520,7 +4699,7 @@ body.dark .mkt-filter-tab.active {
 
   .pd-m-header-title {
     font-family: var(--fm);
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -4557,7 +4736,7 @@ body.dark .mkt-filter-tab.active {
     left: 16px;
     right: 16px;
     bottom: 14px;
-    color: #f2efea;
+    color: var(--cream);
     z-index: 1;
   }
 
@@ -4569,7 +4748,7 @@ body.dark .mkt-filter-tab.active {
 
   .pd-mobile-tag {
     font-family: var(--fm);
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 0.06em;
     background: rgba(255, 255, 255, 0.16);
     border-radius: 4px;
@@ -4601,7 +4780,7 @@ body.dark .mkt-filter-tab.active {
     background: var(--card, var(--e2));
     border-radius: 14px;
     padding: 16px;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.07);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
 
   body.dark .pd-mobile-stats-card,
@@ -4619,7 +4798,7 @@ body.dark .mkt-filter-tab.active {
 
   .pd-mobile-stat-lbl {
     font-family: var(--fm);
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--ink, var(--t2)) 46%, transparent);
@@ -4635,7 +4814,7 @@ body.dark .mkt-filter-tab.active {
 
   .pd-mobile-stat-sub {
     font-family: var(--fm);
-    font-size: 9px;
+    font-size: 12px;
     color: color-mix(in srgb, var(--ink, var(--t2)) 46%, transparent);
     margin-top: 3px;
   }
@@ -4644,7 +4823,7 @@ body.dark .mkt-filter-tab.active {
     display: flex;
     justify-content: space-between;
     font-family: var(--fm);
-    font-size: 8px;
+    font-size: 11px;
     color: color-mix(in srgb, var(--ink, var(--t2)) 46%, transparent);
     margin-bottom: 6px;
   }
@@ -4675,13 +4854,13 @@ body.dark .mkt-filter-tab.active {
 
   .pd-mobile-progress-note {
     font-family: var(--fm);
-    font-size: 9px;
+    font-size: 12px;
     color: color-mix(in srgb, var(--ink, var(--t2)) 50%, transparent);
   }
 
   .pd-mobile-section-title {
     font-family: var(--fm);
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -4703,12 +4882,12 @@ body.dark .mkt-filter-tab.active {
     background: var(--card, var(--e2));
     border-radius: 12px;
     padding: 13px 14px;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.06);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   .pd-mobile-perf-lbl {
     font-family: var(--fm);
-    font-size: 7.5px;
+    font-size: 11px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--ink, var(--t2)) 42%, transparent);
@@ -4734,7 +4913,7 @@ body.dark .mkt-filter-tab.active {
     align-items: center;
     gap: 6px;
     font-family: var(--fm);
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 0.08em;
     color: var(--gain, var(--green));
   }
@@ -4752,7 +4931,7 @@ body.dark .mkt-filter-tab.active {
     background: var(--card, var(--e2));
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(60, 70, 50, 0.06);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   .pd-mobile-deposit-row {
@@ -4795,7 +4974,7 @@ body.dark .mkt-filter-tab.active {
 
   .pd-mobile-deposit-ago {
     font-family: var(--fm);
-    font-size: 8px;
+    font-size: 11px;
     color: color-mix(in srgb, var(--ink, var(--t2)) 42%, transparent);
     margin-top: 1px;
   }
@@ -4820,7 +4999,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-pooldetail .metric-lbl {
-    font-size: 7px !important;
+    font-size: 11px !important;
     letter-spacing: 0.06em !important;
     line-height: 1.3;
   }
@@ -4830,7 +5009,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-pooldetail .metric-chg {
-    font-size: 8px !important;
+    font-size: 11px !important;
     line-height: 1.3;
   }
 
@@ -4991,7 +5170,7 @@ body.dark .mkt-filter-tab.active {
 
   .sh-strategies-title-text {
     font-family: var(--fm) !important;
-    font-size: 9px !important;
+    font-size: 12px !important;
     font-weight: 700 !important;
     letter-spacing: 0.1em !important;
     text-transform: uppercase !important;
@@ -5025,12 +5204,12 @@ body.dark .mkt-filter-tab.active {
   .featured-pill {
     display: inline-flex;
     align-items: center;
-    height: 16px;
-    padding: 0 7px;
-    background: #ec7a2c;
+    height: 20px;
+    padding: 0 8px;
+    background: var(--accent);
     border-radius: 4px;
     font-family: var(--fm);
-    font-size: 8px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.08em;
     color: #fff;
@@ -5073,7 +5252,7 @@ body.dark .mkt-filter-tab.active {
     height: 24px;
     padding: 0 10px;
     font-family: var(--fm);
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 0.05em;
     color: var(--t4);
     background: transparent;
@@ -5229,7 +5408,7 @@ body.dark .mkt-filter-tab.active {
 
   .intro-scrollhint {
     bottom: 72px !important;
-    font-size: 9px !important;
+    font-size: 12px !important;
     letter-spacing: 0.2em !important;
   }
 
@@ -5309,27 +5488,15 @@ body.dark .mkt-filter-tab.active {
   }
 
   .content {
-    padding: 2px 2px 0 !important;
+    padding: 0 !important;
   }
 
-  .feed,
-  #feed-pools.feed,
-  #feed-marketplace.feed,
-  #feed-collection.feed,
-  #feed-network.feed,
-  #feed-membership.feed {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-  }
+  /* The reference keeps a constant 16px page inset at every mobile width,
+     so no extra narrowing here. */
 
   body[data-page="pooldetail"] #feed-pooldetail.feed,
   body[data-page="pooldetail"] #feed-pooldetail.pool-detail-scroll {
     padding: 0 !important;
-  }
-
-  #feed-home.feed {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
   }
 
   #toast-container {
@@ -5368,6 +5535,35 @@ body.dark .mkt-filter-tab.active {
   }
 
   .nempty-compact .lempty-title {
-    font-size: 20px !important;
+    font-size: 19px !important;
+  }
+
+  /* Reference empty-state text block (HNTR.art Mobile.dc.html:231/330/360/…):
+     title Space Grotesk 19/700, sub Space Mono 11 uppercase .16em, gap 6px.
+     The fade layer + 1.9s shimmer already match, so only these differ. */
+  .lempty-msg,
+  .nempty-msg {
+    gap: 6px !important;
+  }
+
+  .lempty-title {
+    font-family: var(--fd) !important;
+    font-size: 19px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+    color: var(--tx) !important;
+  }
+
+  .lempty-sub {
+    font-family: var(--fm) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.16em !important;
+    text-transform: uppercase !important;
+    color: color-mix(in srgb, var(--ink) 46%, transparent) !important;
+  }
+
+  .nempty-compact .lempty-sub {
+    font-size: 11px !important;
+    letter-spacing: 0.16em !important;
   }
 }

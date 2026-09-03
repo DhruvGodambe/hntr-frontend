@@ -5269,6 +5269,9 @@ body.dark .vault-hero::after { background: linear-gradient(to left, rgba(0,0,0,.
   flex-direction: column !important;
   align-items: flex-start !important;
   justify-content: center !important;
+  /* was an inline style on HomeHeroBanner.tsx; moved here so the mobile
+     breakpoint can override it without fighting inline specificity */
+  padding: 26px 24px !important;
 }
 
 #feed-collection .hero-content,
@@ -7188,17 +7191,54 @@ body.intro-active #ai-fab{opacity:0;transform:translateY(28px) scale(.9);pointer
 /* nav actions (search / notif / wallet) — driven in sync with the rail during intro scrub */
 body.intro-active .nav-r{opacity:0;pointer-events:none}
 
-/* Mobile reference design tokens (HNTR.art Mobile Responsive.html) */
+/* Top-bar brand mark — moved out of TopNavBar.tsx inline styles.
+   Values are the pre-existing desktop ones, so desktop is unchanged. */
+.nav-brand {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.nav-logomark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: #0c0c0e;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+.nav-logomark img {
+  width: 15px;
+  height: auto;
+  display: block;
+}
+.nav-wordmark {
+  margin-left: 9px;
+  font-family: var(--fd);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.18em;
+}
+
+/* Mobile reference design tokens (HNTR.art Mobile Responsive.html)
+   NOTE: names come from the mobile design reference; VALUES are mapped onto the
+   app's current brand palette (the :root rebrand block above) so mobile matches
+   the reference's geometry without reintroducing the old warm sage/cream colours.
+   Values are written literally rather than as var(--e2) etc. because these are
+   declared on :root while the dark palette is redeclared on body.dark — a
+   var() reference here would resolve against :root and never see the dark value. */
 :root {
-  --card: #ffffff;
-  --inner: #f7f5f1;
-  --pill: #ede9e3;
-  --sheet: #F2EFEA;
-  --track: #dce3da;
-  --tx: #2b3224;
-  --ink: #3a4231;
+  --card: #ffffff;      /* = --e2 */
+  --inner: #f3f4f5;     /* = --e3 */
+  --pill: #ecedee;      /* = --e4 */
+  --sheet: #ffffff;     /* = --e1 */
+  --track: #e6e8ea;     /* = --sage-faint */
+  --tx: #212730;        /* = --t4 */
+  --ink: #212730;       /* base for the color-mix(ink N%) ramp */
   --line-ink: #000000;
-  --gain: #1a9d5f;
+  --gain: #1a9d5f;      /* = --green */
   --accent: #ec7a2c;
 }
 
@@ -7211,6 +7251,6 @@ body.dark {
   --tx: #ffffff;
   --ink: #ffffff;
   --line-ink: #ffffff;
-  --gain: #34c77b;
+  --gain: #34d399;      /* = --green (dark) */
   --accent: #ec7a2c;
 }

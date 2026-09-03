@@ -33,47 +33,14 @@ export default function TopNavBar({
 }: TopNavBarProps) {
   return (
     <div className="nav">
-      <div
-        className="nav-brand"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          cursor: "pointer",
-        }}
-      >
-        <span
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "28px",
-            height: "28px",
-            borderRadius: "7px",
-            background: "#0c0c0e",
-            boxShadow: "0 1px 2px rgba(0,0,0,.18)",
-          }}
-        >
-          <img
-            src="/assets/images/logoMark.png"
-            alt="HNTR"
-            style={{
-              width: "15px",
-              height: "auto",
-              display: "block",
-            }}
-          />
+      {/* Brand-mark presentation lives in CSS (`.nav-brand`, `.nav-logomark`,
+          `.nav-wordmark` in styles.css) so the mobile breakpoint and the dark
+          theme can restyle it without fighting inline specificity. */}
+      <div className="nav-brand">
+        <span className="nav-logomark">
+          <img src="/assets/images/logoMark.png" alt="HNTR" />
         </span>
-        <span
-          style={{
-            marginLeft: "9px",
-            fontFamily: "var(--fd)",
-            fontWeight: 700,
-            fontSize: "15px",
-            letterSpacing: ".18em",
-          }}
-        >
-          HNTR
-        </span>
+        <span className="nav-wordmark">HNTR</span>
       </div>
       <div className="nav-r">
         <div className="nav-btn" id="navThemeToggle" title="Light / Dark" onClick={onToggleTheme} style={{ cursor: "pointer" }}>

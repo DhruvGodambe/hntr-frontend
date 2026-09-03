@@ -11,26 +11,12 @@ function HomeHeroBanner() {
     <div className="hero">
       <canvas id="homeRevealCv" ref={canvasRef} />
       <div className="home-reveal-shade" />
-      <div
-        className="hero-left"
-        style={{
-          zIndex: 2,
-          pointerEvents: "none",
-          padding: "26px 24px 26px 24px",
-        }}
-      >
-        <div className="hero-title" style={{ textShadow: "0 2px 10px rgba(0,0,0,.7)" }}>
-          HNTR
-        </div>
-        <div
-          className="hero-sub"
-          style={{
-            color: "#fff",
-            textShadow: "0 1px 8px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.6)",
-          }}
-        >
-          Your gateaway to the NFT Universe.
-        </div>
+      {/* Presentation (padding / colour / text-shadow) lives in CSS:
+          styles.css `#feed-home .hero .hero-left|-title|-sub`, so the mobile
+          breakpoint can restyle it without fighting inline specificity. */}
+      <div className="hero-left">
+        <div className="hero-title">HNTR</div>
+        <div className="hero-sub">Your gateaway to the NFT Universe.</div>
       </div>
       <div className="hero-right">
         <div className="hero-mosaic" id="mosaic" />
