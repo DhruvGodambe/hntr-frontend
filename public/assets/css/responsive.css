@@ -886,7 +886,7 @@ body.dark .mkt-filter-tab.active {
     opacity: 1 !important;
     pointer-events: none !important;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-size: 8px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
     letter-spacing: 0.06em !important;
     line-height: 1.1 !important;
@@ -968,7 +968,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   .sb.mobile-bottom-nav .si-label {
-    font-size: 7px !important;
+    font-size: 13px !important;
     letter-spacing: 0.02em !important;
     padding: 0 1px;
   }
@@ -1886,7 +1886,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-collection .hero-sub {
     font-family: var(--fm) !important;
-    font-size: 9px !important;
+    font-size: 12px !important;
     letter-spacing: 0.02em !important;
     text-transform: none !important;
     margin-top: 8px !important;
@@ -1932,7 +1932,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-network .hero-sub {
-    font-size: 8.5px !important;
+    font-size: 11px !important;
     letter-spacing: 0.05em !important;
     margin-top: 8px !important;
     margin-bottom: 0 !important;
@@ -1984,7 +1984,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-membership .hero-sub {
     font-family: var(--fm) !important;
-    font-size: 9px !important;
+    font-size: 12px !important;
     letter-spacing: 0.02em !important;
     line-height: 1.5 !important;
     text-transform: none !important;
@@ -2822,21 +2822,25 @@ body.dark .mkt-filter-tab.active {
     padding: 12px 10px !important;
   }
 
+  #feed-membership .tier-label {
+    font-size: 11px !important;
+  }
+
   #feed-membership .tier-name {
-    font-size: 13px !important;
+    font-size: 19px !important;
     margin-bottom: 6px;
   }
 
   #feed-membership .tier-price {
-    font-size: 17px !important;
+    font-size: 20px !important;
   }
 
   #feed-membership .tier-price-unit {
-    font-size: 9px !important;
+    font-size: 12px !important;
   }
 
   #feed-membership .tier-feature-text {
-    font-size: 9px !important;
+    font-size: 13px !important;
     line-height: 1.35;
   }
 
@@ -2857,13 +2861,13 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-membership .tier-btn {
-    font-size: 8px !important;
+    font-size: 13.5px !important;
     height: 26px;
     padding: 0 8px;
   }
 
   #feed-membership .recommended-badge {
-    font-size: 7px !important;
+    font-size: 11px !important;
     padding: 2px 6px;
   }
 
@@ -2908,8 +2912,16 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-network .net-rank {
-    font-size: 10px !important;
+    font-size: 13px !important;
     margin-top: 5px !important;
+  }
+
+  #feed-network .net-prog-lbl {
+    font-size: 12px !important;
+  }
+
+  #feed-network .net-prog-pct {
+    font-size: 15.5px !important;
   }
 
   #feed-network .net-stats-grid {
@@ -2933,17 +2945,17 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-network .net-stat-val {
-    font-size: 17px !important;
+    font-size: 19px !important;
     margin-bottom: 2px !important;
   }
 
   #feed-network .net-stat-tier-val {
     font-family: var(--fd) !important;
-    font-size: 17px !important;
+    font-size: 19px !important;
   }
 
   #feed-network .net-stat-lbl {
-    font-size: 7.5px !important;
+    font-size: 11px !important;
     letter-spacing: 0.06em !important;
     margin-bottom: 6px !important;
     color: color-mix(in srgb, var(--ink) 40%, transparent) !important;
@@ -2980,7 +2992,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-network .net-section-title {
     font-family: var(--fd) !important;
-    font-size: 13px !important;
+    font-size: 15.5px !important;
     font-weight: 700 !important;
     letter-spacing: 0 !important;
     text-transform: none !important;
@@ -3021,7 +3033,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-network .net-rc-name {
-    font-size: 13px !important;
+    font-size: 15.5px !important;
     font-weight: 700 !important;
     white-space: nowrap;
     overflow: hidden;
@@ -3029,7 +3041,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-network .net-rc-tag {
-    font-size: 7.5px !important;
+    font-size: 11px !important;
     letter-spacing: 0.06em !important;
     color: color-mix(in srgb, var(--ink) 40%, transparent) !important;
     background: transparent !important;
@@ -3039,7 +3051,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-network .net-rc-desc {
-    font-size: 10px !important;
+    font-size: 13px !important;
     color: color-mix(in srgb, var(--ink) 50%, transparent) !important;
     margin-bottom: 11px !important;
     line-height: 1.45 !important;
@@ -3058,7 +3070,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-network .net-rc-amount {
-    font-size: 17px !important;
+    font-size: 19px !important;
   }
 
   #feed-network .net-claim-btn {
@@ -3067,7 +3079,7 @@ body.dark .mkt-filter-tab.active {
     border-radius: 8px !important;
     background: var(--tx) !important;
     color: var(--card) !important;
-    font-size: 9px !important;
+    font-size: 12px !important;
     letter-spacing: 0.06em !important;
   }
 
@@ -3091,7 +3103,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-network .net-membership-banner-lbl {
     font-family: var(--fm);
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--card) 60%, transparent);
@@ -3115,7 +3127,7 @@ body.dark .mkt-filter-tab.active {
     border: none;
     border-radius: 8px;
     font-family: var(--fm);
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.06em;
     cursor: pointer;
@@ -3155,7 +3167,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-network .topo-hdr-title {
     font-family: var(--fd) !important;
-    font-size: 13px !important;
+    font-size: 15.5px !important;
     font-weight: 700 !important;
     letter-spacing: 0 !important;
     text-transform: none !important;
@@ -3166,7 +3178,7 @@ body.dark .mkt-filter-tab.active {
     height: 26px !important;
     padding: 0 11px !important;
     border-radius: 7px !important;
-    font-size: 8px !important;
+    font-size: 11px !important;
     letter-spacing: 0.05em !important;
     background: var(--card) !important;
     color: color-mix(in srgb, var(--ink) 60%, transparent) !important;
@@ -3216,7 +3228,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-network .ref-title {
-    font-size: 8px !important;
+    font-size: 11px !important;
     letter-spacing: 0.1em !important;
     color: color-mix(in srgb, var(--ink) 40%, transparent) !important;
     margin-bottom: 11px !important;
@@ -3232,7 +3244,7 @@ body.dark .mkt-filter-tab.active {
     border-radius: 8px !important;
     background: var(--inner) !important;
     padding: 0 12px !important;
-    font-size: 10px !important;
+    font-size: 13px !important;
     color: color-mix(in srgb, var(--ink) 70%, transparent) !important;
     overflow: hidden !important;
     white-space: nowrap !important;
@@ -3289,16 +3301,40 @@ body.dark .mkt-filter-tab.active {
 
   #feed-network .ref-qr-title {
     font-family: var(--fd) !important;
-    font-size: 12px !important;
+    font-size: 14.5px !important;
     font-weight: 700 !important;
     margin-bottom: 5px !important;
     color: var(--tx) !important;
   }
 
   #feed-network .ref-qr-desc {
-    font-size: 10px !important;
+    font-size: 13px !important;
     color: color-mix(in srgb, var(--ink) 50%, transparent) !important;
     line-height: 1.5 !important;
+  }
+
+  #feed-network .txh-title {
+    font-size: 15.5px !important;
+  }
+
+  #feed-network .txh-type {
+    font-size: 11px !important;
+  }
+
+  #feed-network .txh-source {
+    font-size: 13.5px !important;
+  }
+
+  #feed-network .txh-dt-date {
+    font-size: 11px !important;
+  }
+
+  #feed-network .txh-amount {
+    font-size: 15.5px !important;
+  }
+
+  #feed-network .txh-count {
+    font-size: 11px !important;
   }
 
   #feed-network .net-profile-card:hover .net-flip-inner {
@@ -3335,34 +3371,34 @@ body.dark .mkt-filter-tab.active {
   #feed-network .net-perf-rule {
     width: auto !important;
     margin-left: auto !important;
-    font-size: 8px !important;
+    font-size: 13px !important;
     text-align: right;
     white-space: nowrap;
   }
 
   #feed-network .net-perf-user {
-    font-size: 12px !important;
+    font-size: 16px !important;
   }
 
   #feed-network .net-perf-name {
-    font-size: 8px !important;
+    font-size: 12px !important;
   }
 
   #feed-network .net-perf-val {
-    font-size: 8px !important;
+    font-size: 12px !important;
   }
 
   #feed-network .net-perf-pct {
-    font-size: 9px !important;
+    font-size: 12px !important;
   }
 
   #feed-network .net-perf-team {
-    font-size: 7px !important;
+    font-size: 11px !important;
     margin-top: 2px !important;
   }
 
   #feed-network .net-perf-team b {
-    font-size: 8px !important;
+    font-size: 12px !important;
   }
 
   #feed-network .net-profile-card.is-flipped .net-perf-fill {
@@ -3466,26 +3502,26 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-collection .cs-lbl {
-    font-size: 7.5px !important;
+    font-size: 11px !important;
     letter-spacing: 0.06em !important;
     margin-bottom: 5px !important;
     color: color-mix(in srgb, var(--t4) 40%, transparent) !important;
   }
 
   #feed-collection .cs-val {
-    font-size: 16px !important;
+    font-size: 18px !important;
   }
 
   #feed-collection .cs-sub {
     display: block !important;
-    font-size: 8px !important;
+    font-size: 11px !important;
     margin-top: 3px !important;
     color: color-mix(in srgb, var(--t4) 40%, transparent) !important;
   }
 
   #feed-collection .coll-main-right .coll-sh-title,
   #feed-collection .coll-sh-positions .coll-sh-title {
-    font-size: 13px !important;
+    font-size: 15.5px !important;
     margin-bottom: 12px !important;
   }
 
@@ -3495,7 +3531,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-collection .coll-sh-positions .coll-sh-title {
-    font-size: 14px !important;
+    font-size: 16px !important;
     margin-bottom: 0 !important;
   }
 
@@ -3520,7 +3556,7 @@ body.dark .mkt-filter-tab.active {
     height: 32px !important;
     padding: 0 14px !important;
     border-radius: 9px !important;
-    font-size: 9.5px !important;
+    font-size: 12px !important;
     letter-spacing: 0.04em !important;
     font-weight: 700 !important;
     box-shadow: 0 1px 3px color-mix(in srgb, var(--t4) 7%, transparent);
@@ -3877,7 +3913,7 @@ body.dark .mkt-filter-tab.active {
     justify-content: center;
     padding: 0 8px;
     height: 28px;
-    font-size: 9px !important;
+    font-size: 12px !important;
     letter-spacing: 0.05em;
     white-space: nowrap;
   }
@@ -4037,18 +4073,18 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-marketplace .ps-lbl {
-    font-size: 7.5px !important;
+    font-size: 11px !important;
     letter-spacing: 0.06em !important;
     margin-bottom: 6px !important;
     color: color-mix(in srgb, var(--t4) 40%, transparent) !important;
   }
 
   #feed-marketplace .ps-val {
-    font-size: 17px !important;
+    font-size: 19px !important;
   }
 
   #feed-marketplace .ps-unit {
-    font-size: 9px !important;
+    font-size: 12px !important;
     color: color-mix(in srgb, var(--t4) 50%, transparent) !important;
   }
 
@@ -4104,7 +4140,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-marketplace .vault-sub {
     font-family: var(--fm) !important;
-    font-size: 9.5px !important;
+    font-size: 12px !important;
     letter-spacing: 0.03em !important;
     color: rgba(255, 255, 255, 0.82) !important;
     margin-top: 8px !important;
@@ -4119,7 +4155,7 @@ body.dark .mkt-filter-tab.active {
     padding: 0 20px !important;
     border-radius: 8px !important;
     font-family: var(--fd) !important;
-    font-size: 12.5px !important;
+    font-size: 15px !important;
     background: #f2efea !important;
     color: #3a4231 !important;
   }
@@ -4218,7 +4254,7 @@ body.dark .mkt-filter-tab.active {
 
   #feed-marketplace .net-act-title {
     font-family: var(--fd) !important;
-    font-size: 12px !important;
+    font-size: 14.5px !important;
     font-weight: 700 !important;
     letter-spacing: 0 !important;
     text-transform: none !important;
@@ -4227,7 +4263,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-marketplace .net-act-link {
-    font-size: 8px !important;
+    font-size: 11px !important;
     letter-spacing: 0.04em !important;
     color: var(--t4) !important;
     white-space: nowrap;
@@ -5319,7 +5355,7 @@ body.dark .mkt-filter-tab.active {
   #feed-home .lempty-title,
   #feed-marketplace .lempty-title,
   #feed-collection .lempty-title {
-    font-size: 20px !important;
+    font-size: 19px !important;
   }
 
   .sempty-card {
