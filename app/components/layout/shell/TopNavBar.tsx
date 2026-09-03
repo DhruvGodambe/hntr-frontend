@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { HiBell, HiMoon, HiSun, HiViewColumns, HiXMark } from "react-icons/hi2";
+import Link from "next/link";
+import { HiBell, HiMoon, HiOutlineVideoCamera, HiSun, HiViewColumns, HiXMark } from "react-icons/hi2";
 
 type TopNavBarProps = {
   isDark: boolean;
@@ -98,6 +99,15 @@ export default function TopNavBar({
             {railOpen ? <HiXMark size={14} aria-hidden /> : <HiViewColumns size={14} aria-hidden />}
           </div>
         )}
+        <Link
+          href="/webinar"
+          className="nav-btn nav-live"
+          title="Live Webinar"
+          style={{ color: "#eda06a" }}
+        >
+          <span className="rec-dot" />
+          <HiOutlineVideoCamera size={14} aria-hidden />
+        </Link>
         <div
           className="nav-btn"
           data-btn="notif"
