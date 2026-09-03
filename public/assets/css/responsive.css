@@ -823,6 +823,14 @@ body.dark .mkt-filter-tab.active {
     pointer-events: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    /* The bar's position/opacity are driven by JS (intro scroll-scrub sets
+       an inline transform/opacity every frame); this transition smooths the
+       *discrete* jumps — the intro-active class toggling on/off, a route
+       change remounting the layout, an orientation/resize snap — into a
+       slide rather than an instant cut. */
+    transition:
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.35s ease;
   }
 
   .sb.mobile-bottom-nav:hover {
@@ -959,9 +967,11 @@ body.dark .mkt-filter-tab.active {
     position: relative;
     z-index: 1;
     pointer-events: none !important;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-size: 13px !important;
-    font-weight: 600 !important;
+    /* Match the header/wordmark font used everywhere else (nav-wordmark,
+       hero-title, section titles) instead of the one-off Helvetica Neue. */
+    font-family: var(--fd);
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
     letter-spacing: 0.01em !important;
     line-height: 1.1 !important;
     text-transform: none;
@@ -979,7 +989,7 @@ body.dark .mkt-filter-tab.active {
   }
 
   .sb.mobile-bottom-nav .si.active .si-label {
-    max-width: 96px;
+    max-width: 104px;
     opacity: 1;
     padding-left: 7px !important;
   }
