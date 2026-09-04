@@ -920,12 +920,32 @@ body.dark .mkt-filter-tab.active {
     color: rgba(20, 20, 22, 0.48) !important;
   }
 
+  /* Tapping a nav item navigates to a new page, and BottomNav lives inside
+     each page's own <MainLayout> (not the shared root layout) — so it fully
+     unmounts/remounts on every click. A `transition` can't bridge two DOM
+     nodes across a remount; a mount-time `animation` can, since it always
+     replays when an element's computed `animation-name` goes from none to
+     set — i.e. every single time a fresh "active" pill appears. That's what
+     produces the slide-in motion. */
+  @keyframes navActivePillIn {
+    0% {
+      transform: scale(0.7) translateX(-10px);
+    }
+    55% {
+      transform: scale(1.08) translateX(3px);
+    }
+    100% {
+      transform: scale(1) translateX(0);
+    }
+  }
+
   .sb.mobile-bottom-nav .si.active {
     flex: 0 0 auto !important;
     padding: 0 16px !important;
     background: var(--accent) !important;
     color: #fff !important;
     transform: scale(1);
+    animation: navActivePillIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .sb.mobile-bottom-nav .si:active:not(.locked) {
@@ -2199,7 +2219,33 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-home .mstat {
+    /* Desktop lays the value+label beside the sparkline in one row; in the
+       narrow 2-up mobile grid there isn't room for both, so the sparkline
+       (which paints outside its box — .msk has overflow:visible) was
+       shrinking into negative space and drawing straight through the
+       number. Stack value/label above a full-width sparkline instead. */
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
     padding: 12px 13px !important;
+  }
+
+  #feed-home .mstat > div:first-child {
+    width: 100%;
+  }
+
+  #feed-home .mstat-v {
+    font-size: 16px !important;
+    white-space: normal !important;
+    overflow-wrap: break-word;
+  }
+
+  #feed-home .mstat-sp {
+    flex: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 32px !important;
   }
 
   #feed-home .mk {
