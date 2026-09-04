@@ -1,6 +1,6 @@
 "use client";
 
-import type { RewardsSummary } from "../../../../lib/rewards";
+import { formatMonthlyGrowthLabel, type RewardsSummary } from "../../../../lib/rewards";
 
 type RailStatsRowProps = {
   summary: RewardsSummary | undefined;
@@ -8,17 +8,6 @@ type RailStatsRowProps = {
   maskBalance: (value: string) => string;
   variant?: "desktop" | "mobile";
 };
-
-function formatMonthlyGrowthLabel(percent: number | undefined): { text: string; className: string } {
-  const value = percent ?? 0;
-  if (value > 0) {
-    return { text: `↑+${value.toFixed(1)}% This Month`, className: "rsbc" };
-  }
-  if (value < 0) {
-    return { text: `↓${value.toFixed(1)}% This Month`, className: "rsbc neg" };
-  }
-  return { text: "0% This Month", className: "rsbg" };
-}
 
 export default function RailStatsRow({
   summary,
@@ -56,7 +45,7 @@ export default function RailStatsRow({
             ) : null}
           </div>
           <div className="rsbv">{maskBalance(hntrPoints.toLocaleString())}</div>
-          {!isMobile ? <div className="rsbg">Lifetime</div> : null}
+          {!isMobile ? <div className="rsbg">— Lifetime</div> : null}
         </div>
       </div>
     </div>

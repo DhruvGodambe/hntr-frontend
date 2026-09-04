@@ -398,11 +398,22 @@ export default function MembershipPage() {
                 <thead>
                   <tr>
                     <th style={{ width: "28%" }}>Feature</th>
-                    {TIERS.map((tier) => (
-                      <th key={tier.name} className={tier.name === "Diamond" ? "apex-col" : ""}>
-                        {tier.name}
-                      </th>
-                    ))}
+                    {TIERS.map((tier) => {
+                      const isCurrentColumn = currentTierIndex > 0 && getTierIndex(tier.name) === currentTierIndex;
+                      return (
+                        <th
+                          key={tier.name}
+                          className={[
+                            tier.name === "Diamond" ? "apex-col" : "",
+                            isCurrentColumn ? "current-tier-col" : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                        >
+                          {tier.name}
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>

@@ -43,9 +43,6 @@ export default function TopNavBar({
         <span className="nav-wordmark">HNTR</span>
       </div>
       <div className="nav-r">
-        <div className="nav-btn" id="navThemeToggle" title="Light / Dark" onClick={onToggleTheme} style={{ cursor: "pointer" }}>
-          {isDark ? <HiMoon size={14} aria-hidden /> : <HiSun size={14} aria-hidden />}
-        </div>
         {!hideRightRail && !hideMobileRailToggle && (
           <div
             className={`nav-btn rail-toggle-btn${railOpen ? " active" : ""}`}
@@ -66,6 +63,7 @@ export default function TopNavBar({
             {railOpen ? <HiXMark size={14} aria-hidden /> : <HiViewColumns size={14} aria-hidden />}
           </div>
         )}
+        {/* Order per client spec: Webinar → Dark Mode → Notification → Wallet */}
         <Link
           href="/webinar"
           className="nav-btn nav-live"
@@ -75,6 +73,9 @@ export default function TopNavBar({
           <span className="rec-dot" />
           <HiOutlineVideoCamera size={14} aria-hidden />
         </Link>
+        <div className="nav-btn" id="navThemeToggle" title="Light / Dark" onClick={onToggleTheme} style={{ cursor: "pointer" }}>
+          {isDark ? <HiMoon size={14} aria-hidden /> : <HiSun size={14} aria-hidden />}
+        </div>
         <div
           className="nav-btn"
           data-btn="notif"

@@ -159,6 +159,74 @@ button.web-act:hover{color:var(--t4)}
 .web-foot-links span{cursor:pointer}
 .web-foot-links span:hover{color:var(--t2)}
 
+/* ── NEWSLETTER ARTICLE MODAL ── */
+.art-ov{position:fixed;inset:0;z-index:9600;display:none;background:rgba(10,12,9,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .22s ease}
+.art-ov.on{display:flex;align-items:center;justify-content:center;opacity:1}
+.art-modal{width:min(1060px,92vw);max-height:88vh;background:var(--e2);border-radius:var(--r);box-shadow:var(--sh1),var(--glow);overflow:hidden;display:grid;grid-template-columns:1fr 300px;transform:translateY(14px) scale(.985);transition:transform .28s cubic-bezier(.22,1,.36,1)}
+.art-ov.on .art-modal{transform:none}
+.art-main{overflow-y:auto;max-height:88vh}
+.art-hero{position:relative;height:230px;background:#10151a;overflow:hidden}
+.art-hero img{width:100%;height:100%;object-fit:cover;display:block}
+.art-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.72))}
+.art-hero-txt{position:absolute;left:0;right:0;bottom:0;padding:22px 28px;z-index:2}
+.art-kicker{font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:.16em;color:#f0b58f;text-transform:uppercase}
+.art-h1{font-family:var(--fd);font-weight:700;font-size:26px;line-height:1.2;color:#fff;margin-top:8px;text-wrap:pretty;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.art-body{padding:24px 28px 30px}
+.art-byline{display:flex;align-items:center;gap:10px;padding-bottom:16px;margin-bottom:18px;border-bottom:1px solid rgba(128,128,128,.16)}
+.art-avatar{width:32px;height:32px;border-radius:50%;background:var(--e4) url('/assets/images/presenter.png') center top/cover;flex:0 0 auto}
+.art-author{font-family:var(--fd);font-size:13px;font-weight:700;color:var(--t4)}
+.art-when{font-family:var(--fm);font-size:10.5px;color:var(--t2);margin-top:2px;letter-spacing:.06em}
+.art-lead{font-size:15.5px;line-height:1.7;font-weight:500;margin-bottom:16px;color:var(--t3)}
+.art-body p{font-size:14.5px;line-height:1.78;color:var(--t2);margin-bottom:14px}
+.art-h2{font-family:var(--fd);font-size:16px;font-weight:700;margin:22px 0 10px;color:var(--t4)}
+.art-pull{border-left:2px solid var(--olive);padding:4px 0 4px 14px;margin:18px 0;font-family:var(--fd);font-size:15px;line-height:1.55;font-weight:600;color:var(--t4)}
+.art-side{border-left:1px solid rgba(128,128,128,.16);padding:20px;overflow-y:auto;max-height:88vh;display:flex;flex-direction:column;gap:10px}
+.art-side-ttl{font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--t2);margin-bottom:2px}
+.art-item{display:flex;gap:11px;padding:10px;border-radius:10px;cursor:pointer;transition:background .18s ease;align-items:flex-start}
+.art-item:hover{background:rgba(128,128,128,.10)}
+.art-item.cur{background:rgba(128,128,128,.14)}
+.art-thumb{flex:0 0 auto;width:52px;height:52px;border-radius:8px;object-fit:cover;background:var(--e4)}
+.art-item-ttl{font-size:12.5px;font-weight:600;line-height:1.35;text-wrap:pretty;color:var(--t4)}
+.art-item-meta{font-family:var(--fm);font-size:9.5px;letter-spacing:.08em;color:var(--t2);margin-top:5px;text-transform:uppercase}
+.art-close{position:absolute;top:14px;right:14px;z-index:3;width:32px;height:32px;border-radius:8px;border:none;background:rgba(0,0,0,.45);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px)}
+.art-close:hover{background:rgba(0,0,0,.65)}
+
+@media (max-width: 900px) {
+  .art-modal {
+    grid-template-columns: 1fr;
+    width: min(560px, 94vw);
+    max-height: 92vh;
+    /* Single-column on mobile: the modal itself becomes the scroll region
+       (article, then the side list, stacked). Base .art-modal has
+       overflow:hidden for the two-pane desktop layout — override it here,
+       and opt back into touch scrolling since body.modal-open sets
+       touch-action:none while any mobile modal is open. */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .art-main,
+  .art-side {
+    max-height: none;
+    overflow: visible;
+  }
+  .art-side {
+    border-left: none;
+    border-top: 1px solid rgba(128, 128, 128, 0.16);
+  }
+  .art-hero {
+    height: 170px;
+  }
+  .art-hero-txt {
+    padding: 18px 20px;
+  }
+  .art-h1 {
+    font-size: 21px;
+  }
+  .art-body {
+    padding: 20px 20px 24px;
+  }
+}
+
 /* live chat column */
 .web-chat{width:256px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;min-height:0}
 .web-chat-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:0.5px solid var(--bd0)}

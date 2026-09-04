@@ -354,8 +354,6 @@ export default function NetworkPage() {
     ? "…"
     : hasAchievementPending
     ? "PENDING"
-    : hasAchievementPaid
-    ? "AUTO-DEPOSITED"
     : "ONE-TIME";
   const achievementPoolLabel = formatPoolWalletBalances(achievementStatus?.walletBalances);
   const achievementDesc =

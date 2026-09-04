@@ -61,6 +61,18 @@ export function formatVolume(value: number): string {
   return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
 
+/** Formats RewardsSummary.monthlyEarningsGrowthPercent for the "Total Rewarded" stat tile. */
+export function formatMonthlyGrowthLabel(percent: number | undefined): { text: string; className: string } {
+  const value = percent ?? 0;
+  if (value > 0) {
+    return { text: `↑+${value.toFixed(1)}% This Month`, className: "rsbc" };
+  }
+  if (value < 0) {
+    return { text: `↓${value.toFixed(1)}% This Month`, className: "rsbc neg" };
+  }
+  return { text: "0% This Month", className: "rsbg" };
+}
+
 export interface NetworkTreeNode {
   username: string;
   walletAddress: string;

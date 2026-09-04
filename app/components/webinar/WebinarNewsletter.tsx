@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import { WEBINAR_ARTICLES } from "../../../lib/webinar-data";
+import WebinarArticleModal from "./WebinarArticleModal";
 
 function CalendarIcon() {
   return (
@@ -33,15 +37,30 @@ function ReadArrowIcon() {
 }
 
 export default function WebinarNewsletter() {
+  const [articleOpen, setArticleOpen] = useState(false);
+  const [articleIndex, setArticleIndex] = useState(0);
+
+  const openArticle = (index: number) => {
+    setArticleIndex(index);
+    setArticleOpen(true);
+  };
+
   return (
     <>
       <div className="web-up-hdr">
         <div className="web-up-title">HNTR NEWSLETTER</div>
-        <a className="web-up-link">View All Articles</a>
+        <a className="web-up-link" onClick={() => openArticle(0)} style={{ cursor: "pointer" }}>
+          View All Articles
+        </a>
       </div>
       <div className="web-up-grid">
-        {WEBINAR_ARTICLES.map((article) => (
-          <div key={article.issue} className="web-card">
+        {WEBINAR_ARTICLES.map((article, i) => (
+          <div
+            key={article.issue}
+            className="web-card"
+            onClick={() => openArticle(i)}
+            style={{ cursor: "pointer" }}
+          >
             <div className="web-card-top">
               <span className="web-card-date">{article.issue}</span>
               <span className="web-card-cal">
@@ -65,6 +84,13 @@ export default function WebinarNewsletter() {
           <span>Docs</span>
         </div>
       </div>
+
+      <WebinarArticleModal
+        open={articleOpen}
+        articleIndex={articleIndex}
+        onClose={() => setArticleOpen(false)}
+        onSelectArticle={setArticleIndex}
+      />
     </>
   );
 }

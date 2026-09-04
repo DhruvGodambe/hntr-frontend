@@ -2169,13 +2169,11 @@ body.dark .mkt-filter-tab.active {
   }
 
   #feed-home .mh {
-    display: block !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
     margin-bottom: 11px !important;
-  }
-
-  #feed-home .mh .sub,
-  #feed-home .mh .tf {
-    display: none !important;
   }
 
   #feed-home .mh .st {
@@ -2186,6 +2184,17 @@ body.dark .mkt-filter-tab.active {
     text-transform: uppercase !important;
     color: color-mix(in srgb, var(--t4) 64%, transparent) !important;
     margin-bottom: 0 !important;
+  }
+
+  #feed-home .mh .sub {
+    display: block !important;
+    font-size: 13px !important;
+    margin-top: 4px !important;
+  }
+
+  #feed-home .mh .tf {
+    display: flex !important;
+    flex-shrink: 0 !important;
   }
 
   #feed-home .mkp {
@@ -2872,10 +2881,6 @@ body.dark .mkt-filter-tab.active {
     color: color-mix(in srgb, var(--t4) 46%, transparent) !important;
     margin-top: 0 !important;
     margin-bottom: 12px !important;
-  }
-
-  #feed-home .sh-listings .va-listings-inline {
-    display: none !important;
   }
 
   #feed-home .listings-view-all-mobile {
@@ -3980,6 +3985,12 @@ body.dark .mkt-filter-tab.active {
     margin-bottom: 0 !important;
   }
 
+  /* Spec calls for a clean 2×2; the component renders 8 skeleton cards for
+     the desktop 4-column layout, so drop everything past the first 4 here. */
+  #feed-collection .ncempty-grid > :nth-child(n + 5) {
+    display: none !important;
+  }
+
   #feed-collection .nc {
     min-width: 0;
     background: var(--e2) !important;
@@ -4431,6 +4442,12 @@ body.dark .mkt-filter-tab.active {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 11px !important;
     margin-bottom: 0 !important;
+  }
+
+  /* Spec calls for a clean 2×2; the component renders 8 skeleton cards for
+     the desktop 4-column layout, so drop everything past the first 4 here. */
+  #feed-marketplace .vempty-grid > :nth-child(n + 5) {
+    display: none !important;
   }
 
   #feed-marketplace .vc {
@@ -5579,6 +5596,12 @@ body.dark .mkt-filter-tab.active {
   #feed-home .lempty-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 11px !important;
+  }
+
+  /* Spec calls for a clean 2×2 on mobile; the component renders 5 skeleton
+     cards for the desktop single-row layout, so drop the 5th here. */
+  #feed-home .lempty-grid > :nth-child(n + 5) {
+    display: none !important;
   }
 
   #feed-home .lempty-title,

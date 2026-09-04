@@ -1805,6 +1805,10 @@ body { color: var(--t3); font-family: var(--fn); font-size: 12px; line-height: 1
 .mtab{display:flex;align-items:center;gap:6px;height:28px;padding:0 11px;border-radius:7px;font-size:11px;font-weight:500;color:var(--t1);cursor:pointer;transition:.15s;white-space:nowrap}
 .mtab:hover{color:var(--t3);background:var(--e3)}
 .mtab.active{background:var(--sage-faint);color:var(--olive);font-weight:700}
+/* --sage-faint is only a 12% white tint in dark mode, so the active pill was
+   effectively invisible against the dark card — give it a solid white box
+   instead, matching the same fix already applied to .to.active. */
+body.dark .mtab.active{background:var(--cream);color:#0a0a0b}
 .msort{display:flex;align-items:center;gap:7px;height:28px;padding:0 12px;border-radius:7px;background:var(--e3);box-shadow:var(--sh1);font-size:11px;font-weight:600;color:var(--t3);cursor:pointer;white-space:nowrap}
 .mtwrap{overflow-x:auto}
 .mtable{min-width:1092px}
@@ -2732,6 +2736,9 @@ body.dark{
 .lempty-sub{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--t1)}
 
 /* ── LISTINGS / SALES / VAULT / COLLECTION EMPTY STATES ── */
+/* Mobile-only "VIEW ALL LISTINGS" button below the listings grid; shown via
+   the display:flex override inside @media(max-width:900px) in responsive.css. */
+.listings-view-all-mobile{display:none}
 .lempty{position:relative;margin-bottom:22px;overflow:hidden;border-radius:var(--r)}
 .lempty-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
 .lempty-card{background:var(--empty-card);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1)}

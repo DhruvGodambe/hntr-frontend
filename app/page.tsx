@@ -1462,6 +1462,14 @@ export default function HomePage() {
                         marginBottom: "22px",
                         position: "relative",
                         width: "100%",
+                        // Right-edge fade cues that more cards are scrollable —
+                        // only shown while there's actually more to reveal.
+                        maskImage: canGoNext
+                          ? "linear-gradient(90deg, #000 0%, #000 92%, transparent 100%)"
+                          : "none",
+                        WebkitMaskImage: canGoNext
+                          ? "linear-gradient(90deg, #000 0%, #000 92%, transparent 100%)"
+                          : "none",
                       }
                 }
               >
@@ -1593,12 +1601,28 @@ export default function HomePage() {
                   <div className="sub">All NFTs currently for sale</div>
                 </div>
                 <a className="va va-listings-inline" style={{ cursor: 'pointer' }} onClick={() => router.push("/marketplace")}>
-                  View All
+                  View All Listings
                 </a>
               </div>
 
               <div className="listings-section" style={{ marginBottom: '22px' }}>
                 <ListingsEmptyState />
+                <button
+                  type="button"
+                  className="listings-view-all-mobile"
+                  onClick={() => router.push("/marketplace")}
+                >
+                  VIEW ALL LISTINGS
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path
+                      d="M3 8h9M8.5 4.5L12 8l-3.5 3.5"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
                 {/*
               <div className="listings-section" style={{ marginBottom: '22px' }}>
                 {isMobile ? (
