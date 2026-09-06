@@ -263,6 +263,11 @@ export default function HomePage() {
   const [progress, setProgress] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [expandedPool, setExpandedPool] = useState<string | null>(null);
+  // Right-edge fade cue for the mobile strategies slider — desktop already
+  // gets this via canGoNext, but that's driven by the desktop-only
+  // translateX/slideOffset state, which native mobile scrolling never
+  // touches, so it needs its own scroll-position tracking.
+  const [mobileCanScrollMore, setMobileCanScrollMore] = useState(false);
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches
   );
@@ -275,10 +280,11 @@ export default function HomePage() {
   // const [mobileListingsVisible, setMobileListingsVisible] = useState(MOBILE_LISTINGS_BATCH);
   // const [mobileListingsAnimFrom, setMobileListingsAnimFrom] = useState(MOBILE_LISTINGS_BATCH);
 
-  const { data: baycListings } = useOpenSeaListings("boredapeyachtclub", 1);
-  const { data: pudgyListings } = useOpenSeaListings("pudgypenguins", 1);
-  const { data: punksListings } = useOpenSeaListings("cryptopunks", 1);
-  const { data: azukiListings } = useOpenSeaListings("azuki", 1);
+  const { data: baycListings, isLoading: baycLoading } = useOpenSeaListings("boredapeyachtclub", 1);
+  const { data: pudgyListings, isLoading: pudgyLoading } = useOpenSeaListings("pudgypenguins", 1);
+  const { data: punksListings, isLoading: punksLoading } = useOpenSeaListings("cryptopunks", 1);
+  const { data: azukiListings, isLoading: azukiLoading } = useOpenSeaListings("azuki", 1);
+  const strategiesLoading = baycLoading || pudgyLoading || punksLoading || azukiLoading;
   // const { data: openSeaListings } = useOpenSeaMarketplaceListings(3);
   // const { data: openSeaSales } = useOpenSeaMarketplaceSales(3);
 
@@ -550,7 +556,10 @@ export default function HomePage() {
       cancelAnimationFrame(raf);
       observer.disconnect();
     };
-  }, [isMobile, loaderOut, cardCount]);
+    // Re-measure once the real cards replace the loading skeleton — their
+    // layout/count can differ, and a stale measurement from the skeleton
+    // pass is what left the slider stuck un-swipeable after data arrived.
+  }, [isMobile, loaderOut, cardCount, strategiesLoading]);
 
   // Mobile strategies slider — grab/swipe scroll with snap
   useEffect(() => {
@@ -617,6 +626,30 @@ export default function HomePage() {
       viewport.removeEventListener("click", onClick, true);
     };
   }, [isMobile, loaderOut]);
+
+  // Track native scroll position on mobile so the right-edge fade can hide
+  // itself once the user actually reaches the last card.
+  useEffect(() => {
+    if (!isMobile) return;
+    const viewport = npViewportRef.current;
+    if (!viewport) return;
+
+    const updateScrollState = () => {
+      const more = viewport.scrollWidth - viewport.clientWidth - viewport.scrollLeft > 4;
+      setMobileCanScrollMore(more);
+    };
+
+    updateScrollState();
+    viewport.addEventListener("scroll", updateScrollState, { passive: true });
+
+    const observer = new ResizeObserver(updateScrollState);
+    observer.observe(viewport);
+
+    return () => {
+      viewport.removeEventListener("scroll", updateScrollState);
+      observer.disconnect();
+    };
+  }, [isMobile, loaderOut, strategiesLoading]);
 
   const canGoPrev = slideOffset > 0;
   const canGoNext =
@@ -1456,6 +1489,14 @@ export default function HomePage() {
                         ["--np-slide-width" as string]: viewportWidth
                           ? `${Math.max(viewportWidth - 78, 260)}px`
                           : "280px",
+                        // Same right-edge fade cue as desktop, gated on actual
+                        // scroll position since mobile scrolling is native.
+                        maskImage: mobileCanScrollMore
+                          ? "linear-gradient(90deg, #000 0%, #000 88%, transparent 100%)"
+                          : "none",
+                        WebkitMaskImage: mobileCanScrollMore
+                          ? "linear-gradient(90deg, #000 0%, #000 88%, transparent 100%)"
+                          : "none",
                       } as React.CSSProperties)
                     : {
                         overflow: "hidden",
@@ -1496,7 +1537,35 @@ export default function HomePage() {
                         }
                   }
                 >
-                {strategyPools.map((pool) => {
+                {strategiesLoading &&
+                  [0, 1, 2, 3].map((i) => (
+                    <div key={`strategy-skel-${i}`} className="npc npc-skel" aria-hidden="true">
+                      <div className="npc-row">
+                        <div className="npc-art">
+                          <div className="pd-skel" style={{ width: "100%", height: "100%", minHeight: 168, borderRadius: 0 }} />
+                        </div>
+                        <div className="npc-body">
+                          <div className="npc-head">
+                            <div style={{ flex: 1 }}>
+                              <div className="pd-skel" style={{ width: "70%", height: 16, marginBottom: 8 }} />
+                              <div className="pd-skel" style={{ width: 56, height: 10 }} />
+                            </div>
+                            <div className="pd-skel" style={{ width: 88, height: 24, borderRadius: 5 }} />
+                          </div>
+                          <div className="npc-stats">
+                            <div className="pd-skel" style={{ height: 44, borderRadius: 6 }} />
+                            <div className="pd-skel" style={{ height: 44, borderRadius: 6 }} />
+                          </div>
+                          <div className="pd-skel pd-skel-bar" style={{ marginBottom: 14 }} />
+                          <div className="npc-act">
+                            <div className="pd-skel" style={{ flex: 1, height: 32, borderRadius: 6 }} />
+                            <div className="pd-skel" style={{ flex: 1.4, height: 32, borderRadius: 6 }} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                {!strategiesLoading && strategyPools.map((pool) => {
                   const poolKey = `${pool.slug}-${pool.tokenId}`;
                   const isExpanded = expandedPool === poolKey;
                   return (
