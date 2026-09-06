@@ -317,14 +317,14 @@ function PoolDetailView({
                   <div className="pd-mobile-stat">
                     <div className="pd-mobile-stat-lbl">Pool Target</div>
                     <div className="pd-mobile-stat-val">
-                      {pool.target} Ξ
+                      {pool.target} <span className="eth-ic" aria-hidden="true" />
                     </div>
                     <div className="pd-mobile-stat-sub">{targetUsd}</div>
                   </div>
                   <div className="pd-mobile-stat">
                     <div className="pd-mobile-stat-lbl">Community Raised</div>
                     <div className="pd-mobile-stat-val">
-                      {pool.raised} Ξ
+                      {pool.raised} <span className="eth-ic" aria-hidden="true" />
                     </div>
                     <div className="pd-mobile-stat-sub">{raisedUsd}</div>
                   </div>
@@ -338,7 +338,8 @@ function PoolDetailView({
                   <div className="pd-mobile-progress-fill" style={{ width: `${pool.progress}%` }} />
                 </div>
                 <div className="pd-mobile-progress-note">
-                  {remaining} Ξ remaining to fill this pool · {pool.participants} contributors
+                  {remaining} <span className="eth-ic" aria-hidden="true" /> remaining to fill this pool ·{" "}
+                  {pool.participants} contributors
                 </div>
               </div>
 
@@ -377,7 +378,9 @@ function PoolDetailView({
                           <div className="pd-mobile-deposit-ago">{row.ago}</div>
                         </div>
                       </div>
-                      <div className="pd-mobile-deposit-amt">+{row.amt} Ξ</div>
+                      <div className="pd-mobile-deposit-amt">
+                        +{row.amt} <span className="eth-ic" aria-hidden="true" />
+                      </div>
                     </div>
                   ))}
                 </div>
