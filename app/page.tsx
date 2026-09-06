@@ -1161,7 +1161,14 @@ export default function HomePage() {
 
   // Scroll handler — only while intro is active and not yet completed this session
   useEffect(() => {
-    if (!introEnabled || introSkippedRef.current) return;
+    // introEnabled never flips back to false once the intro finishes (it
+    // only ever gates the *first* mount), so without also checking progress
+    // here, this effect kept the window-level non-passive touchmove listener
+    // below attached for the rest of the page's life — which is enough to
+    // interfere with native touch-scroll gesture recognition elsewhere on
+    // the page (e.g. the strategies slider), even once its own
+    // preventDefault() branch had stopped firing.
+    if (!introEnabled || introSkippedRef.current || progress >= 0.999) return;
 
     const drive = (delta: number) => {
       if (introSkippedRef.current) return;

@@ -2716,7 +2716,12 @@ body.dark .mkt-filter-tab.active {
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
-    touch-action: pan-x;
+    /* pan-x alone restricts ANY touch starting on a card to horizontal-only
+       — the browser will never let it become a vertical page scroll, which
+       is why a downward swipe on a loaded card couldn't scroll the app.
+       Allow both axes and let the browser disambiguate from the actual
+       swipe direction, same as any normal nested horizontal scroller. */
+    touch-action: pan-x pan-y;
     cursor: grab;
     /* Reference: margin:0 -16px 22px; padding:0 16px 4px — bleeds to the
        screen edge against the 16px page inset. */
