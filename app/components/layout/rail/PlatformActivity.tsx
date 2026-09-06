@@ -1,22 +1,18 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { activityAccentColor, formatActivityTimeAgo } from "../utils";
+import ActivityEmptyState from "../../empty/ActivityEmptyState";
 import type { ActivityEntry, ActivityTab } from "../types";
 
 type PlatformActivityProps = {
   activeTab: ActivityTab;
   onTabChange: (tab: ActivityTab) => void;
-  entries: ActivityEntry[];
+  /** Unused — platform activity isn't live yet (reference: "Launching soon"),
+      kept in the prop type so callers don't need to change their wiring. */
+  entries?: ActivityEntry[];
   inline?: boolean;
 };
 
-export default function PlatformActivity({
-  activeTab,
-  onTabChange,
-  entries,
-  inline = false,
-}: PlatformActivityProps) {
+export default function PlatformActivity({ activeTab, onTabChange, inline = false }: PlatformActivityProps) {
   return (
     <>
       {inline ? (
@@ -54,30 +50,8 @@ export default function PlatformActivity({
         </button>
       </div>
       <div id={inline ? "mobileActivityFeed" : "activityFeed"} className={inline ? "mobile-activity-feed" : undefined}>
-        <AnimatePresence mode="popLayout" initial={false}>
-          {entries.map((entry) => (
-            <motion.div
-              key={entry.id}
-              layout
-              initial={{ opacity: 0, y: -14, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.98 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className={`arow${entry.fresh ? " arow-new" : ""}`}
-            >
-              <div className="adot">{entry.icon}</div>
-              <div className="ainf">
-                <div className="an">{entry.name}</div>
-                <div className="aa" style={{ color: activityAccentColor(entry.action, entry.pos) }}>
-                  {entry.action} · {entry.val}
-                </div>
-              </div>
-              <div className="atm">{formatActivityTimeAgo(entry.ts)}</div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+        <ActivityEmptyState />
       </div>
-      <a className="vact">View Activity</a>
     </>
   );
 }

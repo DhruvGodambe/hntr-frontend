@@ -1122,7 +1122,15 @@ body.dark .mkt-filter-tab.active {
     flex: none !important;
     min-height: auto !important;
     overflow: visible !important;
-    touch-action: pan-y;
+    /* .feed itself never scrolls (overflow:visible above — the real scroller
+       is an ancestor), so this only governs which gestures descendants are
+       *allowed* to claim. A single-axis value here is a ceiling that
+       descendants can't lift: the home strategies slider sets its own
+       touch-action:pan-x, but that was being silently vetoed by pan-y here
+       per the CSS Touch Action spec's ancestor-intersection rule, which is
+       why it couldn't be swiped. Allow both so nested scrollers (this
+       slider) can restrict themselves as needed without being blocked. */
+    touch-action: pan-x pan-y;
     /* Reference page wrapper: padding:16px 16px 96px (96px clears the dock). */
     padding: var(--m-pad-page) var(--m-pad-page)
       calc(96px + env(safe-area-inset-bottom, 0px)) !important;
@@ -2380,7 +2388,10 @@ body.dark .mkt-filter-tab.active {
     border-radius: 4px !important;
     font-size: 11px !important;
     letter-spacing: 0.05em !important;
-    background: color-mix(in srgb, var(--t4) 80%, transparent) !important;
+    /* Fixed dark overlay — this sits on a photo, not the page background, so
+       it must not flip to white with --t4 in dark mode (was rendering as a
+       solid white pill with invisible white-on-white text). */
+    background: rgba(43, 50, 36, 0.8) !important;
   }
 
   #panel-pools .npc-body,
@@ -2794,11 +2805,14 @@ body.dark .mkt-filter-tab.active {
   }
 
   #panel-home .npc-art {
+    /* Reference (HNTR.art Mobile.dc.html:186): aspect-ratio:1/1 +
+       object-fit:contain — always shows the full square artwork. A fixed
+       150px height + object-fit:cover was cropping it to fill instead. */
     width: 100% !important;
-    min-height: 150px !important;
-    max-height: 150px !important;
-    height: 150px !important;
-    aspect-ratio: auto !important;
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     align-self: auto !important;
     display: flex !important;
     align-items: center !important;
@@ -2809,7 +2823,7 @@ body.dark .mkt-filter-tab.active {
   #panel-home .npc-art img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center center;
     display: block;
   }
@@ -2832,21 +2846,29 @@ body.dark .mkt-filter-tab.active {
     font-size: 20px !important;
   }
 
+  #panel-home .npc-pool {
+    /* Reference (HNTR.art Mobile.dc.html:187) anchors this badge top-left on
+       the Home slider card — the desktop rule it was inheriting (bottom-left)
+       was never overridden for mobile. */
+    top: 10px;
+    bottom: auto;
+    left: 10px;
+  }
+
   #panel-home .npc-stats {
+    /* Bare `1fr 1fr` grid tracks won't shrink below their content's
+       min-content width, so a long stat value ("18.75" + eth icon) was
+       forcing the grid wider than the card — which the slider then clips
+       via overflow:hidden on .npc, cutting the card content off. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
     gap: 8px !important;
   }
 
   #panel-home .npc-act {
-    flex-direction: column !important;
-    gap: 12px !important;
+    /* Match the desktop row layout + flex ratio (Details 1 : Coming Soon 1.4)
+       instead of stacking full-width — stacking also grew the card's height
+       enough to contribute to the clipping above. */
     margin-top: 12px !important;
-  }
-
-  #panel-home .npc-btn-d,
-  #panel-home .npc-btn-p {
-    flex: 1 1 auto !important;
-    width: 100%;
-    margin: 0 !important;
   }
 
   #panel-home .npc-detail-in {
@@ -4026,7 +4048,9 @@ body.dark .mkt-filter-tab.active {
     left: 7px !important;
     padding: 2px 6px !important;
     border-radius: 3px !important;
-    background: color-mix(in srgb, var(--t4) 78%, transparent) !important;
+    /* Same photo-overlay fix as .npc-pool above — must stay fixed-dark, not
+       flip to white with --t4 in dark mode. */
+    background: rgba(43, 50, 36, 0.78) !important;
     backdrop-filter: none !important;
     font-size: 11px !important;
     letter-spacing: 0.05em !important;

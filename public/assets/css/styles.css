@@ -2731,6 +2731,24 @@ body.dark{
 .nempty-mini .ne-bar{height:6px}
 .nempty-compact .nempty-msg{padding:16px 12px}
 .nempty-compact .lempty-title{font-size:20px}
+
+/* Platform Activity (Home mobile inline + desktop rail): icon+lines+value
+   row skeleton, matching HNTR.art Mobile.dc.html:349-357 shape. Reuses the
+   same shimmer tokens/keyframe as .ne-bar above. */
+.arow-skel-wrap{position:relative;overflow:hidden;border-radius:var(--r)}
+.arow-skel-row{display:flex;align-items:center;gap:11px;padding:11px 0}
+.arow-shimmer{position:relative;overflow:hidden;background:var(--empty-fill);border-radius:3px}
+.arow-shimmer::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,var(--empty-shimmer) 50%,transparent 100%);transform:translateX(-100%);animation:emptyWave 1.9s ease-in-out infinite}
+.arow-skel-icon{flex-shrink:0;width:34px;height:34px;border-radius:8px}
+.arow-skel-lines{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.arow-skel-line{height:8px;width:62%}
+.arow-skel-line.short{height:7px;width:38%}
+.arow-skel-value{flex-shrink:0;height:8px;width:44px}
+.arow-skel-row:nth-child(2) .arow-shimmer::after{animation-delay:.12s}
+.arow-skel-row:nth-child(3) .arow-shimmer::after{animation-delay:.24s}
+.arow-skel-row:nth-child(4) .arow-shimmer::after{animation-delay:.36s}
+.arow-skel-row:nth-child(5) .arow-shimmer::after{animation-delay:.48s}
+.arow-skel-row:nth-child(6) .arow-shimmer::after{animation-delay:.6s}
 .nempty-compact .lempty-sub{font-size:9px;letter-spacing:.14em}
 .lempty-title{font-size:26px;font-weight:700;letter-spacing:-.01em;color:var(--t4)}
 .lempty-sub{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--t1)}

@@ -10,15 +10,24 @@ export default function LearnPage() {
     document.body.dataset.page = "learn";
 
     const onMessage = (event: MessageEvent) => {
-      if (event.data?.type !== "learn-sidebar") return;
-      document.body.classList.toggle("learn-sidebar-open", Boolean(event.data.open));
+      if (event.data?.type === "learn-sidebar") {
+        document.body.classList.toggle("learn-sidebar-open", Boolean(event.data.open));
+        return;
+      }
+      // The docs iframe has its own independent theme toggle/localStorage;
+      // it broadcasts its choice here (on load and on every toggle) so
+      // "BACK TO PLATFORM" can follow it instead of staying stuck on
+      // whatever the outer app's theme happened to be.
+      if (event.data?.type === "hntr-docs-theme") {
+        document.body.classList.toggle("dark", event.data.theme === "dark");
+      }
     };
 
     window.addEventListener("message", onMessage);
 
     return () => {
       delete document.body.dataset.page;
-      document.body.classList.remove("learn-sidebar-open");
+      document.body.classList.remove("learn-sidebar-open", "dark");
       window.removeEventListener("message", onMessage);
     };
   }, []);

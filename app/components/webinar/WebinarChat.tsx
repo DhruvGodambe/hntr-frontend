@@ -2,26 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAccount } from "wagmi";
-import {
-  INITIAL_WEBINAR_MESSAGES,
-  WEBINAR_CHAT_REPLIES,
-  WEBINAR_CHAT_USERS,
-  type WebinarMessage,
-} from "../../../lib/webinar-data";
+import { INITIAL_WEBINAR_MESSAGES, type WebinarMessage } from "../../../lib/webinar-data";
 import WebinarWalletPanel from "./WebinarWalletPanel";
 
 const REACTIONS = ["🔥", "🚀", "👏", "💡", "📈"];
 
 function formatMessageTime(date = new Date()) {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-}
-
-function randomReply() {
-  return WEBINAR_CHAT_REPLIES[Math.floor(Math.random() * WEBINAR_CHAT_REPLIES.length)];
-}
-
-function randomUser() {
-  return WEBINAR_CHAT_USERS[Math.floor(Math.random() * WEBINAR_CHAT_USERS.length)];
 }
 
 export default function WebinarChat() {
@@ -39,23 +26,6 @@ export default function WebinarChat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      if (Math.random() < 0.5) {
-        setMessages((current) => [
-          ...current,
-          {
-            id: `${Date.now()}-${Math.random()}`,
-            user: randomUser(),
-            text: randomReply(),
-            time: formatMessageTime(),
-          },
-        ]);
-      }
-    }, 7000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   const appendMessage = (user: string, text: string, me = false) => {
     setMessages((current) => [
@@ -76,9 +46,6 @@ export default function WebinarChat() {
     const username = isConnected && address ? "masteraccount" : "guest";
     appendMessage(username, text, true);
     setInput("");
-    window.setTimeout(() => {
-      appendMessage(randomUser(), randomReply(), false);
-    }, 900 + Math.random() * 900);
   };
 
   const react = (emoji: string) => {
@@ -113,7 +80,10 @@ export default function WebinarChat() {
         </div>
         <div className="web-msgs" id="webMsgs" ref={msgsRef}>
           {messages.map((message) => (
-            <div key={message.id} className={`web-msg${message.me ? " me" : ""}`}>
+            <div
+              key={message.id}
+              className={`web-msg${message.me ? " me" : ""}${message.system ? " system" : ""}`}
+            >
               <div className="web-msg-head">
                 <span className="web-msg-user">{message.user}</span>
                 <span className="web-msg-time">{message.time}</span>

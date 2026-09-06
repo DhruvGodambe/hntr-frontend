@@ -2,6 +2,17 @@
 <html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The dc-runtime below (0dcf9dac-...js) boots the page's {{ }} template
+     bindings via React, and by default fetches React/ReactDOM from unpkg.com
+     at runtime. That's an unnecessary external dependency here — this
+     iframe is served from our own app, and local production UMD copies of
+     both are already bundled in assets/js/ but were never wired up. Loading
+     them first makes the runtime's own `if (window.React && window.ReactDOM)
+     return` guard skip the CDN fetch entirely, so the page boots offline and
+     isn't at the mercy of unpkg being reachable (CSP, ad-blockers, corp
+     networks) from wherever this iframe is loaded. -->
+<script src="assets/js/080516e3-87af-4db8-9c15-376797ce6d2c.js"></script>
+<script src="assets/js/080984b0-1a02-42b9-8050-45eac5533b76.js"></script>
 <script src="assets/js/0dcf9dac-9619-4f89-9cfe-ed32c78f09f9.js"></script>
 <script src="assets/js/mobile-nav.js" defer></script>
 </head>
@@ -411,6 +422,13 @@ class Component extends DCLogic {
     this.setState(st => {
       const theme = st.theme === 'dark' ? 'light' : 'dark';
       try { localStorage.setItem('hntr-docs-theme', theme); } catch (e) {}
+      // This theme is entirely local to the iframe (its own toggle, its own
+      // localStorage) — the parent /learn page has no way to know it changed
+      // unless told. It matches the parent's own "learn-sidebar" bridge
+      // pattern (see assets/js/mobile-nav.js) so the "BACK TO PLATFORM"
+      // button can follow along instead of staying stuck on whichever theme
+      // the outer app happened to be in.
+      try { window.parent.postMessage({ type: 'hntr-docs-theme', theme }, '*'); } catch (e) {}
       return { theme };
     });
   }
@@ -464,5 +482,17 @@ class Component extends DCLogic {
 }
 </script>
 
+<script>
+  // Tell the parent /learn page which theme this iframe is already showing
+  // (persisted from a previous visit via localStorage) as soon as this
+  // document loads, so "BACK TO PLATFORM" matches immediately rather than
+  // waiting for the next manual toggle inside the sidebar.
+  (function () {
+    try {
+      var theme = localStorage.getItem('hntr-docs-theme') || 'light';
+      window.parent.postMessage({ type: 'hntr-docs-theme', theme: theme }, '*');
+    } catch (e) {}
+  })();
+</script>
 
 </body></html>

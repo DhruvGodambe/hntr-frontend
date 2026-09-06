@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { WEBINAR_BASE_VIEWERS } from "../../../lib/webinar-data";
 import WebinarLanguageSelector from "./WebinarLanguageSelector";
 
@@ -35,6 +36,20 @@ export default function WebinarHeader() {
 
   return (
     <div className="wv-head">
+      {/* Mobile-only — the compact phone header replaces the LIVE/viewer/
+          timer strip with a back button + LEARN MORE (reference:
+          HNTR.art Mobile.dc.html:855-857). Hidden on desktop by default. */}
+      <Link href="/" className="wv-back-btn" aria-label="Back to platform">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+          <path
+            d="M10 3L5 8l5 5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </Link>
       <div className="wv-head-left">
         <div className="wv-headbrand">
           HNTR <span>| LIVE WEBINAR</span>
@@ -72,6 +87,18 @@ export default function WebinarHeader() {
         </div>
       </div>
       <WebinarLanguageSelector />
+      <Link href="/learn" className="wv-learn-btn">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+          <path
+            d="M8 14.5c0-1.4 1.1-2.5 2.5-2.5h3V2.5h-3C9.1 2.5 8 3.6 8 5M8 14.5c0-1.4-1.1-2.5-2.5-2.5h-3V2.5h3C6.9 2.5 8 3.6 8 5"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        LEARN MORE
+      </Link>
     </div>
   );
 }

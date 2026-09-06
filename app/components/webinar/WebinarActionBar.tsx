@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import WebinarShareSheet from "./WebinarShareSheet";
 
 export default function WebinarActionBar() {
@@ -18,44 +19,20 @@ export default function WebinarActionBar() {
           </svg>
           Share Access
         </button>
-        <div className="web-act-sep" />
-        <div className="web-act">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.3" />
-            <path
-              d="M2 8h12M8 2c1.8 1.6 2.8 3.7 2.8 6S9.8 12.4 8 14C6.2 12.4 5.2 10.3 5.2 8S6.2 3.6 8 2z"
-              stroke="currentColor"
-              strokeWidth="1.3"
-            />
-          </svg>
-          English (US)
-        </div>
-        <div className="web-act-sep" />
-        <div className="web-act">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <rect x="1.5" y="3.5" width="13" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
-            <path
-              d="M4 7.5h2M4 10h5M9 7.5h3"
-              stroke="currentColor"
-              strokeWidth="1.3"
-              strokeLinecap="round"
-            />
-          </svg>
-          Subtitles ON
-        </div>
-        <button type="button" className="web-deck">
+        {/* Reference (HNTR.art Desktop.html:5689): PRESENTATION DECK was
+            replaced with LEARN MORE, opening the Docs page. */}
+        <Link href="/learn" className="web-deck">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
             <path
-              d="M8 2v8M5 7l3 3 3-3"
+              d="M2.5 3.5h4A2 2 0 0 1 8 4.6 2 2 0 0 1 9.5 3.5h4v9h-4A2 2 0 0 0 8 13.6a2 2 0 0 0-1.5-1.1h-4v-9z"
               stroke="currentColor"
-              strokeWidth="1.4"
-              strokeLinecap="round"
+              strokeWidth="1.3"
               strokeLinejoin="round"
             />
-            <path d="M3 13h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M8 4.6v9" stroke="currentColor" strokeWidth="1.3" />
           </svg>
-          PRESENTATION DECK
-        </button>
+          LEARN MORE
+        </Link>
       </div>
 
       <WebinarShareSheet open={shareOpen} onClose={() => setShareOpen(false)} />

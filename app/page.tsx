@@ -552,7 +552,7 @@ export default function HomePage() {
     };
   }, [isMobile, loaderOut, cardCount]);
 
-  // Mobile strategies slider ΓÇö grab/swipe scroll with snap
+  // Mobile strategies slider — grab/swipe scroll with snap
   useEffect(() => {
     if (!isMobile) return;
     const viewport = npViewportRef.current;
@@ -946,7 +946,7 @@ export default function HomePage() {
     // Force reflow to ensure accurate measurements
     void cv.offsetHeight;
     
-    // Always measure FROM synchronously before pinning ΓÇö async measure left the
+    // Always measure FROM synchronously before pinning — async measure left the
     // canvas fixed at CSS 100%/100% for a frame (fullscreen flash).
     const fromRect = cv.getBoundingClientRect();
     canvasFromRef.current = fromRect;
@@ -1126,7 +1126,7 @@ export default function HomePage() {
     }
   }, [introEnabled, progress]);
 
-  // Scroll handler ΓÇö only while intro is active and not yet completed this session
+  // Scroll handler — only while intro is active and not yet completed this session
   useEffect(() => {
     if (!introEnabled || introSkippedRef.current) return;
 
@@ -1300,7 +1300,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="intro-scrollhint" style={{ opacity: hintOpacity }}>
-          {isMobile ? "Swipe up to explore Γåæ" : "Scroll to explore Γåô"}
+          {isMobile ? "Swipe up to explore ↑" : "Scroll to explore ↓"}
         </div>
       </div>
       )}

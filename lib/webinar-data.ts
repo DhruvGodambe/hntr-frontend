@@ -11,6 +11,7 @@ export interface WebinarMessage {
   text: string;
   time: string;
   me?: boolean;
+  system?: boolean;
 }
 
 export type WebinarArticleBlock = string | { h: string } | { q: string };
@@ -40,41 +41,17 @@ export const WEBINAR_LANGUAGES: WebinarLanguage[] = [
   { code: "tr", flag: "🇹🇷", name: "Turkish", native: "Türkçe" },
 ];
 
+// Reference (HNTR.art Desktop.html, README changelog): "chat seeded with a
+// single HNTR broadcast, no simulated traffic" — the webinar hasn't started
+// yet, so there's no fake back-and-forth, just this one system notice.
 export const INITIAL_WEBINAR_MESSAGES: WebinarMessage[] = [
   {
-    id: "1",
-    user: "sarah.eth",
-    text: "How does the hedging mechanism account for sudden liquidity drops in the underlying pools?",
-    time: "14:42",
+    id: "system-1",
+    user: "HNTR",
+    text: "Live webinars coming soon. Chat opens with the first broadcast.",
+    time: "—",
+    system: true,
   },
-  {
-    id: "2",
-    user: "alpha_cap",
-    text: "The ZK-bridge tech looks promising for these specific vaults.",
-    time: "14:44",
-  },
-  {
-    id: "3",
-    user: "whale_watcher",
-    text: "Are we expecting the new v3 pools next week?",
-    time: "14:45",
-  },
-];
-
-export const WEBINAR_CHAT_REPLIES = [
-  "Great question — the hedging desk covers that.",
-  "Agreed, the vault architecture is solid.",
-  "v3 pools are on track for next week.",
-  "Watching this closely 👀",
-  "The floor-price derivatives model is elegant.",
-];
-
-export const WEBINAR_CHAT_USERS = [
-  "0xdegen",
-  "vault_max",
-  "nftpilot",
-  "base_bull",
-  "quiet_lp",
 ];
 
 export const WEBINAR_ARTICLES: WebinarArticle[] = [

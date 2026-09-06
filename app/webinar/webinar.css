@@ -1,4 +1,21 @@
 /* ── LIVE WEBINAR ── */
+@media (max-width: 900px) {
+  /* The reference's mobile webinar view is a fullscreen takeover with its
+     own compact header (back button + wordmark + LEARN MORE) — not the
+     generic app top bar. .nav is fixed with .shell reserving 48px of
+     padding-top for it (responsive.css); without also clearing that
+     padding, hiding .nav alone would leave an empty 48px gap above the
+     webinar header instead of removing it outright. Scoped to
+     body[data-page="webinar"] so it can't affect any other page even if
+     this stylesheet lingers after navigating away. */
+  body[data-page="webinar"] .nav {
+    display: none;
+  }
+  body[data-page="webinar"] .shell {
+    padding-top: 0;
+  }
+}
+
 #panel-webinar {
   display: flex;
   align-items: stretch;
@@ -84,6 +101,12 @@ body.dark .si-live-dot{background:#fff;box-shadow:0 0 8px rgba(255,255,255,.9)}
 .wv-tabs span.active{color:var(--t4);border-bottom-color:#ef6a26}
 .wv-set{color:var(--t2);display:flex;cursor:pointer}
 .wv-set:hover{color:var(--t4)}
+/* Mobile-only compact header controls; desktop reference doesn't have
+   these in the webinar header, so hidden until the breakpoint below. */
+.wv-back-btn{display:none;flex-shrink:0;width:32px;height:32px;border-radius:7px;background:var(--e3);align-items:center;justify-content:center;color:var(--t3);cursor:pointer;text-decoration:none}
+.wv-back-btn:hover{background:var(--e4);color:var(--t4)}
+.wv-learn-btn{display:none;align-items:center;gap:6px;height:32px;padding:0 13px;border:none;border-radius:8px;background:#F25623;color:#fff;font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:.1em;text-decoration:none;cursor:pointer;flex-shrink:0}
+.wv-learn-btn:hover{background:#d8461a}
 
 /* video screen */
 .wv-player{position:relative;width:100%;aspect-ratio:1474/816;border-radius:10px;overflow:hidden;background:#0b0e10;box-shadow:var(--sh3);color:#e9edf0;font-family:var(--fn)}
@@ -244,6 +267,8 @@ body:not(.wallet-connected) .web-wallet .web-wallet-off{display:block}
 .web-msg-time{font-family:var(--fm);font-size:9px;color:var(--t0)}
 .web-bubble{background:var(--e2);border:0.5px solid var(--bd0);border-radius:9px;padding:11px 13px;font-size:12px;line-height:1.5;color:var(--t3);box-shadow:var(--sh1)}
 .web-msg.me .web-bubble{background:rgba(239,106,38,.13);border-color:rgba(239,106,38,.24)}
+.web-msg.system .web-msg-user{color:var(--olive);letter-spacing:.1em}
+.web-msg.system .web-bubble{background:rgba(224,110,40,.10);border:1px solid rgba(224,110,40,.28)}
 .web-chat-foot{border-top:0.5px solid var(--bd0);padding:12px 16px 14px;background:var(--e1);flex-shrink:0}
 .web-react{display:flex;justify-content:space-between;margin-bottom:12px;padding:0 4px}
 .web-react button{background:none;border:none;font-size:17px;cursor:pointer;line-height:1;transition:transform .12s;filter:none}
@@ -333,31 +358,32 @@ body.dark .web-deck:hover,body.dark .web-send:hover{background:#fff}
 }
 
 @media (max-width: 768px) {
+  /* Compact phone header: back button + wordmark on the left, LEARN MORE
+     pinned right via margin-left:auto — matches the mobile reference
+     (HNTR.art Mobile.dc.html:854-857) exactly. The LIVE/viewer/timer strip
+     and language switcher move out of the way instead of wrapping into a
+     cluttered second row. */
   .wv-head {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
     gap: 12px;
   }
+  .wv-head-l,
   .wv-lang {
-    align-items: flex-start;
-    width: 100%;
+    display: none;
   }
-  .wv-lang-menu {
-    left: 0;
-    right: auto;
+  .wv-back-btn,
+  .wv-learn-btn {
+    display: flex;
   }
-  .wv-head-l {
-    flex-wrap: wrap;
-    gap: 8px;
+  .wv-learn-btn {
+    margin-left: auto;
   }
+  /* The reference's mobile webinar view has no action bar at all (no
+     Share/Language/Subtitles/Deck row) — LEARN MORE now lives in the header
+     above instead, so hide this whole strip rather than duplicate it. */
   .web-actbar {
-    gap: 4px;
-  }
-  .web-deck {
-    margin-left: 0;
-    width: 100%;
-    justify-content: center;
-    margin-top: 4px;
+    display: none;
   }
   .web-up-grid {
     grid-template-columns: 1fr;
@@ -380,6 +406,14 @@ body.dark .web-deck:hover,body.dark .web-send:hover{background:#fff}
     width: 88px;
     height: 68px;
   }
+  /* Reference's mobile webinar view has no wallet/rewards card and no live
+     chat panel at all — just header, hero, Q4 tag/description, newsletter.
+     Without this, .web-chat (wallet card + live chat) just reflows below
+     the feed at this width instead of disappearing, which is what showed
+     up after the footer. */
+  #panel-webinar > .web-chat {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
@@ -393,9 +427,6 @@ body.dark .web-deck:hover,body.dark .web-send:hover{background:#fff}
   }
   .web-act-sep {
     display: none;
-  }
-  .web-chat {
-    min-height: 360px;
   }
 }
 
