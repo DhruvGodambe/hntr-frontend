@@ -1501,7 +1501,6 @@ export default function HomePage() {
                           : "none",
                       } as React.CSSProperties)
                     : {
-                        overflow: "hidden",
                         marginBottom: "22px",
                         position: "relative",
                         width: "100%",
