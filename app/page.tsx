@@ -498,8 +498,10 @@ export default function HomePage() {
     };
   }, []);
 
-  // Track mobile layout for strategies slider + listings grid
-  useEffect(() => {
+  // Track mobile layout for strategies slider + listings grid.
+  // useLayoutEffect so we don't paint a desktop translateX slider for a
+  // frame before matchMedia runs — overflow/card size themselves are CSS.
+  useLayoutEffect(() => {
     const mq = window.matchMedia("(max-width: 900px)");
     const apply = () => setIsMobile(mq.matches);
     apply();
@@ -556,35 +558,7 @@ export default function HomePage() {
       cancelAnimationFrame(raf);
       observer.disconnect();
     };
-    // Re-measure once the real cards replace the loading skeleton — their
-    // layout/count can differ, and a stale measurement from the skeleton
-    // pass is what left the slider stuck un-swipeable after data arrived.
   }, [isMobile, loaderOut, cardCount, strategiesLoading]);
-
-  // Mobile WebKit/Blink can fail to recognise an element as an active
-  // touch-scroll target when it *becomes* scrollable via a later style
-  // change instead of being scrollable on the very first paint — which is
-  // exactly what happens here: --np-slide-width starts at a 280px fallback
-  // (cardCount cards likely fit with nothing to scroll), then gets
-  // recomputed once the effect above actually measures the real viewport,
-  // silently changing the slider's scrollWidth after paint. Documented
-  // workaround (iOS Safari "overflow-x won't scroll until X" reports):
-  // force a reflow and briefly toggle overflow-x so the browser
-  // re-evaluates scrollability — which is also why navigating away and
-  // back "fixes" it: a fresh mount forces exactly this kind of reflow.
-  useEffect(() => {
-    if (!isMobile || !viewportWidth) return;
-    const viewport = npViewportRef.current;
-    if (!viewport) return;
-
-    void viewport.offsetHeight;
-
-    viewport.style.overflowX = "hidden";
-    const raf = requestAnimationFrame(() => {
-      viewport.style.overflowX = "";
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [isMobile, viewportWidth]);
 
   // Mobile strategies slider — grab/swipe scroll with snap
   useEffect(() => {
@@ -1379,10 +1353,14 @@ export default function HomePage() {
         <div
           className="feed"
           id="feed-home"
-          style={{
-            transform: `translateY(${feedTransY}px)`,
-            opacity: feedOpacity
-          }}
+          style={
+            p < 0.999
+              ? {
+                  transform: `translateY(${feedTransY}px)`,
+                  opacity: feedOpacity,
+                }
+              : undefined
+          }
         >
           <HomeHeroBanner />
 
@@ -1508,21 +1486,13 @@ export default function HomePage() {
 
               <div
                 ref={npViewportRef}
-                className={`np-slider-viewport${isMobile ? " np-slider-scroll" : ""}`}
+                className="np-slider-viewport"
                 style={
                   isMobile
                     ? ({
                         marginBottom: "22px",
                         position: "relative",
                         width: "100%",
-                        // Reference: flex:0 0 calc(100% - 46px) inside a 16px-inset
-                        // scroller, i.e. viewport minus its 32px padding minus a
-                        // 46px peek of the next card.
-                        ["--np-slide-width" as string]: viewportWidth
-                          ? `${Math.max(viewportWidth - 78, 260)}px`
-                          : "280px",
-                        // Same right-edge fade cue as desktop, gated on actual
-                        // scroll position since mobile scrolling is native.
                         maskImage: mobileCanScrollMore
                           ? "linear-gradient(90deg, #000 0%, #000 88%, transparent 100%)"
                           : "none",
@@ -1535,8 +1505,6 @@ export default function HomePage() {
                         marginBottom: "22px",
                         position: "relative",
                         width: "100%",
-                        // Right-edge fade cues that more cards are scrollable —
-                        // only shown while there's actually more to reveal.
                         maskImage: canGoNext
                           ? "linear-gradient(90deg, #000 0%, #000 92%, transparent 100%)"
                           : "none",
@@ -1548,7 +1516,7 @@ export default function HomePage() {
               >
                 <div
                   ref={npGridRef}
-                  className={`np-grid${isMobile ? " np-grid-scroll" : ""}`}
+                  className="np-grid"
                   style={
                     isMobile
                       ? {

@@ -2708,42 +2708,39 @@ body.dark .mkt-filter-tab.active {
     grid-template-columns: 1fr 1fr !important;
   }
 
-  /* Home strategies slider — snap scroll carousel on mobile */
-  #panel-home .np-slider-viewport.np-slider-scroll {
-    overflow-x: auto;
-    overflow-y: hidden;
+  /* Home strategies slider — native snap carousel on mobile.
+     Card size and overflow MUST live in this media query, not behind a
+     JS class. On first load isMobile is false (SSR), so React used to
+     paint overflow:hidden + 100%-wide cards; WebKit then refused to
+     treat the element as a touch scroller even after JS flipped it.
+     Navigating away and back "fixed" it because the remount saw window
+     and started scrollable. Match the mobile handoff: flex:0 0 calc(100%
+     - 46px) inside a padded scroller. 100vw is used because the track
+     is width:max-content (a % of that would be circular). */
+  #panel-home .np-slider-viewport {
+    width: 100%;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
-    /* pan-x alone restricts ANY touch starting on a card to horizontal-only
-       — the browser will never let it become a vertical page scroll, which
-       is why a downward swipe on a loaded card couldn't scroll the app.
-       Allow both axes and let the browser disambiguate from the actual
-       swipe direction, same as any normal nested horizontal scroller. */
     touch-action: pan-x pan-y;
     cursor: grab;
-    /* Reference: margin:0 -16px 22px; padding:0 16px 4px — bleeds to the
-       screen edge against the 16px page inset. */
     margin: 0 calc(-1 * var(--m-pad-page)) 22px;
     padding: 0 var(--m-pad-page) 4px;
     scrollbar-width: none;
   }
 
-  #panel-home .np-slider-viewport.np-slider-scroll::-webkit-scrollbar {
+  #panel-home .np-slider-viewport::-webkit-scrollbar {
     display: none;
   }
 
-  #panel-home .np-slider-viewport.np-slider-scroll.is-dragging {
+  #panel-home .np-slider-viewport.is-dragging {
     cursor: grabbing;
     scroll-snap-type: none;
     scroll-behavior: auto;
     user-select: none;
-  }
-
-  #panel-home .np-slider-viewport {
-    width: 100%;
-    overflow: hidden;
   }
 
   .home-footer {
@@ -2762,42 +2759,31 @@ body.dark .mkt-filter-tab.active {
   #panel-home .np-grid {
     display: flex !important;
     align-items: stretch !important;
-    gap: 0 !important;
+    gap: 12px !important;
     margin-bottom: 0 !important;
     overflow: visible !important;
     mask-image: none !important;
     -webkit-mask-image: none !important;
-  }
-
-  #panel-home .np-grid-scroll {
-    gap: 12px !important;
     transform: none !important;
     transition: none !important;
     width: max-content;
     min-width: 100%;
-    padding: 0 max(var(--m-pad-page), calc((100% - var(--np-slide-width, 280px)) / 2)) 4px;
   }
 
   #panel-home .npc {
-    flex: 0 0 100% !important;
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
+    /* 100vw minus page inset (16px × 2) minus the 46px peek of the next card. */
+    flex: 0 0 calc(100vw - 2 * var(--m-pad-page) - 46px) !important;
+    width: calc(100vw - 2 * var(--m-pad-page) - 46px) !important;
+    min-width: calc(100vw - 2 * var(--m-pad-page) - 46px) !important;
+    max-width: calc(100vw - 2 * var(--m-pad-page) - 46px) !important;
     transform: none !important;
-  }
-
-  #panel-home .np-grid-scroll .npc {
-    flex: 0 0 var(--np-slide-width, 280px) !important;
-    width: var(--np-slide-width, 280px) !important;
-    min-width: var(--np-slide-width, 280px) !important;
-    max-width: var(--np-slide-width, 280px) !important;
-    scroll-snap-align: center;
+    scroll-snap-align: start;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   }
 
-  body.dark #panel-home .np-grid-scroll .npc {
+  body.dark #panel-home .npc {
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
   }
 
