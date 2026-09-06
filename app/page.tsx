@@ -561,6 +561,31 @@ export default function HomePage() {
     // pass is what left the slider stuck un-swipeable after data arrived.
   }, [isMobile, loaderOut, cardCount, strategiesLoading]);
 
+  // Mobile WebKit/Blink can fail to recognise an element as an active
+  // touch-scroll target when it *becomes* scrollable via a later style
+  // change instead of being scrollable on the very first paint — which is
+  // exactly what happens here: --np-slide-width starts at a 280px fallback
+  // (cardCount cards likely fit with nothing to scroll), then gets
+  // recomputed once the effect above actually measures the real viewport,
+  // silently changing the slider's scrollWidth after paint. Documented
+  // workaround (iOS Safari "overflow-x won't scroll until X" reports):
+  // force a reflow and briefly toggle overflow-x so the browser
+  // re-evaluates scrollability — which is also why navigating away and
+  // back "fixes" it: a fresh mount forces exactly this kind of reflow.
+  useEffect(() => {
+    if (!isMobile || !viewportWidth) return;
+    const viewport = npViewportRef.current;
+    if (!viewport) return;
+
+    void viewport.offsetHeight;
+
+    viewport.style.overflowX = "hidden";
+    const raf = requestAnimationFrame(() => {
+      viewport.style.overflowX = "";
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [isMobile, viewportWidth]);
+
   // Mobile strategies slider — grab/swipe scroll with snap
   useEffect(() => {
     if (!isMobile) return;
