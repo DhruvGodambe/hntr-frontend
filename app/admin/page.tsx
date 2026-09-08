@@ -19,12 +19,14 @@ import {
   AdminWalletLedgerEntry,
   AdminActivity,
   LeadershipPreview,
+  AchievementPreview,
   OverdueWallet,
   OverdueClaimFilter,
   PaginationMeta,
   formatUsd,
 } from "@/lib/admin/api";
 import { clearStoredAuth } from "@/lib/api";
+import GiftCodesTab from "./GiftCodesTab";
 import { useConnectWallet } from "@/lib/useConnectWallet";
 import { CONTRACT_ADDRESS, TOKEN_ADDRESSES, hntrMembershipAbi } from "@/lib/contracts";
 import { formatTokenLabel } from "@/lib/tokens";
@@ -49,11 +51,13 @@ export default function AdminDashboard() {
   const [metricCards, setMetricCards] = useState<{ title: string; value: string | number; subValue?: string }[]>([]);
 
   const [isLeadershipModalOpen, setIsLeadershipModalOpen] = useState(false);
+  const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isMembershipModalOpen, setIsMembershipModalOpen] = useState(false);
   const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
 
   const [leadershipPreview, setLeadershipPreview] = useState<LeadershipPreview | null>(null);
+  const [achievementPreview, setAchievementPreview] = useState<AchievementPreview | null>(null);
   const [totalUnclaimed, setTotalUnclaimed] = useState(0);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
 
@@ -148,12 +152,12 @@ export default function AdminDashboard() {
     try {
       const result = await adminApi.distributeLeadership();
       setIsLeadershipModalOpen(false);
-      const paid = (result as { paid?: number }).paid ?? 0;
-      const failed = (result as { failed?: number }).failed ?? 0;
-      const month = (result as { month?: string }).month;
+      const paid = result.paid ?? 0;
+      const failed = result.failed ?? 0;
+      const month = result.month;
       notify(
         "success",
-        `Leadership cron ran${month ? ` for ${month}` : ""}: ${paid} paid${failed ? `, ${failed} failed` : ""}.`,
+        `Leadership distributed${month ? ` for ${month}` : ""}: ${paid} paid${failed ? `, ${failed} failed` : ""} (protocol → burner → users).`,
       );
       loadMetrics();
     } catch (err) {
@@ -171,6 +175,36 @@ export default function AdminDashboard() {
       setIsLeadershipModalOpen(true);
     } catch (err) {
       notify("error", err instanceof AdminApiError ? err.message : "Failed to load leadership preview");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDistributeAchievement = async () => {
+    setActionLoading(true);
+    try {
+      const result = await adminApi.distributeAchievement();
+      setIsAchievementModalOpen(false);
+      notify(
+        "success",
+        `Rank bonuses distributed: ${result.paid ?? 0} paid (achievement → burner → users).`,
+      );
+      loadMetrics();
+    } catch (err) {
+      notify("error", err instanceof AdminApiError ? err.message : "Achievement distribution failed");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openAchievementModal = async () => {
+    setActionLoading(true);
+    try {
+      const preview = await adminApi.getAchievementPreview();
+      setAchievementPreview(preview);
+      setIsAchievementModalOpen(true);
+    } catch (err) {
+      notify("error", err instanceof AdminApiError ? err.message : "Failed to load achievement preview");
     } finally {
       setActionLoading(false);
     }
@@ -218,7 +252,7 @@ export default function AdminDashboard() {
       </section>
 
       <div className="flex border-b border-[#222] overflow-x-auto">
-        {["overview", "users", "transactions", "wallets", "unclaimed"].map((tab) => (
+        {["overview", "users", "transactions", "wallets", "unclaimed", "giftcodes"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -226,7 +260,7 @@ export default function AdminDashboard() {
               activeTab === tab ? "text-[#f50]" : "text-gray-400 hover:text-white"
             }`}
           >
-            {tab}
+            {tab === "giftcodes" ? "Gift Codes" : tab}
             {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f50]" />}
           </button>
         ))}
@@ -261,6 +295,7 @@ export default function AdminDashboard() {
           onTotalChange={setTotalUnclaimed}
         />
       )}
+      {activeTab === "giftcodes" && <GiftCodesTab notify={notify} />}
 
       <div className="space-y-6">
         <h3 className="text-lg font-bold">Quick Controls</h3>
@@ -270,7 +305,14 @@ export default function AdminDashboard() {
             disabled={actionLoading}
             className="w-full bg-[#1a1a1a] hover:bg-[#222] border border-[#333] text-white py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
           >
-            Run Leadership Monthly Cron
+            Distribute Leadership Pool
+          </button>
+          <button
+            onClick={openAchievementModal}
+            disabled={actionLoading}
+            className="w-full bg-[#1a1a1a] hover:bg-[#222] border border-[#333] text-white py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
+          >
+            Distribute Rank Bonuses
           </button>
           <div className="space-y-2">
             <button
@@ -296,11 +338,11 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <AdminModal isOpen={isLeadershipModalOpen} onClose={() => setIsLeadershipModalOpen(false)} title="Run Leadership Monthly Cron">
+      <AdminModal isOpen={isLeadershipModalOpen} onClose={() => setIsLeadershipModalOpen(false)} title="Distribute Leadership Pool">
         <div className="space-y-6">
           <p className="text-gray-400 text-sm leading-relaxed">
-            Manually triggers the same job as the scheduled cron (1st of month, 00:00 UTC): distributes the
-            on-chain leadership wallet balance pro-rata by share weights (Hunter=1, Elite=3, Master=7, Legend=15).
+            {leadershipPreview?.hopNote ||
+              "Two-hop: leadership wallet funds the burner (protocol pays gas), then the burner pays eligible Hunter+ users (burner pays gas)."}
           </p>
           <div className="bg-[#1a1a1a] p-4 rounded-xl border border-[#222] space-y-3">
             <div className="flex justify-between">
@@ -312,9 +354,32 @@ export default function AdminDashboard() {
               <span className="text-sm font-bold text-white">{leadershipPreview?.totalShares ?? 0}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-xs text-gray-500 font-bold uppercase">Eligible Users</span>
-              <span className="text-sm font-bold text-white">{leadershipPreview?.eligibleCount ?? 0}</span>
+              <span className="text-xs text-gray-500 font-bold uppercase">Eligible / Unpaid</span>
+              <span className="text-sm font-bold text-white">
+                {leadershipPreview?.eligibleCount ?? 0}
+                {leadershipPreview?.unpaidCount != null ? ` / ${leadershipPreview.unpaidCount}` : ""}
+              </span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-xs text-gray-500 font-bold uppercase">Protocol ETH (hop 1 gas)</span>
+              <span className="text-sm font-bold text-white">
+                {(leadershipPreview?.protocolEth ?? 0).toFixed(4)} ETH
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-xs text-gray-500 font-bold uppercase">Burner ETH (hop 2 gas)</span>
+              <span className="text-sm font-bold text-white">
+                {(leadershipPreview?.burnerEth ?? 0).toFixed(4)} ETH
+                {leadershipPreview?.burnerMinEth != null
+                  ? ` (min ${leadershipPreview.burnerMinEth})`
+                  : ""}
+              </span>
+            </div>
+            {leadershipPreview?.lastBatch?.status === "PARTIAL" ? (
+              <div className="text-xs text-yellow-500 font-bold">
+                Last batch PARTIAL — re-run will use burner remainder first.
+              </div>
+            ) : null}
             {leadershipPreview?.poolTokens?.length ? (
               <div className="pt-2 border-t border-[#222] flex gap-3 flex-wrap">
                 {leadershipPreview.poolTokens.map((t) => (
@@ -330,7 +395,12 @@ export default function AdminDashboard() {
               <AdminTable headers={["User", "Rank", "Shares", "Est. Payout"]}>
                 {leadershipPreview.eligibleUsers.map((u) => (
                   <tr key={u.username} className="hover:bg-[#1a1a1a]">
-                    <td className="px-4 py-2 text-sm font-bold">{u.username}</td>
+                    <td className="px-4 py-2 text-sm font-bold">
+                      {u.username}
+                      {u.alreadyPaid ? (
+                        <span className="ml-2 text-[10px] text-gray-500 uppercase">paid</span>
+                      ) : null}
+                    </td>
                     <td className="px-4 py-2 text-xs text-gray-400">{u.rank}</td>
                     <td className="px-4 py-2 text-sm">{u.shares}</td>
                     <td className="px-4 py-2 text-sm text-green-500 font-bold">{formatUsd(u.estimatedPayoutUSD ?? 0)}</td>
@@ -350,7 +420,76 @@ export default function AdminDashboard() {
               disabled={actionLoading}
               className="flex-1 px-6 py-3 rounded-xl bg-[#f50] text-sm font-bold disabled:opacity-50"
             >
-              {actionLoading ? "Running cron..." : "Run Cron Now"}
+              {actionLoading ? "Distributing..." : "Distribute Now"}
+            </button>
+          </div>
+        </div>
+      </AdminModal>
+
+      <AdminModal isOpen={isAchievementModalOpen} onClose={() => setIsAchievementModalOpen(false)} title="Distribute Rank Bonuses">
+        <div className="space-y-6">
+          <p className="text-gray-400 text-sm leading-relaxed">
+            {achievementPreview?.hopNote ||
+              "Two-hop: achievement wallet funds the burner, then burner pays PENDING rank bonuses. Bonus Review Approve only queues — it does not send funds."}
+          </p>
+          <div className="bg-[#1a1a1a] p-4 rounded-xl border border-[#222] space-y-3">
+            <div className="flex justify-between">
+              <span className="text-xs text-gray-500 font-bold uppercase">Pool Balance</span>
+              <span className="text-sm font-bold text-white">{formatUsd(achievementPreview?.poolBalanceUSD ?? 0)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-xs text-gray-500 font-bold uppercase">Pending USD</span>
+              <span className="text-sm font-bold text-white">{formatUsd(achievementPreview?.totalPendingUSD ?? 0)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-xs text-gray-500 font-bold uppercase">Pending / In Review</span>
+              <span className="text-sm font-bold text-white">
+                {achievementPreview?.pendingCount ?? 0} / {achievementPreview?.pendingReviewCount ?? 0}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-xs text-gray-500 font-bold uppercase">Protocol ETH (hop 1 gas)</span>
+              <span className="text-sm font-bold text-white">
+                {(achievementPreview?.protocolEth ?? 0).toFixed(4)} ETH
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-xs text-gray-500 font-bold uppercase">Burner ETH (hop 2 gas)</span>
+              <span className="text-sm font-bold text-white">
+                {(achievementPreview?.burnerEth ?? 0).toFixed(4)} ETH
+              </span>
+            </div>
+            {achievementPreview?.lastBatch?.status === "PARTIAL" ? (
+              <div className="text-xs text-yellow-500 font-bold">
+                Last batch PARTIAL — re-run will use burner remainder first.
+              </div>
+            ) : null}
+          </div>
+          {achievementPreview?.pendingBonuses?.length ? (
+            <div className="max-h-48 overflow-y-auto bg-[#111] border border-[#222] rounded-xl">
+              <AdminTable headers={["User", "Rank", "Amount"]}>
+                {achievementPreview.pendingBonuses.map((b) => (
+                  <tr key={b.id} className="hover:bg-[#1a1a1a]">
+                    <td className="px-4 py-2 text-sm font-bold">{b.username}</td>
+                    <td className="px-4 py-2 text-xs text-gray-400">{b.rank}</td>
+                    <td className="px-4 py-2 text-sm text-green-500 font-bold">{formatUsd(b.amountUSD)}</td>
+                  </tr>
+                ))}
+              </AdminTable>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500 text-center">No PENDING rank bonuses to pay.</p>
+          )}
+          <div className="flex gap-3">
+            <button onClick={() => setIsAchievementModalOpen(false)} className="flex-1 px-6 py-3 rounded-xl bg-[#222] text-sm font-bold">
+              Cancel
+            </button>
+            <button
+              onClick={handleDistributeAchievement}
+              disabled={actionLoading || !(achievementPreview?.pendingCount)}
+              className="flex-1 px-6 py-3 rounded-xl bg-[#f50] text-sm font-bold disabled:opacity-50"
+            >
+              {actionLoading ? "Distributing..." : "Distribute Now"}
             </button>
           </div>
         </div>
@@ -803,6 +942,8 @@ function UsersTabContent({
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [limit, setLimit] = useState(20);
+  const [giftCodesUser, setGiftCodesUser] = useState<AdminUser | null>(null);
+  const [giftCodesLoading, setGiftCodesLoading] = useState(false);
 
   const load = useCallback(
     async (page = 1, searchTerm = query, pageLimit = limit) => {
@@ -956,6 +1097,19 @@ function UsersTabContent({
                     Tier
                   </button>
                   <button
+                    onClick={() => {
+                      if (!u.walletAddress) {
+                        notify("error", `${u.username} has no wallet — cannot enable Gift Codes.`);
+                        return;
+                      }
+                      setGiftCodesUser(u);
+                    }}
+                    className="p-2 hover:bg-[#222] rounded-lg border border-[#222] transition-colors text-[10px] font-bold text-[#f50]"
+                    title="Enable Gift Codes access"
+                  >
+                    Codes
+                  </button>
+                  <button
                     onClick={async () => {
                       try {
                         if (u.isBlocked) {
@@ -981,6 +1135,59 @@ function UsersTabContent({
           ))
         )}
       </AdminTable>
+
+      <AdminModal
+        isOpen={Boolean(giftCodesUser)}
+        onClose={() => !giftCodesLoading && setGiftCodesUser(null)}
+        title={`Enable Gift Codes: ${giftCodesUser?.username || "User"}`}
+      >
+        <div className="space-y-6">
+          <p className="text-gray-400 text-sm leading-relaxed">
+            {giftCodesUser?.username} will see Gift Codes on Membership and can spend promo credit.
+            Balance is not real tokens — credit it afterward under Gift Codes → Accounts.
+          </p>
+          {giftCodesUser?.walletAddress ? (
+            <div className="bg-[#1a1a1a] border border-[#222] rounded-xl px-4 py-3">
+              <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Wallet</div>
+              <div className="text-xs font-mono text-white break-all">{giftCodesUser.walletAddress}</div>
+            </div>
+          ) : null}
+          <div className="flex gap-3">
+            <button
+              onClick={() => setGiftCodesUser(null)}
+              disabled={giftCodesLoading}
+              className="flex-1 px-6 py-3 rounded-xl bg-[#222] text-sm font-bold disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                if (!giftCodesUser) return;
+                setGiftCodesLoading(true);
+                try {
+                  await adminApi.setVoucherAccess(giftCodesUser.username, true);
+                  notify(
+                    "success",
+                    `Gift Codes enabled for ${giftCodesUser.username}. Open Gift Codes → Accounts to add balance.`,
+                  );
+                  setGiftCodesUser(null);
+                } catch (err) {
+                  notify(
+                    "error",
+                    err instanceof AdminApiError ? err.message : "Failed to enable Gift Codes",
+                  );
+                } finally {
+                  setGiftCodesLoading(false);
+                }
+              }}
+              disabled={giftCodesLoading}
+              className="flex-1 px-6 py-3 rounded-xl bg-[#f50] text-sm font-bold disabled:opacity-50"
+            >
+              {giftCodesLoading ? "Enabling…" : "Enable Gift Codes"}
+            </button>
+          </div>
+        </div>
+      </AdminModal>
     </div>
   );
 }

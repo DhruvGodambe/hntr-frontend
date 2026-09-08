@@ -5,7 +5,6 @@ import type { MouseEvent, RefObject } from "react";
 import { buildNavBarPath } from "../utils";
 import {
   CollectionNavIcon,
-  GiftCodesNavIcon,
   HomeNavIcon,
   LearnNavIcon,
   MarketNavIcon,
@@ -93,18 +92,6 @@ export default function BottomNav({
                 <NetworkNavIcon />
               </div>
               <span className="si-label">Network</span>
-            </Link>
-
-            <Link
-              href="/gift-codes"
-              className={`si si-mobile-extra ${currentPage === "gift-codes" ? "active" : ""}`}
-              data-page="gift-codes"
-            >
-              <div className="si-icon">
-                <GiftCodesNavIcon />
-              </div>
-              <span className="si-label si-label-full">Gift Codes</span>
-              <span className="si-label si-label-short">Gifts</span>
             </Link>
 
             <div className="si-bot si-mobile-extra">

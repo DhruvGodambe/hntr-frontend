@@ -114,14 +114,63 @@ export interface LeadershipPreview {
   poolTokens: { symbol: string; balance: number }[];
   leadershipWallet?: string;
   eligibleCount: number;
+  unpaidCount?: number;
   eligibleUsers: {
     username: string;
     rank: string;
     shares: number;
     walletAddress?: string;
     estimatedPayoutUSD?: number;
+    alreadyPaid?: boolean;
   }[];
   totalShares: number;
+  month?: string;
+  fundTotals?: { USDT: number; USDC: number };
+  hopNote?: string;
+  protocolEth?: number;
+  burnerEth?: number;
+  burnerMinEth?: number;
+  burnerWallet?: string;
+  burnerTokens?: { symbol: string; balance: number }[];
+  lastBatch?: {
+    id: string;
+    status: string;
+    triggeredBy: string;
+    createdAt: string;
+    fundTransfers?: unknown[];
+    error?: string;
+  } | null;
+}
+
+export interface AchievementPreview {
+  poolBalanceUSD: number;
+  poolTokens: { symbol: string; balance: number }[];
+  achievementWallet?: string;
+  pendingCount: number;
+  pendingReviewCount: number;
+  totalPendingUSD: number;
+  pendingBonuses: {
+    id: string;
+    username: string;
+    walletAddress: string;
+    rank: string;
+    amountUSD: number;
+    createdAt: string;
+  }[];
+  hopNote?: string;
+  protocolEth?: number;
+  burnerEth?: number;
+  burnerMinEth?: number;
+  burnerWallet?: string;
+  burnerTokens?: { symbol: string; balance: number }[];
+  lastBatch?: {
+    id: string;
+    status: string;
+    triggeredBy: string;
+    createdAt: string;
+    fundTransfers?: unknown[];
+    error?: string;
+  } | null;
 }
 
 export interface AdminWalletLedgerEntry {
@@ -295,10 +344,18 @@ export const adminApi = {
   getLeadershipPreview: () => adminRequest<LeadershipPreview>("/api/admin/leadership/preview"),
 
   distributeLeadership: () =>
-    adminRequest("/api/admin/leadership/distribute", { method: "POST", body: {} }),
+    adminRequest<{ paid?: number; failed?: number; month?: string }>("/api/admin/leadership/distribute", {
+      method: "POST",
+      body: {},
+    }),
+
+  getAchievementPreview: () => adminRequest<AchievementPreview>("/api/admin/achievement/preview"),
 
   distributeAchievement: () =>
-    adminRequest("/api/admin/achievement/distribute", { method: "POST", body: {} }),
+    adminRequest<{ paid?: number }>("/api/admin/achievement/distribute", { method: "POST", body: {} }),
+
+  getDisbursements: (limit = 20) =>
+    adminRequest<unknown[]>(`/api/admin/disbursements${qs({ limit })}`),
 
   getOverdueCommissions: (token = "USDT", page = 1, limit = 10, filter: OverdueClaimFilter = "all") =>
     adminRequest<
@@ -355,7 +412,130 @@ export const adminApi = {
 
   recalculateVolumes: (username: string) =>
     adminRequest("/api/admin/volumes/recalculate", { method: "POST", body: { username } }),
+
+  // --- Vouchers / gift codes ---
+  getOwnerWallet: () => adminRequest<{ address: string | null }>("/api/admin/owner-wallet"),
+
+  getVoucherAccounts: (params: { search?: string; enabled?: string; page?: number; limit?: number } = {}) =>
+    adminRequest<PaginatedResult<AdminVoucherAccount>>(`/api/admin/vouchers/accounts${qs(params)}`),
+
+  setVoucherAccess: (username: string, enabled: boolean, reason?: string) =>
+    adminRequest<{ username: string; walletAddress: string; enabled: boolean }>(
+      `/api/admin/vouchers/accounts/${encodeURIComponent(username)}/access`,
+      { method: "POST", body: { enabled, reason } },
+    ),
+
+  adjustVoucherBalance: (username: string, token: "USDT" | "USDC", delta: number, note?: string) =>
+    adminRequest<{ username: string; token: string; balance: number; delta: number }>(
+      `/api/admin/vouchers/accounts/${encodeURIComponent(username)}/balance`,
+      { method: "POST", body: { token, delta, note } },
+    ),
+
+  getVouchers: (params: { status?: string; issuer?: string; search?: string; page?: number; limit?: number } = {}) =>
+    adminRequest<PaginatedResult<AdminVoucher>>(`/api/admin/vouchers${qs(params)}`),
+
+  revokeVoucher: (voucherId: string, reason: string) =>
+    adminRequest<{ voucherId: string; status: string; refunded: number }>(
+      `/api/admin/vouchers/${voucherId}/revoke`,
+      { method: "POST", body: { reason } },
+    ),
+
+  getVoucherLedger: (params: { walletAddress?: string; token?: string; page?: number; limit?: number } = {}) =>
+    adminRequest<PaginatedResult<AdminVoucherLedgerEntry>>(`/api/admin/vouchers/ledger${qs(params)}`),
+
+  getBurnerHealth: () => adminRequest<BurnerHealth>("/api/admin/vouchers/burner"),
+
+  recordBurnerRotation: (params: { txHash: string; burnerWallet: string }) =>
+    adminRequest<{ burnerWallet: string; txHash: string; matches: boolean; message: string }>(
+      "/api/admin/vouchers/burner/record",
+      { method: "POST", body: params },
+    ),
+
+  reconcileVoucherBalances: (params: { username?: string; token?: string } = {}) =>
+    adminRequest<{ checked: number; repaired: number }>("/api/admin/vouchers/reconcile", {
+      method: "POST",
+      body: params,
+    }),
+
+  getBonusReview: (status = "PENDING_REVIEW", page = 1, limit = 20) =>
+    adminRequest<PaginatedResult<AdminAchievementBonus>>(
+      `/api/admin/achievement-bonuses${qs({ status, page, limit })}`,
+    ),
+
+  reviewBonus: (id: string, decision: "approve" | "reject", reason?: string) =>
+    adminRequest<{ id: string; status: string; username: string; rank: string; amountUSD: number }>(
+      `/api/admin/achievement-bonuses/${id}/${decision}`,
+      { method: "POST", body: { reason } },
+    ),
 };
+
+export interface AdminVoucherBalance {
+  token: "USDT" | "USDC";
+  balance: number;
+  issued: number;
+  refunded: number;
+}
+
+export interface AdminVoucherAccount {
+  username: string;
+  walletAddress: string;
+  enabled: boolean;
+  balances: AdminVoucherBalance[];
+  issuedTotal: number;
+  activeCount: number;
+  redeemedCount: number;
+}
+
+export interface AdminVoucher {
+  voucherId: string;
+  codeLast4: string;
+  issuerUsername: string;
+  issuerWallet: string;
+  tier: string;
+  amountUsd: number;
+  token: "USDT" | "USDC";
+  status: string;
+  note: string | null;
+  createdAt: string;
+  expiresAt: string;
+  redeemedAt: string | null;
+  redeemerUsername: string | null;
+  txHash: string | null;
+}
+
+export interface AdminVoucherLedgerEntry {
+  _id: string;
+  walletAddress: string;
+  token: "USDT" | "USDC";
+  entryKey: string;
+  delta: number;
+  balanceAfter: number;
+  reason: string;
+  voucherId?: string;
+  adminUsername?: string;
+  note?: string;
+  timestamp: string;
+}
+
+export interface BurnerHealth {
+  configuredAddress: string | null;
+  onChainAddress: string | null;
+  matches: boolean;
+  balanceEth: number;
+  minEth: number;
+  healthy: boolean;
+}
+
+export interface AdminAchievementBonus {
+  _id: string;
+  walletAddress: string;
+  username: string;
+  rank: string;
+  amountUSD: number;
+  status: string;
+  reviewReason?: string;
+  createdAt: string;
+}
 
 export function formatUsd(amount: number): string {
   if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(2)}M`;

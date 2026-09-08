@@ -18,6 +18,7 @@ import {
 import { useDashboardData } from "../../lib/rewards";
 import { COMMISSION_LEVELS, PACKAGE_BENEFITS, PAYMENT_RULES, RANKS, TIERS, TIERS_WITH_OTC } from "../../lib/contracts";
 import { api, ApiError } from "../../lib/api";
+import MembershipRedeemPanel from "../components/MembershipRedeemPanel";
 import PaymentTokenToggle from "../components/PaymentTokenToggle";
 import MembershipPaySummary from "../components/MembershipPaySummary";
 import type { PaymentToken } from "../../lib/tokens";
@@ -353,6 +354,9 @@ export default function MembershipPage() {
               );
             })}
           </div>
+
+          {/* REDEEM A MEMBERSHIP CODE */}
+          <MembershipRedeemPanel />
 
           {/* COMMISSION STRUCTURE */}
           <div className="comparison">

@@ -1,0 +1,134 @@
+/* ──────────────────────────────────────────────────────────────
+   MEMBERSHIP — "Redeem a membership code" panel.
+   Tokens come from /assets/css/styles.css (+ body.dark).
+   ────────────────────────────────────────────────────────────── */
+
+.mr-panel {
+  padding: 18px 20px 20px;
+}
+
+.mr-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mr-eyebrow {
+  font-family: var(--fm);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--t0);
+  flex-shrink: 0;
+}
+
+.mr-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.mr-input {
+  flex: 0 1 auto;
+  width: 58%;
+  min-width: 0;
+  height: 40px;
+  padding: 0 16px;
+  border: 0.5px solid var(--bd0);
+  border-radius: 6px;
+  background: var(--e3);
+  color: var(--t4);
+  font-family: var(--fm);
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.mr-input::placeholder {
+  color: var(--t0);
+  letter-spacing: 0.18em;
+}
+.mr-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--sage-faint);
+}
+
+.mr-redeem-btn,
+.mr-giftcodes-btn {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 6px;
+  font-family: var(--fm);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.mr-redeem-btn {
+  border: none;
+  background: var(--t4);
+  color: var(--e2);
+}
+.mr-redeem-btn:hover {
+  opacity: 0.88;
+}
+
+.mr-giftcodes-btn {
+  border: 0.5px solid var(--bd2, rgba(94, 107, 85, 0.25));
+  background: transparent;
+  color: var(--t3);
+}
+.mr-giftcodes-btn:hover {
+  border-color: var(--accent);
+  color: var(--t4);
+  background: var(--sage-faint);
+}
+
+.mr-hint {
+  margin-top: 12px;
+  font-size: 10px;
+  color: var(--t1);
+  line-height: 1.5;
+}
+
+.mr-msg {
+  margin-top: 10px;
+  font-size: 10px;
+  font-family: var(--fm);
+  line-height: 1.5;
+}
+.mr-msg.ok {
+  color: var(--green);
+}
+.mr-msg.err {
+  color: #d8461a;
+}
+
+@media (max-width: 760px) {
+  .mr-input {
+    width: auto;
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .mr-row {
+    flex-wrap: wrap;
+  }
+  .mr-input {
+    flex-basis: 100%;
+  }
+  .mr-redeem-btn,
+  .mr-giftcodes-btn {
+    flex: 1;
+  }
+}
