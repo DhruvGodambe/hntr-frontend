@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "nextjs-toploader/app";
 import { useVoucherAccess, redeemVoucher, useVoucherInvalidate } from "../../lib/vouchers";
 import { handleAppError } from "../../lib/errors";
@@ -14,15 +15,30 @@ const CODE_RE = /^HNTR-[A-Z0-9]{4}-[A-Z0-9]{4}(-[A-Z0-9]{4})?$/;
  * codes in the admin console also get a GIFT CODES button to the backoffice.
  * Redemption is gasless — the backend burner wallet sends the tx; the member
  * only signs the (free) SIWE message if they aren't already authenticated.
+ *
+ * Gift-code notifications / share links land on `/membership?code=…` and
+ * prefill this input.
  */
 export default function MembershipRedeemPanel() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: access } = useVoucherAccess();
   const invalidate = useVoucherInvalidate();
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; cls: "ok" | "err" | "" }>({ text: "", cls: "" });
+
+  useEffect(() => {
+    const fromUrl = (searchParams.get("code") || "").trim().toUpperCase();
+    if (!fromUrl) return;
+    setCode(fromUrl);
+    // Bring the redeem panel into view when arriving from a notification / share link.
+    requestAnimationFrame(() => {
+      panelRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }, [searchParams]);
 
   async function redeem() {
     const value = code.trim().toUpperCase();
@@ -50,7 +66,7 @@ export default function MembershipRedeemPanel() {
   }
 
   return (
-    <div className="comparison mr-panel">
+    <div className="comparison mr-panel" ref={panelRef} id="membership-redeem">
       <div className="mr-head">
         <div className="cmp-title">Redeem a membership code</div>
         <div className="mr-eyebrow">Gift &amp; Promo Codes</div>

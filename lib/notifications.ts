@@ -13,6 +13,8 @@ export type BackendNotificationType =
   | "LEADERSHIP_PAYOUT"
   | "ACHIEVEMENT_PAYOUT"
   | "RANK_UP"
+  | "VOUCHER_RECEIVED"
+  | "VOUCHER_REDEEMED"
   | "GENERAL";
 
 export interface BackendNotification {
@@ -30,6 +32,26 @@ export interface BackendNotification {
 export interface NotificationsResponse {
   notifications: BackendNotification[];
   unreadCount: number;
+}
+
+/** App-relative path for actionable notifications (gift-code redeem, etc.). */
+export function notificationActionHref(n: BackendNotification): string | null {
+  if (n.type === "VOUCHER_RECEIVED") {
+    const redeemUrl = typeof n.meta?.redeemUrl === "string" ? n.meta.redeemUrl : "";
+    let code = typeof n.meta?.code === "string" ? n.meta.code : "";
+    if (!code && redeemUrl) {
+      try {
+        const u = new URL(redeemUrl, typeof window !== "undefined" ? window.location.origin : "http://localhost");
+        code = u.searchParams.get("code") || "";
+      } catch {
+        // ignore
+      }
+    }
+    if (code) return `/membership?code=${encodeURIComponent(code)}`;
+    return "/membership";
+  }
+  if (n.type === "VOUCHER_REDEEMED") return "/gift-codes";
+  return null;
 }
 
 export function formatRelativeTime(iso: string): string {

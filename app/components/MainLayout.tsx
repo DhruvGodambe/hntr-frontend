@@ -338,7 +338,7 @@ export default function MainLayout({
         onDisconnect={disconnectWallet}
       />
 
-      <NotificationSystem panelOpen={notifPanelOpen} />
+      <NotificationSystem panelOpen={notifPanelOpen} onClosePanel={() => setNotifPanelOpen(false)} />
 
       {!hideRightRail && !isMobileView && (
         <div className={`rail-backdrop${railOpen ? " open" : ""}`} onClick={closeRail} aria-hidden={!railOpen} />

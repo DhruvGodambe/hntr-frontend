@@ -2,7 +2,7 @@
 
 import MainLayout from "../components/MainLayout";
 import PageHeroBanner from "../components/PageHeroBanner";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useRouter } from "nextjs-toploader/app";
 import { ensureAuth } from "../../lib/auth";
@@ -356,7 +356,9 @@ export default function MembershipPage() {
           </div>
 
           {/* REDEEM A MEMBERSHIP CODE */}
-          <MembershipRedeemPanel />
+          <Suspense fallback={null}>
+            <MembershipRedeemPanel />
+          </Suspense>
 
           {/* COMMISSION STRUCTURE */}
           <div className="comparison">

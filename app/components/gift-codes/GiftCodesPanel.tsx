@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import {
   Voucher,
@@ -9,6 +9,7 @@ import {
   issueVoucher,
   revealVoucherCode,
   revokeVoucher,
+  searchUsernames,
   shareVoucher,
   useMyVouchers,
   useVoucherAccess,
@@ -31,6 +32,10 @@ function setModalBodyLock(locked: boolean) {
   document.body.classList.toggle("modal-open", locked);
 }
 
+function normalizeUsername(raw: string) {
+  return raw.trim().replace(/^@+/, "");
+}
+
 /** Reuses the platform deposit-overlay / deposit-modal chrome (user-side). */
 function ShareGiftCodeModal({
   open,
@@ -44,7 +49,15 @@ function ShareGiftCodeModal({
   busy: boolean;
 }) {
   const [mounted, setMounted] = useState(false);
-  const [raw, setRaw] = useState("");
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [results, setResults] = useState<{ username: string; tier: string }[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [highlight, setHighlight] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reqIdRef = useRef(0);
 
   useEffect(() => {
     setMounted(true);
@@ -52,20 +65,130 @@ function ShareGiftCodeModal({
 
   useEffect(() => {
     if (!open) {
-      setRaw("");
+      setQuery("");
+      setSelected([]);
+      setResults([]);
+      setSearching(false);
+      setShowResults(false);
+      setHighlight(0);
       setModalBodyLock(false);
       return;
     }
     setModalBodyLock(true);
-    return () => setModalBodyLock(false);
+    const t = window.setTimeout(() => inputRef.current?.focus(), 50);
+    return () => {
+      window.clearTimeout(t);
+      setModalBodyLock(false);
+    };
   }, [open]);
 
-  if (!mounted) return null;
+  const selectedSet = useMemo(
+    () => new Set(selected.map((u) => u.toLowerCase())),
+    [selected],
+  );
 
-  const parsed = raw
-    .split(/[,;\n]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const runSearch = useCallback(
+    async (term: string) => {
+      const q = normalizeUsername(term);
+      if (q.length < 1) {
+        setResults([]);
+        setSearching(false);
+        setShowResults(false);
+        return;
+      }
+      const id = ++reqIdRef.current;
+      setSearching(true);
+      try {
+        const items = await searchUsernames(q, 8);
+        if (id !== reqIdRef.current) return;
+        const filtered = items.filter((u) => !selectedSet.has(u.username.toLowerCase()));
+        setResults(filtered);
+        setHighlight(0);
+        setShowResults(true);
+      } catch {
+        if (id !== reqIdRef.current) return;
+        setResults([]);
+        setShowResults(true);
+      } finally {
+        if (id === reqIdRef.current) setSearching(false);
+      }
+    },
+    [selectedSet],
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const q = normalizeUsername(query);
+    if (q.length < 1) {
+      setResults([]);
+      setSearching(false);
+      setShowResults(false);
+      return;
+    }
+    setSearching(true);
+    debounceRef.current = setTimeout(() => {
+      void runSearch(q);
+    }, 280);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query, open, runSearch]);
+
+  const addRecipient = (username: string) => {
+    const clean = normalizeUsername(username);
+    if (!clean) return;
+    if (selectedSet.has(clean.toLowerCase())) {
+      setQuery("");
+      setResults([]);
+      setShowResults(false);
+      return;
+    }
+    if (selected.length >= 25) return;
+    setSelected((prev) => [...prev, clean]);
+    setQuery("");
+    setResults([]);
+    setShowResults(false);
+    inputRef.current?.focus();
+  };
+
+  const removeRecipient = (username: string) => {
+    setSelected((prev) => prev.filter((u) => u.toLowerCase() !== username.toLowerCase()));
+  };
+
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !query && selected.length > 0) {
+      e.preventDefault();
+      setSelected((prev) => prev.slice(0, -1));
+      return;
+    }
+    if (e.key === "ArrowDown" && results.length > 0) {
+      e.preventDefault();
+      setShowResults(true);
+      setHighlight((h) => (h + 1) % results.length);
+      return;
+    }
+    if (e.key === "ArrowUp" && results.length > 0) {
+      e.preventDefault();
+      setShowResults(true);
+      setHighlight((h) => (h - 1 + results.length) % results.length);
+      return;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (showResults && results[highlight]) {
+        addRecipient(results[highlight].username);
+      } else if (normalizeUsername(query)) {
+        addRecipient(query);
+      }
+      return;
+    }
+    if (e.key === "Escape") {
+      setShowResults(false);
+    }
+  };
+
+  if (!mounted) return null;
 
   return createPortal(
     <div
@@ -84,30 +207,89 @@ function ShareGiftCodeModal({
 
         <div className="dm-body">
           <p className="gc-share-sub">
-            Notify members by username. They get an in-app notification with your redeem link — the
+            Search members by username. They get an in-app notification with your redeem link — the
             code stays bearer (anyone with the link can redeem).
           </p>
 
           <div className="dm-amount-hdr">
-            <div className="dm-amount-lbl">Usernames</div>
-            {parsed.length > 0 ? (
+            <div className="dm-amount-lbl">Recipients</div>
+            {selected.length > 0 ? (
               <div className="dm-balance">
-                {parsed.length} recipient{parsed.length === 1 ? "" : "s"}
+                {selected.length} selected
               </div>
             ) : null}
           </div>
 
-          <textarea
-            className="gc-share-input"
-            value={raw}
-            onChange={(e) => setRaw(e.target.value)}
-            placeholder="alice, bob, carol"
-            rows={4}
-            autoFocus
-            disabled={busy}
-            autoComplete="off"
-          />
-          <div className="gc-share-hint">Separate with commas or new lines.</div>
+          <div className="gc-share-field">
+            {selected.length > 0 ? (
+              <div className="gc-share-chips">
+                {selected.map((u) => (
+                  <button
+                    key={u}
+                    type="button"
+                    className="gc-share-chip"
+                    onClick={() => !busy && removeRecipient(u)}
+                    disabled={busy}
+                    aria-label={`Remove @${u}`}
+                  >
+                    @{u}
+                    <span aria-hidden>×</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="gc-share-search-wrap">
+              <input
+                ref={inputRef}
+                className="gc-share-search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={onKeyDown}
+                onFocus={() => {
+                  if (results.length > 0 || normalizeUsername(query)) setShowResults(true);
+                }}
+                onBlur={() => {
+                  // Allow click on result before closing.
+                  window.setTimeout(() => setShowResults(false), 150);
+                }}
+                placeholder={selected.length ? "Add another username…" : "Search username…"}
+                disabled={busy}
+                autoComplete="off"
+                spellCheck={false}
+                aria-autocomplete="list"
+                aria-expanded={showResults}
+              />
+              {showResults ? (
+                <ul className="gc-share-results" role="listbox">
+                  {searching && results.length === 0 ? (
+                    <li className="gc-share-result muted">Searching…</li>
+                  ) : null}
+                  {!searching && results.length === 0 && normalizeUsername(query) ? (
+                    <li className="gc-share-result muted">
+                      No members match “{normalizeUsername(query)}”
+                    </li>
+                  ) : null}
+                  {results.map((r, i) => (
+                    <li key={r.username}>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={i === highlight}
+                        className={`gc-share-result${i === highlight ? " is-active" : ""}`}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => addRecipient(r.username)}
+                      >
+                        <span className="gc-share-result-name">@{r.username}</span>
+                        <span className="gc-share-result-tier">{r.tier}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          </div>
+          <div className="gc-share-hint">Type to search · Enter to add · click a chip to remove</div>
 
           <div className="dm-actions">
             <button className="dm-cancel-btn" type="button" onClick={onClose} disabled={busy}>
@@ -116,8 +298,8 @@ function ShareGiftCodeModal({
             <button
               className="dm-proceed-btn"
               type="button"
-              disabled={busy || parsed.length === 0}
-              onClick={() => onSubmit(parsed)}
+              disabled={busy || selected.length === 0}
+              onClick={() => onSubmit(selected)}
             >
               {busy ? "SENDING…" : "SEND"}
             </button>
@@ -215,9 +397,12 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
     setShareBusy(true);
     try {
       const { notified, skipped } = await shareVoucher(shareVoucherId, usernames);
+      const names = notified.map((u) => `@${u}`).join(", ");
       setMsg({
-        text: `Sent to ${notified.length} member(s)${skipped.length ? `, ${skipped.length} skipped` : ""}.`,
-        cls: "ok",
+        text: notified.length
+          ? `Sent to ${names}${skipped.length ? ` · ${skipped.length} skipped` : ""}.`
+          : `No one notified${skipped.length ? ` · ${skipped.map((s) => s.username).join(", ")} skipped` : ""}.`,
+        cls: notified.length ? "ok" : "err",
       });
       setShareVoucherId(null);
     } catch (error) {

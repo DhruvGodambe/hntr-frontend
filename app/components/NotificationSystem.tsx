@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "nextjs-toploader/app";
 import { useAccount } from "wagmi";
 import {
-  SALE_TOASTS,
   SALE_TOAST_DURATION_MS,
   STANDARD_TOAST_DURATION_MS,
   type SaleToastData,
@@ -11,6 +11,7 @@ import {
 } from "../../lib/notification-data";
 import {
   formatRelativeTime,
+  notificationActionHref,
   useMarkNotificationsRead,
   useNotifications,
   type BackendNotification,
@@ -54,10 +55,6 @@ function canShowToast() {
   return true;
 }
 
-function pickRandom<T>(items: T[]) {
-  return items[Math.floor(Math.random() * items.length)];
-}
-
 function toPanelItem(n: BackendNotification) {
   return {
     id: n._id,
@@ -65,6 +62,8 @@ function toPanelItem(n: BackendNotification) {
     sub: n.sub,
     time: formatRelativeTime(n.createdAt),
     read: n.read,
+    link: n.link,
+    href: notificationActionHref(n),
   };
 }
 
@@ -73,14 +72,17 @@ function notificationToToast(n: BackendNotification): StandardToastData {
     title: n.title,
     sub: n.sub,
     link: n.link || "VIEW",
+    href: notificationActionHref(n) || undefined,
   };
 }
 
 type NotificationSystemProps = {
   panelOpen: boolean;
+  onClosePanel?: () => void;
 };
 
-export default function NotificationSystem({ panelOpen }: NotificationSystemProps) {
+export default function NotificationSystem({ panelOpen, onClosePanel }: NotificationSystemProps) {
+  const router = useRouter();
   const { address, isConnected } = useAccount();
   const { data, isLoading } = useNotifications(50);
   const markRead = useMarkNotificationsRead();
@@ -101,7 +103,7 @@ export default function NotificationSystem({ panelOpen }: NotificationSystemProp
     }
 
     setToasts((current) =>
-      current.map((toast) => (toast.id === id ? { ...toast, dismissing: true } : toast))
+      current.map((toast) => (toast.id === id ? { ...toast, dismissing: true } : toast)),
     );
 
     window.setTimeout(() => {
@@ -117,7 +119,7 @@ export default function NotificationSystem({ panelOpen }: NotificationSystemProp
       const timer = window.setTimeout(() => dismissToast(id), durationMs);
       toastTimers.current.set(id, timer);
     },
-    [dismissToast]
+    [dismissToast],
   );
 
   const pushToast = useCallback(
@@ -130,31 +132,29 @@ export default function NotificationSystem({ panelOpen }: NotificationSystemProp
       const duration = toast.kind === "sale" ? SALE_TOAST_DURATION_MS : STANDARD_TOAST_DURATION_MS;
       scheduleDismiss(entry.id, duration);
     },
-    [scheduleDismiss]
+    [scheduleDismiss],
   );
 
   const showStandardToast = useCallback(
-    (data: StandardToastData) => {
+    (toastData: StandardToastData) => {
       pushToast({
         id: `standard-${Date.now()}-${Math.random()}`,
         kind: "standard",
-        data,
+        data: toastData,
         dismissing: false,
       });
     },
-    [pushToast]
+    [pushToast],
   );
 
-  const showSaleToast = useCallback(
-    (data: SaleToastData) => {
-      pushToast({
-        id: `sale-${Date.now()}-${Math.random()}`,
-        kind: "sale",
-        data,
-        dismissing: false,
-      });
+  const openHref = useCallback(
+    (href: string | null | undefined, notificationId?: string) => {
+      if (!href) return;
+      if (notificationId) markRead.mutate([notificationId]);
+      onClosePanel?.();
+      router.push(href);
     },
-    [pushToast]
+    [markRead, onClosePanel, router],
   );
 
   // Toast new backend notifications as they arrive (skip initial hydrate).
@@ -183,31 +183,6 @@ export default function NotificationSystem({ panelOpen }: NotificationSystemProp
     hydratedRef.current = false;
     seenIdsRef.current.clear();
   }, [address, isConnected]);
-
-  // Demo NFT sale popups disabled.
-  // useEffect(() => {
-  //   let saleTimer: number | undefined;
-  //
-  //   const scheduleSaleToast = () => {
-  //     const delay = 28000 + Math.random() * 20000;
-  //     saleTimer = window.setTimeout(() => {
-  //       if (canShowToast()) showSaleToast(pickRandom(SALE_TOASTS));
-  //       scheduleSaleToast();
-  //     }, delay);
-  //   };
-  //
-  //   const firstSale = window.setTimeout(() => {
-  //     if (canShowToast()) showSaleToast(SALE_TOASTS[0]);
-  //     scheduleSaleToast();
-  //   }, 14000 + Math.random() * 6000);
-  //
-  //   return () => {
-  //     clearTimeout(firstSale);
-  //     if (saleTimer) clearTimeout(saleTimer);
-  //     toastTimers.current.forEach((timer) => clearTimeout(timer));
-  //     toastTimers.current.clear();
-  //   };
-  // }, [showSaleToast]);
 
   useEffect(() => {
     window.showToast = (toastData: StandardToastData) => showStandardToast(toastData);
@@ -260,7 +235,22 @@ export default function NotificationSystem({ panelOpen }: NotificationSystemProp
               <div className="toast-body">
                 <div className="toast-title">{toast.data.title}</div>
                 <div className="toast-sub">{toast.data.sub}</div>
-                {toast.data.link ? <span className="toast-link">{toast.data.link}</span> : null}
+                {toast.data.link ? (
+                  toast.data.href ? (
+                    <button
+                      type="button"
+                      className="toast-link"
+                      onClick={() => {
+                        openHref(toast.data.href);
+                        dismissToast(toast.id);
+                      }}
+                    >
+                      {toast.data.link}
+                    </button>
+                  ) : (
+                    <span className="toast-link">{toast.data.link}</span>
+                  )
+                ) : null}
               </div>
               <button
                 className="toast-close"
@@ -316,7 +306,7 @@ export default function NotificationSystem({ panelOpen }: NotificationSystemProp
                 </a>
               </div>
             </div>
-          )
+          ),
         )}
       </div>
 
@@ -347,12 +337,31 @@ export default function NotificationSystem({ panelOpen }: NotificationSystemProp
             </div>
           ) : (
             notifications.map((item) => (
-              <div className="notif-item" key={item.id}>
+              <div
+                className={`notif-item${item.href ? " is-actionable" : ""}`}
+                key={item.id}
+                role={item.href ? "button" : undefined}
+                tabIndex={item.href ? 0 : undefined}
+                onClick={() => {
+                  if (item.href) openHref(item.href, item.id);
+                  else if (!item.read) markRead.mutate([item.id]);
+                }}
+                onKeyDown={(e) => {
+                  if (!item.href) return;
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openHref(item.href, item.id);
+                  }
+                }}
+              >
                 <div className={`notif-dot${item.read ? " read" : ""}`} />
                 <div className="notif-item-content">
                   <div className="notif-item-title">{item.title}</div>
                   <div className="notif-item-sub">{item.sub}</div>
-                  <div className="notif-item-time">{item.time}</div>
+                  <div className="notif-item-meta">
+                    <span className="notif-item-time">{item.time}</span>
+                    {item.href && item.link ? <span className="notif-item-link">{item.link}</span> : null}
+                  </div>
                 </div>
               </div>
             ))

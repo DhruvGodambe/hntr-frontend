@@ -2,6 +2,8 @@ export type StandardToastData = {
   title: string;
   sub: string;
   link: string;
+  /** Optional in-app path (e.g. /membership?code=…) when the toast link is actionable. */
+  href?: string;
   variant?: "success" | "error";
 };
 

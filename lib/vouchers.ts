@@ -115,6 +115,15 @@ export async function shareVoucher(voucherId: string, usernames: string[]) {
   );
 }
 
+export async function searchUsernames(q: string, limit = 8) {
+  await ensureAuth({ interactive: true });
+  const data = await api.get<{ items: { username: string; tier: string }[] }>(
+    `/api/users/search?q=${encodeURIComponent(q)}&limit=${limit}`,
+    { auth: true },
+  );
+  return data.items ?? [];
+}
+
 export async function revokeVoucher(voucherId: string) {
   await ensureAuth({ interactive: true });
   return api.post<{ voucherId: string; status: string; refunded: number }>(
