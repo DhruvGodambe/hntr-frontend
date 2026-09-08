@@ -1,0 +1,153 @@
+/* ──────────────────────────────────────────────────────────────
+   GIFT CODES — ported from gift-code-sample/index.html
+   Scoped under .gc-scope so sample class names don't leak.
+   Tokens come from /assets/css/styles.css (+ body.dark).
+   ────────────────────────────────────────────────────────────── */
+
+#panel-gift-codes > .rail { display: none; }
+#panel-gift-codes > .feed { flex: 1; }
+#feed-gift-codes { padding: 0; }
+#feed-gift-codes .page-body { padding: 18px 0 40px; }
+
+.gc-scope { color: var(--t3); font-family: var(--fn, "Inter", sans-serif); font-size: 12px; line-height: 1.5; }
+.gc-scope .gc-wrap { max-width: none; width: 100%; margin: 0; padding: 0; }
+
+@keyframes gcCardIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.gc-scope .hdr-actions { display: flex; gap: 8px; }
+
+.gc-scope .net-stat {
+  background: var(--e2); border: none; border-radius: var(--r);
+  padding: 14px 16px; box-shadow: var(--sh1), var(--glow);
+  animation: gcCardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.gc-scope .net-stat:nth-child(1) { animation-delay: 0.08s; }
+.gc-scope .net-stat:nth-child(2) { animation-delay: 0.13s; }
+.gc-scope .net-stat:nth-child(3) { animation-delay: 0.18s; }
+.gc-scope .net-stat:nth-child(4) { animation-delay: 0.23s; }
+.gc-scope .net-stat-lbl { font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t0); font-family: var(--fm); margin-bottom: 6px; }
+.gc-scope .net-stat-val { font-family: var(--fm); font-size: 22px; font-weight: 700; color: var(--t4); margin-bottom: 4px; line-height: 1; }
+.gc-scope .net-stat-chg { font-size: 9px; color: var(--t0); font-family: var(--fm); }
+.gc-scope .net-stat-chg.pos { color: var(--green); }
+
+.gc-scope .net-section-hdr { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.gc-scope .net-section-title { font-size: 9px; font-family: var(--fm); letter-spacing: 0.14em; text-transform: uppercase; color: var(--t1); }
+
+.gc-scope .net-table { width: 100%; border-collapse: collapse; }
+.gc-scope .net-table th {
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--t0); font-weight: 500; font-family: var(--fm);
+  padding: 8px 16px; text-align: left; border-bottom: 0.5px solid var(--bd0);
+  background: var(--e3);
+}
+.gc-scope .net-table td { padding: 9px 16px; border-bottom: 0.5px solid var(--bd0); vertical-align: middle; }
+.gc-scope .net-table tr:last-child td { border-bottom: none; }
+.gc-scope .net-table tr:hover td { background: var(--e3); }
+.gc-scope .td-asset { font-weight: 600; color: var(--t4); font-size: 10px; }
+.gc-scope .td-price { font-family: var(--fm); font-size: 10px; color: var(--t3); font-weight: 600; }
+.gc-scope .td-source { font-size: 9px; color: var(--t1); }
+.gc-scope .td-time { font-family: var(--fm); font-size: 9px; color: var(--t0); }
+
+.gc-scope .gf-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
+.gc-scope .gf-title { font-family: var(--fd); font-size: 20px; font-weight: 700; letter-spacing: 0.01em; color: var(--t4); line-height: 1.1; }
+.gc-scope .gf-sub { font-family: var(--fm); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--t0); margin-top: 5px; }
+.gc-scope .gf-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+.gc-scope .gf-top { display: grid; grid-template-columns: minmax(0, 520px); gap: 12px; margin-bottom: 22px; align-items: start; }
+.gc-scope .gf-card {
+  background: var(--e2); border: none; border-radius: var(--r);
+  padding: 18px 20px 20px; box-shadow: var(--sh2), var(--glow);
+  animation: gcCardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+}
+.gc-scope .gf-card-hd { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+.gc-scope .gf-card-t { font-family: var(--fd); font-size: 12.5px; font-weight: 700; color: var(--t4); }
+.gc-scope .gf-card-n { font-family: var(--fm); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t0); }
+.gc-scope .gf-lbl { font-family: var(--fm); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t0); margin-bottom: 6px; }
+.gc-scope .gf-field { display: flex; flex-direction: column; margin-bottom: 12px; }
+.gc-scope .gf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gc-scope .gf-input,
+.gc-scope .gf-select {
+  height: 34px; background: var(--e3); border: 0.5px solid var(--bd1); border-radius: 5px;
+  padding: 0 11px; font-family: var(--fm); font-size: 11px; color: var(--t4);
+  outline: none; width: 100%; transition: border-color 0.18s, background 0.18s;
+}
+.gc-scope .gf-input:focus,
+.gc-scope .gf-select:focus { border-color: var(--olive); background: var(--e2); }
+.gc-scope .gf-input.code { font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; height: 38px; }
+.gc-scope .gf-btn {
+  height: 34px; padding: 0 18px; white-space: nowrap; background: var(--olive); color: var(--cream);
+  border: none; border-radius: 5px; font-family: var(--fm); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; box-shadow: var(--sh1);
+  transition: background 0.18s, transform 0.12s;
+}
+.gc-scope .gf-btn:hover { background: var(--olive-dark); }
+.gc-scope .gf-btn:active { transform: translateY(1px); }
+.gc-scope .gf-btn.wide { width: 100%; }
+.gc-scope .gf-btn.ghost { background: var(--e2); color: var(--t3); border: 0.5px solid var(--bd2); box-shadow: none; white-space: nowrap; }
+.gc-scope .gf-btn.ghost:hover { background: var(--e3); color: var(--t4); }
+.gc-scope .gf-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.gc-scope .gf-static { height: 34px; display: flex; align-items: center; background: var(--e3); border: 0.5px solid var(--bd1); border-radius: 5px; padding: 0 11px; font-family: var(--fm); font-size: 11px; color: var(--t2); }
+.gc-scope .gf-hint { font-family: var(--fm); font-size: 8.5px; color: var(--t0); line-height: 1.6; margin-top: 2px; }
+.gc-scope .gf-msg { font-family: var(--fm); font-size: 9px; letter-spacing: 0.04em; margin-top: 10px; min-height: 13px; }
+.gc-scope .gf-msg.ok { color: var(--green); }
+.gc-scope .gf-msg.err { color: var(--red); }
+.gc-scope .gf-avail { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+.gc-scope .gf-avail-v { font-family: var(--fm); font-size: 22px; font-weight: 700; color: var(--t4); line-height: 1; }
+.gc-scope .gf-avail-l { font-family: var(--fm); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t0); }
+.gc-scope .gf-bar { height: 4px; border-radius: 2px; background: var(--cream-deeper); overflow: hidden; margin-bottom: 6px; }
+.gc-scope .gf-bar-fill { height: 100%; background: var(--olive); border-radius: 2px; transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
+.gc-scope .gf-bar-lbl { display: flex; justify-content: space-between; font-family: var(--fm); font-size: 8px; color: var(--t0); margin-bottom: 16px; }
+.gc-scope .gf-chips { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.gc-scope .gf-chip {
+  height: 24px; padding: 0 10px; white-space: nowrap; display: inline-flex; align-items: center;
+  background: var(--e3); border: 0.5px solid var(--bd1); border-radius: 12px;
+  font-family: var(--fm); font-size: 9px; color: var(--t2); cursor: pointer; transition: all 0.16s;
+}
+.gc-scope .gf-chip:hover:not(:disabled) { border-color: var(--olive); color: var(--t4); }
+.gc-scope .gf-chip.on { background: var(--olive); border-color: var(--olive); color: var(--cream); }
+.gc-scope .gf-chip.off,
+.gc-scope .gf-chip:disabled { opacity: 0.4; pointer-events: none; }
+.gc-scope .gf-panel { background: var(--e2); border-radius: var(--r); box-shadow: var(--sh1), var(--glow); overflow: hidden; margin-bottom: 20px; }
+.gc-scope .gf-code { font-family: var(--fm); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--t4); }
+.gc-scope .gf-tabs { display: flex; gap: 6px; }
+.gc-scope .gf-tab {
+  height: 22px; padding: 0 9px; display: inline-flex; align-items: center; gap: 5px;
+  background: var(--e2); border: 0.5px solid var(--bd1); border-radius: 3px;
+  font-family: var(--fm); font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--t1); cursor: pointer; transition: all 0.16s;
+}
+.gc-scope .gf-tab b { color: var(--t3); }
+.gc-scope .gf-tab:hover { color: var(--t4); border-color: var(--bd2); }
+.gc-scope .gf-tab.on { background: var(--olive); border-color: var(--olive); color: var(--cream); }
+.gc-scope .gf-tab.on b { color: var(--cream); }
+.gc-scope .gf-empty { padding: 22px 16px; text-align: center; font-family: var(--fm); font-size: 9px; color: var(--t0); }
+
+body.dark .gc-scope .net-stat,
+body.dark .gc-scope .gf-card,
+body.dark .gc-scope .gf-panel { background: var(--e2) !important; box-shadow: var(--sh2) !important; }
+body.dark .gc-scope .gf-bar-fill { background: var(--olive) !important; }
+body.dark .gc-scope .gf-bar { background: var(--e4) !important; }
+body.dark .gc-scope .gf-code { color: var(--t4); }
+body.dark .gc-scope .gf-input,
+body.dark .gc-scope .gf-select,
+body.dark .gc-scope .gf-static { background: var(--e3); border-color: var(--bd1); color: var(--t4); }
+body.dark .gc-scope .gf-input:focus,
+body.dark .gc-scope .gf-select:focus { border-color: var(--bd2); background: var(--e4); }
+body.dark .gc-scope .gf-input::placeholder { color: var(--t0); }
+body.dark .gc-scope .gf-btn { background: #f4f4f5; color: #0a0a0b; }
+body.dark .gc-scope .gf-btn:hover { background: #e6e6e8; color: #0a0a0b; }
+body.dark .gc-scope .gf-btn.ghost { background: transparent; color: #f4f4f5; border: 0.5px solid rgba(255, 255, 255, 0.22); }
+body.dark .gc-scope .gf-btn.ghost:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+body.dark .gc-scope .gf-chip.on { background: #f4f4f5; border-color: #f4f4f5; color: #0a0a0b; }
+body.dark .gc-scope .gf-tab.on { background: #f4f4f5; border-color: #f4f4f5; color: #0a0a0b; }
+body.dark .gc-scope .gf-tab.on b { color: #0a0a0b; }
+
+@media (max-width: 760px) {
+  #feed-gift-codes .page-body { padding: 0 0 8px; }
+  .gc-scope .gf-stats { grid-template-columns: 1fr 1fr; }
+  .gc-scope .gf-top { grid-template-columns: minmax(0, 1fr); }
+  .gc-scope .gf-panel { overflow-x: auto; }
+  .gc-scope .net-table { min-width: 640px; }
+  .gc-scope .gf-head { flex-direction: column; align-items: stretch; gap: 12px; }
+  .gc-scope .net-section-hdr { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .gc-scope .gf-tabs { flex-wrap: wrap; }
+}

@@ -77,7 +77,8 @@ export default function MainLayout({
   const navBarPathRef = useRef<SVGPathElement | null>(null);
 
   const currentPage = resolveCurrentPage(pathname);
-  const hideRightRail = currentPage === "network" || currentPage === "webinar";
+  const hideRightRail =
+    currentPage === "network" || currentPage === "webinar" || currentPage === "gift-codes";
   const showMobileHomeRail = currentPage === "home" && walletConnected && !hideRightRail && isMobileView;
   const showMobileHomeActivity = currentPage === "home" && !hideRightRail && isMobileView;
   const hideMobileRailToggle = isMobileView;

@@ -2,6 +2,7 @@ import {
   HiBookOpen,
   HiChartBar,
   HiCreditCard,
+  HiGift,
   HiHome,
   HiShoppingBag,
   HiSquares2X2,
@@ -36,4 +37,8 @@ export function NetworkNavIcon() {
 
 export function LearnNavIcon() {
   return <HiBookOpen size={NAV_ICON_SIZE} aria-hidden />;
+}
+
+export function GiftCodesNavIcon() {
+  return <HiGift size={NAV_ICON_SIZE} aria-hidden />;
 }

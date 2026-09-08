@@ -16,6 +16,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "My NFTs", href: "/collection", short: "MY" },
   { label: "Membership", href: "/membership", short: "MB" },
   { label: "Network", href: "/network", short: "NW" },
+  { label: "Gift Codes", href: "/gift-codes", short: "GC" },
   { label: "Learn", href: "/learn", short: "LR" }
 ];
 

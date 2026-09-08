@@ -1141,7 +1141,8 @@ body.dark .mkt-filter-tab.active {
   #feed-marketplace.feed,
   #feed-collection.feed,
   #feed-network.feed,
-  #feed-membership.feed {
+  #feed-membership.feed,
+  #feed-gift-codes.feed {
     padding: var(--m-pad-page) var(--m-pad-page)
       calc(96px + env(safe-area-inset-bottom, 0px)) !important;
   }

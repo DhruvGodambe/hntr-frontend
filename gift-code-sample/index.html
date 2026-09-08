@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HNTR — Gift Codes Backoffice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sage:#A8B5A2;--sage-light:#c2cbbe;--sage-faint:#dce3da;
+  --olive:#5E6B55;--olive-dark:#4a5443;--olive-deep:#38402f;
+  --cream:#F2EFEA;--cream-dark:#e8e4de;--cream-deeper:#dbd6cf;
+  --beige:#c8b99a;--beige-dim:#9e8f78;
+  --e0:#edeae4;--e1:#F2EFEA;--e2:#ffffff;--e3:#f4f2ee;--e4:#ece8e2;--e5:#dbd7d0;
+  --bd0:rgba(0,0,0,.04);--bd1:rgba(0,0,0,.07);--bd2:rgba(0,0,0,.11);
+  --t0:rgba(58,67,49,.28);--t1:rgba(58,67,49,.46);--t2:rgba(58,67,49,.64);--t3:rgba(58,67,49,.82);--t4:#2b3224;
+  --green:#3d7a5a;--red:#9b4040;
+  --sh1:0 1px 3px rgba(60,70,50,.07),0 1px 2px rgba(60,70,50,.05);
+  --sh2:0 4px 14px rgba(60,70,50,.09),0 2px 5px rgba(60,70,50,.05);
+  --sh3:0 10px 28px rgba(60,70,50,.12),0 3px 8px rgba(60,70,50,.06);
+  --sh4:0 18px 44px rgba(60,70,50,.16),0 5px 12px rgba(60,70,50,.08);
+  --glow:inset 0 1px 0 rgba(255,255,255,.75);
+  --fn:'Inter',sans-serif;--fd:'Space Grotesk',sans-serif;--fm:'Space Mono',monospace;--r:8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--e0)}
+body{color:var(--t3);font-family:var(--fn);font-size:12px;line-height:1.5;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-thumb{background:var(--cream-dark);border-radius:2px}
+
+
+html,body{height:auto;overflow:auto;background:var(--e0)}
+body{display:block;color:var(--t3);font-family:var(--fn);font-size:12px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 28px 60px}
+@keyframes netCardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.hdr-actions{display:flex;gap:8px}
+
+.net-stat{background:var(--e2);border:none;border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh1),var(--glow);animation:netCardIn .5s cubic-bezier(.22,1,.36,1) both}
+.net-stat:nth-child(1){animation-delay:.08s}.net-stat:nth-child(2){animation-delay:.13s}.net-stat:nth-child(3){animation-delay:.18s}.net-stat:nth-child(4){animation-delay:.23s}
+.net-stat-lbl{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--t0);font-family:var(--fm);margin-bottom:6px}
+.net-stat-val{font-family:var(--fm);font-size:22px;font-weight:700;color:var(--t4);margin-bottom:4px;line-height:1}
+.net-stat-chg{font-size:9px;color:var(--t0);font-family:var(--fm)}.net-stat-chg.pos{color:var(--green)}
+.net-section-hdr{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+.net-section-title{font-size:9px;font-family:var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--t1)}
+.net-section-link{font-size:10px;color:var(--olive);cursor:pointer;border-bottom:1px solid var(--sage-faint);padding-bottom:1px;font-family:var(--fm)}
+
+.net-table { width:100%; border-collapse:collapse; }
+.net-table th {
+  font-size:8px; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--t0); font-weight:500; font-family:var(--fm);
+  padding:8px 16px; text-align:left; border-bottom:0.5px solid var(--bd0);
+  background:var(--e3);
+}
+.net-table td {
+  padding:9px 16px; border-bottom:0.5px solid var(--bd0); vertical-align:middle;
+}
+.net-table tr:last-child td { border-bottom:none; }
+.net-table tr:hover td { background:var(--e3); }
+.td-asset { font-weight:600; color:var(--t4); font-size:10px; }
+.td-event {
+  display:inline-flex; align-items:center; height:16px; padding:0 6px;
+  border-radius:2px; font-family:var(--fm); font-size:7px; font-weight:700;
+  letter-spacing:.06em;
+}
+.ev-purchase { background:rgba(94,107,85,.15); color:var(--olive); }
+.ev-sale { background:rgba(155,64,64,.1); color:var(--red); }
+.td-price { font-family:var(--fm); font-size:10px; color:var(--t3); font-weight:600; }
+.td-source { font-size:9px; color:var(--t1); }
+.td-time { font-family:var(--fm); font-size:9px; color:var(--t0); }
+/* ── GIFT CODES ── */
+#panel-gifts > .rail{display:none}
+#panel-gifts > .feed{flex:1}
+.gf-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:16px}
+.gf-title{font-family:var(--fd);font-size:20px;font-weight:700;letter-spacing:.01em;color:var(--t4);line-height:1.1}
+.gf-sub{font-family:var(--fm);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--t0);margin-top:5px}
+.gf-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.gf-top{display:grid;grid-template-columns:minmax(0,520px);gap:12px;margin-bottom:22px;align-items:start}
+.gf-card{background:var(--e2);border:none;border-radius:var(--r);padding:18px 20px 20px;box-shadow:var(--sh2),var(--glow);animation:netCardIn .5s cubic-bezier(.22,1,.36,1) .05s both}
+.gf-card-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.gf-card-t{font-family:var(--fd);font-size:12.5px;font-weight:700;color:var(--t4)}
+.gf-card-n{font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--t0)}
+.gf-lbl{font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--t0);margin-bottom:6px}
+.gf-field{display:flex;flex-direction:column;margin-bottom:12px}
+.gf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gf-input,.gf-select{height:34px;background:var(--e3);border:0.5px solid var(--bd1);border-radius:5px;padding:0 11px;font-family:var(--fm);font-size:11px;color:var(--t4);outline:none;width:100%;transition:border-color .18s,background .18s}
+.gf-input:focus,.gf-select:focus{border-color:var(--olive);background:var(--e2)}
+.gf-input.code{font-size:13px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;height:38px}
+.gf-btn{height:34px;padding:0 18px;white-space:nowrap;background:var(--olive);color:var(--cream);border:none;border-radius:5px;font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;box-shadow:var(--sh1);transition:background .18s,transform .12s}
+.gf-btn:hover{background:var(--olive-dark)}
+.gf-btn:active{transform:translateY(1px)}
+.gf-btn.wide{width:100%}
+.gf-btn.ghost{white-space:nowrap}
+body.dark .gf-btn{background:#f4f4f5;color:#0a0a0b}
+body.dark .gf-btn:hover{background:#e6e6e8;color:#0a0a0b}
+body.dark .gf-btn.ghost{background:transparent;color:#f4f4f5;border:0.5px solid rgba(255,255,255,.22)}
+body.dark .gf-btn.ghost:hover{background:rgba(255,255,255,.08);color:#fff}
+body.dark .gf-chip.on{background:#f4f4f5;border-color:#f4f4f5;color:#0a0a0b}
+.gf-btn.ghost{background:var(--e2);color:var(--t3);border:0.5px solid var(--bd2);box-shadow:none}
+.gf-btn.ghost:hover{background:var(--e3);color:var(--t4)}
+.gf-btn:disabled{opacity:.45;cursor:not-allowed}
+.gf-static{height:34px;display:flex;align-items:center;background:var(--e3);border:0.5px solid var(--bd1);border-radius:5px;padding:0 11px;font-family:var(--fm);font-size:11px;color:var(--t2)}
+.gf-hint{font-family:var(--fm);font-size:8.5px;color:var(--t0);line-height:1.6;margin-top:2px}
+.gf-msg{font-family:var(--fm);font-size:9px;letter-spacing:.04em;margin-top:10px;min-height:13px}
+.gf-msg.ok{color:var(--green)}
+.gf-msg.err{color:var(--red)}
+.gf-avail{display:flex;align-items:baseline;gap:8px;margin-bottom:14px}
+.gf-avail-v{font-family:var(--fm);font-size:22px;font-weight:700;color:var(--t4);line-height:1}
+.gf-avail-l{font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--t0)}
+.gf-bar{height:4px;border-radius:2px;background:var(--cream-deeper);overflow:hidden;margin-bottom:6px}
+.gf-bar-fill{height:100%;background:var(--olive);border-radius:2px;transition:width .8s cubic-bezier(.22,1,.36,1)}
+.gf-bar-lbl{display:flex;justify-content:space-between;font-family:var(--fm);font-size:8px;color:var(--t0);margin-bottom:16px}
+.gf-chips{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.gf-chip{height:24px;padding:0 10px;white-space:nowrap;display:inline-flex;align-items:center;background:var(--e3);border:0.5px solid var(--bd1);border-radius:12px;font-family:var(--fm);font-size:9px;color:var(--t2);cursor:pointer;transition:all .16s}
+.gf-chip:hover{border-color:var(--olive);color:var(--t4)}
+.gf-chip.on{background:var(--olive);border-color:var(--olive);color:var(--cream)}
+.gf-chip.off{opacity:.4;pointer-events:none}
+.gf-panel{background:var(--e2);border-radius:var(--r);box-shadow:var(--sh1),var(--glow);overflow:hidden;margin-bottom:20px}
+.gf-panel-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:0.5px solid var(--bd0)}
+.gf-code{font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--t4)}
+.gf-copy{font-family:var(--fm);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--olive);cursor:pointer;padding:3px 7px;border-radius:3px;border:0.5px solid var(--sage-faint);white-space:nowrap}
+.gf-copy:hover{background:var(--e3)}
+.gf-pill{display:inline-flex;align-items:center;height:16px;padding:0 7px;border-radius:2px;font-family:var(--fm);font-size:7px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.gf-pill.active{background:rgba(94,107,85,.15);color:var(--olive)}
+.gf-pill.redeemed{background:rgba(61,122,90,.13);color:var(--green)}
+.gf-pill.expired{background:rgba(0,0,0,.06);color:var(--t1)}
+.gf-pill.pending{background:rgba(200,185,154,.3);color:var(--beige-dim)}
+.mr-redeem{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;max-width:460px}
+.gf-tabs{display:flex;gap:6px}
+.gf-tab{height:22px;padding:0 9px;display:inline-flex;align-items:center;gap:5px;background:var(--e2);border:0.5px solid var(--bd1);border-radius:3px;font-family:var(--fm);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--t1);cursor:pointer;transition:all .16s}
+.gf-tab b{color:var(--t3)}
+.gf-tab:hover{color:var(--t4);border-color:var(--bd2)}
+.gf-tab.on{background:var(--olive);border-color:var(--olive);color:var(--cream)}
+.gf-tab.on b{color:var(--cream)}
+body.dark .gf-tab.on{background:#f4f4f5;border-color:#f4f4f5;color:#0a0a0b}
+body.dark .gf-tab.on b{color:#0a0a0b}
+.gf-empty{padding:22px 16px;text-align:center;font-family:var(--fm);font-size:9px;color:var(--t0)}
+.gf-req{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:0.5px solid var(--bd0)}
+.gf-req:last-child{border-bottom:none}
+.gf-req-main{flex:1;min-width:0}
+.gf-req-t{font-size:10.5px;font-weight:600;color:var(--t4)}
+.gf-req-m{font-family:var(--fm);font-size:8.5px;color:var(--t0);margin-top:3px}
+.gf-req-bar{width:110px;height:3px;border-radius:2px;background:var(--cream-deeper);overflow:hidden;flex-shrink:0}
+.gf-req-fill{height:100%;background:var(--beige-dim);border-radius:2px}
+.gf-req-val{font-family:var(--fm);font-size:10px;font-weight:700;color:var(--t3);width:78px;text-align:right;flex-shrink:0}
+
+
+body.dark {
+  --sage:        #ffffff;
+  --sage-light:  #ffffff;
+  --sage-faint:  rgba(255,255,255,.12);
+  --olive:       #ffffff;
+  --olive-dark:  #e4e4e6;
+  --olive-deep:  #2a2a2e;
+  --accent:      #ffffff;
+  --accent-h:    #d6d6d8;
+  --cream:       #f4f4f5;
+  --cream-dark:  #1d1d20;
+  --cream-deeper:#26262a;
+  --beige:       #6b5c44;
+  --beige-dim:   #3d342c;
+
+  --e0: #000000;
+  --e1: #0c0c0e;
+  --e2: #161618;
+  --e3: #1c1c1f;
+  --e4: #232327;
+  --e5: #2c2c31;
+
+  --bd0: rgba(255,255,255,.05);
+  --bd1: rgba(255,255,255,.09);
+  --bd2: rgba(255,255,255,.14);
+
+  --t0: rgba(255,255,255,.30);
+  --t1: rgba(255,255,255,.48);
+  --t2: rgba(255,255,255,.66);
+  --t3: rgba(255,255,255,.85);
+  --t4: #ffffff;
+
+  --green:  #34d399;
+  --red:    #f0706f;
+
+  --sh1: 0 1px 4px rgba(0,0,0,.6),  0 1px 2px rgba(0,0,0,.5);
+  --sh2: 0 4px 16px rgba(0,0,0,.7), 0 2px 6px rgba(0,0,0,.5);
+  --sh3: 0 10px 32px rgba(0,0,0,.8),0 4px 8px rgba(0,0,0,.55);
+  --sh4: 0 20px 52px rgba(0,0,0,.9),0 6px 14px rgba(0,0,0,.6);
+  --glow: inset 0 1px 0 rgba(168,181,162,.06);
+}
+body.dark .net-stat,body.dark .gf-card,body.dark .gf-panel{background:var(--e2)!important;box-shadow:var(--sh2)!important}
+body.dark .net-section-link{color:var(--sage)!important;border-color:rgba(255,255,255,.2)!important}
+body.dark .gf-bar-fill{background:var(--olive)!important}
+body.dark .gf-bar,body.dark .gf-req-bar{background:var(--e4)!important}
+body.dark .gf-pill.active{background:rgba(255,255,255,.10);color:#fff}
+body.dark .gf-pill.redeemed{background:rgba(52,211,153,.14);color:var(--green)}
+body.dark .gf-pill.expired{background:rgba(255,255,255,.06);color:var(--t1)}
+body.dark .gf-code{color:var(--t4)}
+body.dark .gf-input,body.dark .gf-select,body.dark .gf-static{background:var(--e3);border-color:var(--bd1);color:var(--t4)}
+body.dark .gf-input:focus,body.dark .gf-select:focus{border-color:var(--bd2);background:var(--e4)}
+body.dark .gf-input::placeholder{color:var(--t0)}
+body.dark .gf-btn{background:#f4f4f5;color:#0a0a0b}
+body.dark .gf-btn:hover{background:#e6e6e8;color:#0a0a0b}
+body.dark .gf-btn.ghost{background:transparent;color:#f4f4f5;border:0.5px solid rgba(255,255,255,.22)}
+body.dark .gf-btn.ghost:hover{background:rgba(255,255,255,.08);color:#fff}
+body.dark .gf-chip.on{background:#f4f4f5;border-color:#f4f4f5;color:#0a0a0b}
+body.dark .gf-tab.on{background:#f4f4f5;border-color:#f4f4f5;color:#0a0a0b}
+body.dark .gf-tab.on b{color:#0a0a0b}
+
+/* THEME TOGGLE BTN */
+.gc-theme{position:fixed;right:18px;bottom:18px;width:34px;height:34px;border-radius:50%;background:var(--e2);border:0.5px solid var(--bd1);color:var(--t2);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--sh2);z-index:50}
+.gc-theme:hover{color:var(--t4)}
+
+@media(max-width:760px){
+  .gf-stats{grid-template-columns:1fr 1fr}
+  .gf-top{grid-template-columns:minmax(0,1fr)}
+  .gf-panel{overflow-x:auto}
+}
+</style>
+</head>
+<body class="dark">
+  <!-- GIFT CODES -->
+  <div class="wrap">
+
+    <div class="gf-head">
+      <div>
+        <div class="gf-title">Gift Codes</div>
+        <div class="gf-sub">Issue and track credit from your balance</div>
+      </div>
+      <div class="hdr-actions">
+        <button class="gf-btn ghost" onclick="gfExport()">Export CSV</button>
+      </div>
+    </div>
+
+    <div class="gf-stats">
+      <div class="net-stat"><div class="net-stat-lbl">Available Balance</div><div class="net-stat-val" id="gfAvail">—</div><div class="net-stat-chg">USDC · withdrawable</div></div>
+      <div class="net-stat"><div class="net-stat-lbl">Balance Used</div><div class="net-stat-val" id="gfUsed">—</div><div class="net-stat-chg">Issued as gift credit</div></div>
+      <div class="net-stat"><div class="net-stat-lbl">Codes Generated</div><div class="net-stat-val" id="gfCount">—</div><div class="net-stat-chg" id="gfCountSub">—</div></div>
+      <div class="net-stat"><div class="net-stat-lbl">Codes Redeemed</div><div class="net-stat-val" id="gfReqCount">—</div><div class="net-stat-chg" id="gfReqSub">—</div></div>
+    </div>
+
+    <div class="gf-top">
+      <div class="gf-card">
+        <div class="gf-card-hd"><div class="gf-card-t">Generate a gift code</div><div class="gf-card-n">From balance</div></div>
+        <div class="gf-avail"><div class="gf-avail-v" id="gfAvail2">—</div><div class="gf-avail-l">available to issue</div></div>
+        <div class="gf-bar"><div class="gf-bar-fill" id="gfBarFill" style="width:0%"></div></div>
+        <div class="gf-bar-lbl"><span id="gfBarLeft">—</span><span id="gfBarRight">—</span></div>
+        <div class="gf-chips" id="gfChips"></div>
+        <div class="gf-row">
+          <div class="gf-field"><span class="gf-lbl">Membership tier value</span><select class="gf-select" id="gfAmt"><option value="">Select a tier…</option><option value="50">Bronze · 50 USD</option><option value="250">Silver · 250 USD</option><option value="750">Gold · 750 USD</option><option value="1500">Platinum · 1,500 USD</option><option value="2500">Diamond · 2,500 USD</option></select></div>
+          <div class="gf-field"><span class="gf-lbl">Expires</span><div class="gf-static" id="gfExp" data-days="7">7 days from issue</div></div>
+        </div>
+        <div class="gf-field"><span class="gf-lbl">Username of redeemer</span><input class="gf-input" id="gfNote" placeholder="e.g. m.ruiz" maxlength="32" autocomplete="off"><div class="gf-hint">Only this account can redeem the code.</div></div>
+        <button class="gf-btn wide" id="gfGenBtn" onclick="gfGenerate()">Generate code</button>
+        <div class="gf-msg" id="gfGenMsg"></div>
+      </div>
+    </div>
+
+    <div class="net-section-hdr"><div class="net-section-title">Codes status</div><div class="gf-tabs" id="gfTabs"></div></div>
+    <div class="gf-panel">
+      <table class="net-table">
+        <thead><tr><th>Code</th><th>Tier</th><th>Value</th><th>Redeemer</th><th>Created</th><th>Expires</th><th>Used date</th></tr></thead>
+        <tbody id="gfTable"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+<script>
+/* ── GIFT CODES ── */
+var GF = {
+  balance: 4820,
+  tiers: [{n:'Bronze',v:50},{n:'Silver',v:250},{n:'Gold',v:750},{n:'Platinum',v:1500},{n:'Diamond',v:2500}],
+  used: 2150,
+  filter: 'all',
+  codes: [
+    {code:'HNTR-8QK2-M4VD', amt:250, note:'m.ruiz', created:'2026-08-12', exp:'2026-08-19', status:'redeemed', by:'m.ruiz', used:'2026-08-14'},
+    {code:'HNTR-3TZP-9WLA', amt:250, note:'d.alvarez', created:'2026-08-21', exp:'2026-08-28', status:'active', by:'—'},
+    {code:'HNTR-VC7N-2KRE', amt:750, note:'k.oyelaran', created:'2026-07-04', exp:'2026-07-11', status:'redeemed', by:'k.oyelaran', used:'2026-07-08'},
+    {code:'HNTR-6JD4-XB1S', amt:50, note:'s.novak', created:'2026-06-18', exp:'2026-06-25', status:'expired', by:'—'},
+    {code:'HNTR-Z5MW-QP8T', amt:1500, note:'t.ibarra', created:'2026-08-29', exp:'2026-09-05', status:'active', by:'—'},
+    {code:'HNTR-LN9G-4HYU', amt:2500, note:'j.whitmore', created:'2026-09-01', exp:'2026-09-08', status:'active', by:'—'}
+  ]
+};
+function gfMoney(n){ return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function gfNewCode(){
+  var a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', p=function(){var o='';for(var i=0;i<4;i++)o+=a[Math.floor(Math.random()*a.length)];return o;};
+  return 'HNTR-'+p()+'-'+p();
+}
+function gfDate(d){ return d.toISOString().slice(0,10); }
+function gfRender(){
+  var g=GF, avail=g.balance, used=g.used, total=avail+used;
+  var q=function(id){return document.getElementById(id);};
+  q('gfAvail').textContent=gfMoney(avail);
+  q('gfAvail2').textContent=gfMoney(avail);
+  q('gfUsed').textContent=gfMoney(used);
+  var pct= total? Math.round(used/total*100):0;
+  q('gfBarFill').style.width=pct+'%';
+  q('gfBarLeft').textContent=gfMoney(used)+' issued';
+  q('gfBarRight').textContent=pct+'% of '+gfMoney(total);
+  var act=g.codes.filter(function(c){return c.status==='active';}).length;
+  q('gfCount').textContent=g.codes.length;
+  q('gfCountSub').textContent=act+' active · '+g.codes.filter(function(c){return c.status==='redeemed';}).length+' redeemed';
+  var red=g.codes.filter(function(c){return c.status==='redeemed';});
+  q('gfReqCount').textContent=red.length;
+  q('gfReqSub').textContent=gfMoney(red.reduce(function(a,c){return a+c.amt;},0))+' USD claimed';
+
+  var chips=GF.tiers.map(function(t){
+    return '<div class="gf-chip'+(avail<t.v?' off':'')+'" onclick="gfSetAmt('+t.v+',this)">'+t.n+' · '+t.v.toLocaleString('en-US')+'</div>';
+  }).join('');
+  q('gfChips').innerHTML=chips;
+
+  var counts={all:g.codes.length,active:act,redeemed:red.length,expired:g.codes.filter(function(c){return c.status==='expired';}).length};
+  q('gfTabs').innerHTML=['all','active','redeemed','expired'].map(function(k){
+    return '<div class="gf-tab'+(g.filter===k?' on':'')+'" onclick="gfFilter(\''+k+'\')">'+(k==='all'?'All':k.charAt(0).toUpperCase()+k.slice(1))+' <b>'+counts[k]+'</b></div>';
+  }).join('');
+  var rows=g.codes.filter(function(c){return g.filter==='all'||c.status===g.filter;});
+  q('gfTable').innerHTML = rows.length ? rows.map(function(c){
+    return '<tr><td><span class="gf-code">'+c.code+'</span></td>'+
+      '<td class="td-asset">'+gfTier(c.amt)+'</td>'+
+      '<td class="td-price">'+gfMoney(c.amt)+'</td>'+
+      '<td class="td-source">'+(c.note?'@'+c.note:'—')+'</td>'+
+      '<td class="td-time">'+c.created+'</td>'+
+      '<td class="td-time">'+c.exp+'</td>'+
+      '<td class="td-time">'+(c.used||'—')+'</td></tr>';
+  }).join('') : '<tr><td colspan="7"><div class="gf-empty">No codes with this status.</div></td></tr>';
+}
+function gfTier(v){ var t=GF.tiers.filter(function(x){return x.v===v;})[0]; return t?t.n:'custom'; }
+function gfSetAmt(v,el){
+  document.getElementById('gfAmt').value=v;
+  document.querySelectorAll('#gfChips .gf-chip').forEach(function(c){c.classList.remove('on');});
+  if(el)el.classList.add('on');
+}
+function gfMsg(id,txt,cls){ var e=document.getElementById(id); e.textContent=txt; e.className='gf-msg '+(cls||''); }
+function gfGenerate(){
+  var amt=parseFloat(document.getElementById('gfAmt').value||'0');
+  var valid=GF.tiers.some(function(t){return t.v===amt;});
+
+  var note=document.getElementById('gfNote').value.trim().toLowerCase();
+  if(!valid){ gfMsg('gfGenMsg','Pick a membership tier value: 50, 250, 750, 1,500 or 2,500.','err'); return; }
+  if(!note){ gfMsg('gfGenMsg','Enter the username of the person who will redeem this code.','err'); return; }
+  if(amt>GF.balance){ gfMsg('gfGenMsg','Amount exceeds your available balance ('+gfMoney(GF.balance)+' USDC).','err'); return; }
+  var code=gfNewCode(), now=new Date();
+  var e=gfDate(new Date(now.getTime()+7*864e5));
+  GF.balance-=amt; GF.used+=amt;
+  GF.codes.unshift({code:code, amt:amt, note:note, created:gfDate(now), exp:e, status:'active', by:'—'});
+  document.getElementById('gfAmt').value=''; document.getElementById('gfNote').value='';
+  document.querySelectorAll('#gfChips .gf-chip').forEach(function(c){c.classList.remove('on');});
+  GF.filter='all'; gfRender();
+  gfMsg('gfGenMsg',code+' created for '+note+' · '+gfMoney(amt)+' USD ('+gfTier(amt)+').','ok');
+}
+function gfCopy(code,el){
+  if(navigator.clipboard) navigator.clipboard.writeText(code).catch(function(){});
+  var o=el.textContent; el.textContent='Copied'; setTimeout(function(){ el.textContent=o; },1200);
+}
+function gfFilter(k){ GF.filter=k; gfRender(); }
+function gfSeed(){ gfRender(); }
+function gfExport(){
+  var head='code,tier,value,redeemer,created,expires,status,used_date';
+  var body=GF.codes.map(function(c){return [c.code,gfTier(c.amt),c.amt,c.note||'',c.created,c.exp,c.status,c.used||''].join(',');}).join('\n');
+  var blob=new Blob([head+'\n'+body],{type:'text/csv'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='hntr-gift-codes.csv'; a.click();
+}
+function mrRedeem(){
+  var el=document.getElementById('mrCodeIn'), v=(el.value||'').trim().toUpperCase();
+  var m=document.getElementById('mrCodeMsg');
+  var set=function(t,c){ m.textContent=t; m.className='gf-msg '+c; };
+  if(!v){ set('Enter a code to redeem.','err'); return; }
+  var c=GF.codes.filter(function(x){return x.code===v;})[0];
+  if(!c){ set('That code does not exist.','err'); return; }
+  if(c.status==='redeemed'){ set('This code was already redeemed on '+c.used+'.','err'); return; }
+  if(c.status==='expired'){ set('This code expired on '+c.exp+'.','err'); return; }
+  c.status='redeemed'; c.used=gfDate(new Date()); c.by=c.note||'you';
+  el.value='';
+  set(gfTier(c.amt)+' membership credit applied · '+gfMoney(c.amt)+' USD.','ok');
+  if(typeof gfRender==='function'&&document.getElementById('gfTable')) gfRender();
+}
+document.addEventListener('DOMContentLoaded',gfRender);
+if(document.getElementById('gfTable')) gfRender();
+
+</script>
+<div class="gc-theme" onclick="document.body.classList.toggle('dark')" title="Toggle theme"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M13 10.5A5.5 5.5 0 0 1 6.5 4a5.5 5.5 0 0 0 0 8.5A5.5 5.5 0 0 0 13 10.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+</body></html>
