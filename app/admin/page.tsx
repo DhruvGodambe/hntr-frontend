@@ -66,6 +66,7 @@ export default function AdminDashboard() {
   const [upgradeTier, setUpgradeTier] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [companyWallet, setCompanyWallet] = useState<string | null>(null);
+  const [backendSignerConfigured, setBackendSignerConfigured] = useState(false);
   const { address, isConnected } = useAccount();
   const { connectWallet } = useConnectWallet();
   const patchUserRef = useRef<
@@ -80,8 +81,14 @@ export default function AdminDashboard() {
   useEffect(() => {
     adminApi
       .getCompanyWallet()
-      .then((data) => setCompanyWallet(data.address || null))
-      .catch(() => setCompanyWallet(null));
+      .then((data) => {
+        setCompanyWallet(data.address || null);
+        setBackendSignerConfigured(Boolean(data.backendSignerConfigured));
+      })
+      .catch(() => {
+        setCompanyWallet(null);
+        setBackendSignerConfigured(false);
+      });
   }, []);
 
   const ensureCompanyWallet = async () => {
@@ -569,9 +576,15 @@ export default function AdminDashboard() {
             <div className="text-[10px] text-gray-500 font-mono break-all">
               Company: {companyWallet || "loading…"}
             </div>
-            <div className="pt-1">
-              <ConnectKitButton />
-            </div>
+            {backendSignerConfigured ? (
+              <p className="text-[10px] text-green-500/90">
+                Backend signer configured — sent server-side, no wallet connection needed.
+              </p>
+            ) : (
+              <div className="pt-1">
+                <ConnectKitButton />
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
@@ -613,20 +626,29 @@ export default function AdminDashboard() {
               }
               setActionLoading(true);
               try {
-                await ensureCompanyWallet();
-                // On-chain Tier enum: 0=None, 1=Bronze… (TIER_ORDER index 0 → 1)
-                const onChainTier = tierIndex(upgradeTier) + 1;
-                const txHash = await writeContract(config, {
-                  address: CONTRACT_ADDRESS,
-                  abi: hntrMembershipAbi,
-                  functionName: "overrideMembershipTier",
-                  args: [selectedUser.walletAddress as `0x${string}`, onChainTier],
-                });
-                await waitForTransactionReceipt(config, { hash: txHash });
-                const result = await adminApi.recordMembershipOverride(selectedUser.username, {
-                  txHash,
-                  tier: upgradeTier,
-                });
+                let result;
+                if (backendSignerConfigured) {
+                  // Backend company-wallet signer sends overrideMembershipTier and
+                  // persists Mongo state — no browser wallet connection needed.
+                  result = await adminApi.executeMembershipOverride(selectedUser.username, {
+                    tier: upgradeTier,
+                  });
+                } else {
+                  await ensureCompanyWallet();
+                  // On-chain Tier enum: 0=None, 1=Bronze… (TIER_ORDER index 0 → 1)
+                  const onChainTier = tierIndex(upgradeTier) + 1;
+                  const txHash = await writeContract(config, {
+                    address: CONTRACT_ADDRESS,
+                    abi: hntrMembershipAbi,
+                    functionName: "overrideMembershipTier",
+                    args: [selectedUser.walletAddress as `0x${string}`, onChainTier],
+                  });
+                  await waitForTransactionReceipt(config, { hash: txHash });
+                  result = await adminApi.recordMembershipOverride(selectedUser.username, {
+                    txHash,
+                    tier: upgradeTier,
+                  });
+                }
                 patchUserRef.current(result.username, result.tier, result.rank || selectedUser.rank, {
                   isForcedMembership: true,
                   tierOverride: result.tierOverride ?? result.tier,

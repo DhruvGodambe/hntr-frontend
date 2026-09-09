@@ -333,6 +333,26 @@ export const adminApi = {
       body: params,
     }),
 
+  // Backend company-wallet signer executes overrideMembershipTier on-chain, then
+  // persists Mongo state. No browser wallet connection required.
+  executeMembershipOverride: (username: string, params: { tier: string }) =>
+    adminRequest<{
+      username: string;
+      walletAddress: string;
+      tier: string;
+      rank: string;
+      isForcedMembership: boolean;
+      isForcedRank?: boolean;
+      previousTier?: string;
+      tierOverride?: string | null;
+      rankOverride?: string | null;
+      txHash: string;
+      message: string;
+    }>(`/api/admin/users/${encodeURIComponent(username)}/execute-membership-override`, {
+      method: "POST",
+      body: params,
+    }),
+
   getTransactions: (params: { type?: string; page?: number; limit?: number; search?: string } = {}) =>
     adminRequest<PaginatedResult<AdminTransaction>>(`/api/admin/transactions${qs(params)}`),
 
