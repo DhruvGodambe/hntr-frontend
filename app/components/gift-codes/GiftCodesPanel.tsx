@@ -15,7 +15,8 @@ import {
   useVoucherAccess,
   useVoucherInvalidate,
 } from "../../../lib/vouchers";
-import { handleAppError } from "../../../lib/errors";
+import { resolveAppError } from "../../../lib/errors";
+import GiftCodeDialog, { type GiftDialogState } from "./GiftCodeDialog";
 
 const FILTERS = ["all", "active", "redeemed", "expired"] as const;
 type FilterKey = (typeof FILTERS)[number];
@@ -325,10 +326,9 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [shareBusy, setShareBusy] = useState(false);
-  const [msg, setMsg] = useState<{ text: string; cls: "ok" | "err" | "" }>({ text: "", cls: "" });
+  const [dialog, setDialog] = useState<GiftDialogState | null>(null);
+  const [dialogBusy, setDialogBusy] = useState(false);
 
-  const [issued, setIssued] = useState<{ code: string; redeemUrl: string; tier: string } | null>(null);
-  const [copied, setCopied] = useState(false);
   const [revealed, setRevealed] = useState<Record<string, string>>({});
   const [shareVoucherId, setShareVoucherId] = useState<string | null>(null);
 
@@ -344,28 +344,35 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
   async function generate() {
     const tier = tiers.find((t) => t.valueUsd === tierValue);
     if (!tier) {
-      setMsg({ text: "Pick a membership tier.", cls: "err" });
+      setDialog({ kind: "error", title: "Pick a tier", message: "Choose a membership tier before generating a code." });
       return;
     }
     if (tier.valueUsd > balance) {
-      setMsg({ text: `Amount exceeds your available ${token} balance (${money(balance)}).`, cls: "err" });
+      setDialog({
+        kind: "error",
+        title: "Insufficient balance",
+        message: `That tier costs more than your available ${token} balance (${money(balance)}).`,
+      });
       return;
     }
     setBusy(true);
-    setMsg({ text: "", cls: "" });
     try {
       const result = await issueVoucher({ tier: tier.name, token, note: note.trim() || undefined });
       await invalidate();
       await accessQuery.refetch();
       await listQuery.refetch();
-      setIssued({ code: result.code, redeemUrl: result.redeemUrl, tier: result.tier });
-      setCopied(false);
       setTierValue("");
       setNote("");
-      setMsg({ text: `${result.tier} gift code created — ${money(result.amountUsd)} ${token}.`, cls: "ok" });
+      setDialog({
+        kind: "issued",
+        title: "Gift code created",
+        tier: result.tier,
+        code: result.code,
+        redeemUrl: result.redeemUrl,
+      });
     } catch (error) {
-      const resolved = handleAppError(error, "Could not create gift code");
-      setMsg({ text: resolved.sub || resolved.title, cls: "err" });
+      const resolved = resolveAppError(error, "Could not create gift code");
+      setDialog({ kind: "error", title: resolved.title, message: resolved.sub || resolved.title });
     } finally {
       setBusy(false);
     }
@@ -376,20 +383,38 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
       const { code } = await revealVoucherCode(voucherId);
       setRevealed((prev) => ({ ...prev, [voucherId]: code }));
     } catch (error) {
-      handleAppError(error, "Could not reveal code");
+      const resolved = resolveAppError(error, "Could not reveal code");
+      setDialog({ kind: "error", title: resolved.title, message: resolved.sub || resolved.title });
     }
   }
 
-  async function revoke(voucherId: string) {
-    if (!window.confirm("Cancel this gift code and refund the balance?")) return;
-    try {
-      await revokeVoucher(voucherId);
-      await invalidate();
-      await accessQuery.refetch();
-      await listQuery.refetch();
-    } catch (error) {
-      handleAppError(error, "Could not cancel gift code");
-    }
+  function revoke(voucherId: string) {
+    setDialog({
+      kind: "confirm",
+      title: "Cancel gift code",
+      message: "This deactivates the code and refunds its value back to your balance. This cannot be undone.",
+      confirmLabel: "Cancel code",
+      danger: true,
+      onConfirm: async () => {
+        setDialogBusy(true);
+        try {
+          await revokeVoucher(voucherId);
+          await invalidate();
+          await accessQuery.refetch();
+          await listQuery.refetch();
+          setDialog({
+            kind: "success",
+            title: "Gift code cancelled",
+            message: "The code is now inactive and its value has been returned to your balance.",
+          });
+        } catch (error) {
+          const resolved = resolveAppError(error, "Could not cancel gift code");
+          setDialog({ kind: "error", title: resolved.title, message: resolved.sub || resolved.title });
+        } finally {
+          setDialogBusy(false);
+        }
+      },
+    });
   }
 
   async function submitShare(usernames: string[]) {
@@ -398,15 +423,23 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
     try {
       const { notified, skipped } = await shareVoucher(shareVoucherId, usernames);
       const names = notified.map((u) => `@${u}`).join(", ");
-      setMsg({
-        text: notified.length
-          ? `Sent to ${names}${skipped.length ? ` · ${skipped.length} skipped` : ""}.`
-          : `No one notified${skipped.length ? ` · ${skipped.map((s) => s.username).join(", ")} skipped` : ""}.`,
-        cls: notified.length ? "ok" : "err",
-      });
       setShareVoucherId(null);
+      setDialog(
+        notified.length
+          ? {
+              kind: "success",
+              title: "Gift code shared",
+              message: `Sent to ${names}${skipped.length ? ` · ${skipped.length} recipient(s) skipped` : ""}. They get an in-app notification with the redeem link.`,
+            }
+          : {
+              kind: "error",
+              title: "Nobody notified",
+              message: `No recipients were notified${skipped.length ? ` · ${skipped.map((s) => s.username).join(", ")} skipped` : ""}.`,
+            },
+      );
     } catch (error) {
-      handleAppError(error, "Could not share");
+      const resolved = resolveAppError(error, "Could not share");
+      setDialog({ kind: "error", title: resolved.title, message: resolved.sub || resolved.title });
     } finally {
       setShareBusy(false);
     }
@@ -419,6 +452,15 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
         onClose={() => !shareBusy && setShareVoucherId(null)}
         onSubmit={submitShare}
         busy={shareBusy}
+      />
+
+      <GiftCodeDialog
+        state={dialog}
+        busy={dialogBusy}
+        onClose={() => {
+          if (dialogBusy) return;
+          setDialog(null);
+        }}
       />
 
       <div className="gc-wrap">
@@ -509,29 +551,6 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
             <button type="button" className="gf-btn wide" onClick={generate} disabled={busy}>
               {busy ? "Creating…" : "Generate code"}
             </button>
-            <div className={`gf-msg ${msg.cls}`}>{msg.text}</div>
-
-            {issued && (
-              <div className="gc-issued">
-                <div className="gc-issued-lbl">{issued.tier} code — copy it now, it is shown once</div>
-                <div className="gc-issued-code">{issued.code}</div>
-                <div className="gc-issued-actions">
-                  <button
-                    type="button"
-                    className="gf-btn"
-                    onClick={() => {
-                      navigator.clipboard?.writeText(issued.redeemUrl);
-                      setCopied(true);
-                    }}
-                  >
-                    {copied ? "Link copied" : "Copy redeem link"}
-                  </button>
-                  <button type="button" className="gf-btn ghost" onClick={() => setIssued(null)}>
-                    Done
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 

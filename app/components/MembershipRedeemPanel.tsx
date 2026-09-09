@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "nextjs-toploader/app";
 import { useVoucherAccess, redeemVoucher, useVoucherInvalidate } from "../../lib/vouchers";
-import { handleAppError } from "../../lib/errors";
+import { resolveAppError } from "../../lib/errors";
+import GiftCodeDialog, { type GiftDialogState } from "./gift-codes/GiftCodeDialog";
 
 const CODE_RE = /^HNTR-[A-Z0-9]{4}-[A-Z0-9]{4}(-[A-Z0-9]{4})?$/;
 
@@ -28,7 +29,7 @@ export default function MembershipRedeemPanel() {
 
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ text: string; cls: "ok" | "err" | "" }>({ text: "", cls: "" });
+  const [dialog, setDialog] = useState<GiftDialogState | null>(null);
 
   useEffect(() => {
     const fromUrl = (searchParams.get("code") || "").trim().toUpperCase();
@@ -43,23 +44,27 @@ export default function MembershipRedeemPanel() {
   async function redeem() {
     const value = code.trim().toUpperCase();
     if (!CODE_RE.test(value)) {
-      setMsg({ text: "Enter a valid code in the format HNTR-XXXX-XXXX-XXXX.", cls: "err" });
+      setDialog({
+        kind: "error",
+        title: "Invalid code",
+        message: "Enter a valid code in the format HNTR-XXXX-XXXX-XXXX.",
+      });
       return;
     }
     setBusy(true);
-    setMsg({ text: "", cls: "" });
     try {
       const result = await redeemVoucher(value);
       await invalidate({ membership: true });
-      setMsg({
-        text: `${result.tier} membership activated — no payment or gas required. Redirecting…`,
-        cls: "ok",
-      });
       setCode("");
-      setTimeout(() => router.push("/network"), 1200);
+      setDialog({
+        kind: "success",
+        title: "Membership activated",
+        message: `Your ${result.tier} membership is now active — no payment or gas required. Taking you to your network…`,
+      });
+      setTimeout(() => router.push("/network"), 1600);
     } catch (error) {
-      const resolved = handleAppError(error, "Redemption failed");
-      setMsg({ text: resolved.sub || resolved.title, cls: "err" });
+      const resolved = resolveAppError(error, "Redemption failed");
+      setDialog({ kind: "error", title: resolved.title, message: resolved.sub || resolved.title });
     } finally {
       setBusy(false);
     }
@@ -102,7 +107,7 @@ export default function MembershipRedeemPanel() {
         Codes are single-use and expire 7 days after issue. Redeeming is free — no payment and no
         gas; the tier credit applies to your membership immediately.
       </div>
-      {msg.text && <div className={`mr-msg ${msg.cls}`}>{msg.text}</div>}
+      <GiftCodeDialog state={dialog} onClose={() => setDialog(null)} />
     </div>
   );
 }
