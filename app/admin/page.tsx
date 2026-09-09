@@ -66,9 +66,6 @@ export default function AdminDashboard() {
   const [upgradeTier, setUpgradeTier] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [companyWallet, setCompanyWallet] = useState<string | null>(null);
-  const [backendSignerConfigured, setBackendSignerConfigured] = useState(false);
-  const { address, isConnected } = useAccount();
-  const { connectWallet } = useConnectWallet();
   const patchUserRef = useRef<
     (
       username: string,
@@ -81,36 +78,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     adminApi
       .getCompanyWallet()
-      .then((data) => {
-        setCompanyWallet(data.address || null);
-        setBackendSignerConfigured(Boolean(data.backendSignerConfigured));
-      })
-      .catch(() => {
-        setCompanyWallet(null);
-        setBackendSignerConfigured(false);
-      });
+      .then((data) => setCompanyWallet(data.address || null))
+      .catch(() => setCompanyWallet(null));
   }, []);
-
-  const ensureCompanyWallet = async () => {
-    clearStoredAuth();
-    if (!companyWallet) {
-      const data = await adminApi.getCompanyWallet();
-      if (!data.address) throw new Error("On-chain company wallet address is unknown.");
-      setCompanyWallet(data.address);
-    }
-    const expected = (companyWallet || (await adminApi.getCompanyWallet()).address)?.toLowerCase();
-    if (!expected) throw new Error("On-chain company wallet address is unknown.");
-    let connected = address;
-    if (!isConnected || !connected) {
-      connected = await connectWallet();
-    }
-    if (connected.toLowerCase() !== expected) {
-      throw new Error(
-        `Connected ${connected.slice(0, 6)}…${connected.slice(-4)} is not the company wallet (${expected.slice(0, 6)}…${expected.slice(-4)}). Switch account in your wallet.`,
-      );
-    }
-    return connected;
-  };
 
   const TIER_ORDER = ["Bronze", "Silver", "Gold", "Platinum", "Diamond"] as const;
   const tierIndex = (t: string) => {
@@ -576,15 +546,9 @@ export default function AdminDashboard() {
             <div className="text-[10px] text-gray-500 font-mono break-all">
               Company: {companyWallet || "loading…"}
             </div>
-            {backendSignerConfigured ? (
-              <p className="text-[10px] text-green-500/90">
-                Backend signer configured — sent server-side, no wallet connection needed.
-              </p>
-            ) : (
-              <div className="pt-1">
-                <ConnectKitButton />
-              </div>
-            )}
+            <p className="text-[10px] text-green-500/90">
+              Signed server-side by the backend company wallet — no wallet connection needed.
+            </p>
           </div>
           <div>
             <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
@@ -616,39 +580,17 @@ export default function AdminDashboard() {
                 notify("error", "User has no wallet address.");
                 return;
               }
-              if (!CONTRACT_ADDRESS) {
-                notify("error", "Contract address is not configured.");
-                return;
-              }
               if (!upgradeTier || tierIndex(upgradeTier) <= tierIndex(selectedUser.tier)) {
                 notify("error", "Select a higher membership tier.");
                 return;
               }
               setActionLoading(true);
               try {
-                let result;
-                if (backendSignerConfigured) {
-                  // Backend company-wallet signer sends overrideMembershipTier and
-                  // persists Mongo state — no browser wallet connection needed.
-                  result = await adminApi.executeMembershipOverride(selectedUser.username, {
-                    tier: upgradeTier,
-                  });
-                } else {
-                  await ensureCompanyWallet();
-                  // On-chain Tier enum: 0=None, 1=Bronze… (TIER_ORDER index 0 → 1)
-                  const onChainTier = tierIndex(upgradeTier) + 1;
-                  const txHash = await writeContract(config, {
-                    address: CONTRACT_ADDRESS,
-                    abi: hntrMembershipAbi,
-                    functionName: "overrideMembershipTier",
-                    args: [selectedUser.walletAddress as `0x${string}`, onChainTier],
-                  });
-                  await waitForTransactionReceipt(config, { hash: txHash });
-                  result = await adminApi.recordMembershipOverride(selectedUser.username, {
-                    txHash,
-                    tier: upgradeTier,
-                  });
-                }
+                // Backend company-wallet signer sends overrideMembershipTier and
+                // persists Mongo state — no browser wallet connection needed.
+                const result = await adminApi.executeMembershipOverride(selectedUser.username, {
+                  tier: upgradeTier,
+                });
                 patchUserRef.current(result.username, result.tier, result.rank || selectedUser.rank, {
                   isForcedMembership: true,
                   tierOverride: result.tierOverride ?? result.tier,
@@ -668,11 +610,7 @@ export default function AdminDashboard() {
                 setActionLoading(false);
               }
             }}
-            disabled={
-              actionLoading ||
-              !selectedUser?.walletAddress ||
-              tierIndex(selectedUser?.tier || "None") >= tierIndex("Diamond")
-            }
+            disabled={actionLoading}
             className="w-full bg-[#f50] py-3 rounded-xl text-sm font-bold shadow-lg shadow-orange-500/10 disabled:opacity-50"
           >
             {actionLoading ? "Confirming on-chain…" : "Set Membership (company wallet)"}
