@@ -6383,6 +6383,39 @@ body.dark .dm-upgrade-btn:hover {
   transform: translateY(-1px);
 }
 
+/* ══ GIFT-CODE DIALOG (success / error / confirm / issued) ══ */
+.gcm-lead { display: flex; gap: 12px; align-items: flex-start; }
+.gcm-icon {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--fm); font-size: 14px; font-weight: 700; line-height: 1;
+  border: 0.5px solid var(--bd1); background: var(--e3); color: var(--t2);
+}
+.gcm-icon.ok { color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, transparent); }
+.gcm-icon.err { color: var(--red); border-color: color-mix(in srgb, var(--red) 45%, transparent); }
+.gcm-icon.warn { color: var(--accent, #f25623); border-color: color-mix(in srgb, var(--accent, #f25623) 45%, transparent); }
+.gcm-icon.issued { color: var(--accent, #f25623); border-color: color-mix(in srgb, var(--accent, #f25623) 45%, transparent); }
+.gcm-msg {
+  margin: 0; font-family: var(--fm); font-size: 12px; line-height: 1.6; color: var(--t2);
+}
+.gcm-code-box {
+  margin-top: 16px; padding: 14px 16px;
+  border: 0.5px solid var(--accent, #f25623); border-radius: 10px; background: var(--e3);
+}
+.gcm-code-lbl {
+  font-family: var(--fm); font-size: 9px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--t0); margin-bottom: 8px;
+}
+.gcm-code {
+  font-family: var(--fm); font-size: 18px; font-weight: 700; letter-spacing: .14em;
+  color: var(--t4); word-break: break-all;
+}
+.gcm-actions { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 4px; }
+.gcm-actions > .dm-cancel-btn, .gcm-actions > .dm-proceed-btn { flex: 1; }
+.gcm-danger { background: var(--red); color: var(--cream); }
+.gcm-danger:hover:not(:disabled) { background: color-mix(in srgb, var(--red) 82%, #000); }
+body.dark .gcm-danger { background: var(--red); color: #fff; }
+
 /* ══ SEARCH PANEL ══ */
 .search-panel {
   position: fixed; top: 44px; left: 50%; 
