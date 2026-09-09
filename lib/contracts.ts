@@ -16,6 +16,7 @@ export const TOKEN_ADDRESSES: Record<"USDT" | "USDC", `0x${string}`> = {
  */
 export const erc20Abi = parseAbi([
   "function approve(address spender, uint256 amount) returns (bool)",
+  "function transfer(address to, uint256 amount) returns (bool)",
   "function allowance(address owner, address spender) view returns (uint256)",
   "function balanceOf(address account) view returns (uint256)",
   "function decimals() view returns (uint8)",
@@ -31,13 +32,13 @@ export const hntrMembershipAbi = parseAbi([
 
   // --- Withdrawals ---
   "function withdrawCommissions(address user, address token)",
-  "function withdrawCompanyWallet(address user, address token)",
+  "function withdrawUnclaimed(address user, address token)",
   "function withdrawProtocolBalance(address token)",
 
-  // --- Company free membership force ---
+  // --- Burner-wallet free membership override ---
   "function overrideMembershipTier(address user, uint8 tier)",
 
-  // --- Bearer voucher redemption (burner wallet is the sole sender) ---
+  // --- Burner wallet: voucher redemption + commission signer + tier override ---
   "function setBurnerWallet(address _burnerWallet)",
   "function burnerWallet() view returns (address)",
   "function voucherRedeemed(bytes32 voucherId) view returns (bool)",
@@ -46,7 +47,8 @@ export const hntrMembershipAbi = parseAbi([
 
   // --- Views ---
   "function companyWallet() view returns (address)",
-  "function getOverdueWallets(address token) view returns (address[])",
+  "function securityWallet() view returns (address)",
+  "function getUnclaimedWallets(address token) view returns (address[])",
   "function withdrawableCommissions(address user, address token) view returns (uint256)",
   "function lockedCommissions(address user, address token) view returns (uint256)",
   "function lastClaimedAt(address user, address token) view returns (uint256)",
@@ -67,7 +69,7 @@ export const hntrMembershipAbi = parseAbi([
   "event VoucherRedeemed(address indexed user, bytes32 indexed voucherId, uint8 oldTier, uint8 newTier, uint256 joinedAt)",
   "event CommissionEarned(address indexed user, uint256 liquidAmount, uint256 lockedAmount, uint8 level, address token)",
   "event CommissionWithdrawn(address indexed user, uint256 amount, address token)",
-  "event CompanyWalletWithdrawn(address indexed user, address indexed token, uint256 amount, address indexed companyWallet)",
+  "event UnclaimedWithdrawn(address indexed user, address indexed token, uint256 amount, address indexed caller)",
   "event ProtocolFundsCredited(address indexed wallet, address indexed token, uint256 amount)",
   "event ProtocolFundsWithdrawn(address indexed wallet, address indexed token, uint256 amount)",
 ]);

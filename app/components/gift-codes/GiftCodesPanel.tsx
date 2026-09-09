@@ -209,14 +209,16 @@ function ShareGiftCodeModal({
         <div className="dm-body">
           <p className="gc-share-sub">
             Search members by username. They get an in-app notification with your redeem link — the
-            code stays bearer (anyone with the link can redeem).
+            code stays bearer (anyone with the link can redeem). It is still a single-use code, so if
+            you add more than one recipient, only whoever redeems it <strong>first</strong> gets the
+            membership — everyone else's link stops working.
           </p>
 
           <div className="dm-amount-hdr">
             <div className="dm-amount-lbl">Recipients</div>
             {selected.length > 0 ? (
               <div className="dm-balance">
-                {selected.length} selected
+                {selected.length} selected{selected.length > 1 ? " · first to redeem wins" : ""}
               </div>
             ) : null}
           </div>
@@ -423,18 +425,34 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
     try {
       const { notified, skipped } = await shareVoucher(shareVoucherId, usernames);
       const names = notified.map((u) => `@${u}`).join(", ");
+      const alreadyNotified = skipped.filter((s) => s.reason === "already notified");
+      const otherSkipped = skipped.filter((s) => s.reason !== "already notified");
+      const skipNote = [
+        alreadyNotified.length
+          ? `${alreadyNotified.length} already notified earlier (not re-sent)`
+          : null,
+        otherSkipped.length
+          ? `${otherSkipped.length} skipped (${otherSkipped.map((s) => `@${s.username}: ${s.reason}`).join(", ")})`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
       setShareVoucherId(null);
       setDialog(
         notified.length
           ? {
               kind: "success",
               title: "Gift code shared",
-              message: `Sent to ${names}${skipped.length ? ` · ${skipped.length} recipient(s) skipped` : ""}. They get an in-app notification with the redeem link.`,
+              message: `Sent to ${names}.${skipNote ? ` ${skipNote}.` : ""}${
+                notified.length > 1
+                  ? " Reminder: this is a single-use code — only whoever redeems it first actually gets the membership; everyone else's link will show “already redeemed”."
+                  : " They get an in-app notification with the redeem link."
+              }`,
             }
           : {
               kind: "error",
               title: "Nobody notified",
-              message: `No recipients were notified${skipped.length ? ` · ${skipped.map((s) => s.username).join(", ")} skipped` : ""}.`,
+              message: skipNote || "No recipients were notified.",
             },
       );
     } catch (error) {

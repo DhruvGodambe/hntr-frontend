@@ -28,19 +28,142 @@ import {
 import { clearStoredAuth } from "@/lib/api";
 import GiftCodesTab from "./GiftCodesTab";
 import { useConnectWallet } from "@/lib/useConnectWallet";
-import { CONTRACT_ADDRESS, TOKEN_ADDRESSES, hntrMembershipAbi } from "@/lib/contracts";
+import { CONTRACT_ADDRESS, TOKEN_ADDRESSES, hntrMembershipAbi, erc20Abi } from "@/lib/contracts";
 import { formatTokenLabel } from "@/lib/tokens";
 import { config } from "@/lib/wagmi";
 import { ConnectKitButton } from "connectkit";
 import { useAccount, useDisconnect } from "wagmi";
 import { writeContract, waitForTransactionReceipt } from "wagmi/actions";
+import { parseUnits } from "viem";
 
 function isWithdrawalTransactionType(type: string): boolean {
-  return type.includes("Withdrawal") || type.includes("WITHDRAW") || type === "COMMISSION_CLAIM" || type === "COMPANY_WALLET_WITHDRAWN";
+  return type.includes("Withdrawal") || type.includes("WITHDRAW") || type === "COMMISSION_CLAIM" || type === "UNCLAIMED_WITHDRAWN" || type === "COMPANY_WALLET_WITHDRAWN";
 }
 
 function transactionAmountColor(type: string): string {
   return isWithdrawalTransactionType(type) ? "text-white" : "text-green-500";
+}
+
+function fmtAmt(n: number) {
+  return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+/**
+ * Connect the on-chain leadership/rank wallet via ConnectKit, verify it matches the
+ * address the contract has, and transfer the shortfall to the burner — USDT first,
+ * then USDC for the rest. Rendered inside the two Distribute modals only.
+ */
+function FundBurnerConnect({
+  walletLabel,
+  onChainWallet,
+  burnerAddress,
+  fund,
+  notify,
+  onFunded,
+}: {
+  walletLabel: string;
+  onChainWallet?: string;
+  burnerAddress?: string;
+  fund?: { USDT: number; USDC: number };
+  notify: (type: "success" | "error" | "info", message: string) => void;
+  onFunded: () => void;
+}) {
+  const { address } = useAccount();
+  const { connectWallet } = useConnectWallet();
+  const [sending, setSending] = useState(false);
+
+  const matches =
+    !!address && !!onChainWallet && address.toLowerCase() === onChainWallet.toLowerCase();
+  const usdt = fund?.USDT ?? 0;
+  const usdc = fund?.USDC ?? 0;
+  const needsFunding = usdt > 0 || usdc > 0;
+  const amtLabel = [usdt > 0 ? `${fmtAmt(usdt)} USDT` : null, usdc > 0 ? `${fmtAmt(usdc)} USDC` : null]
+    .filter(Boolean)
+    .join(" + ");
+
+  const send = async () => {
+    if (!matches || !burnerAddress) return;
+    setSending(true);
+    try {
+      clearStoredAuth();
+      for (const sym of ["USDT", "USDC"] as const) {
+        const amt = sym === "USDT" ? usdt : usdc;
+        if (amt <= 0) continue;
+        const hash = await writeContract(config, {
+          address: TOKEN_ADDRESSES[sym],
+          abi: erc20Abi,
+          functionName: "transfer",
+          args: [burnerAddress as `0x${string}`, parseUnits(String(amt), 6)],
+        });
+        await waitForTransactionReceipt(config, { hash });
+        notify("success", `Sent ${fmtAmt(amt)} ${sym} to the burner`);
+      }
+      onFunded();
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "Fund transfer failed");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const short = (a?: string) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "");
+
+  return (
+    <div className="rounded-xl border border-[#222] bg-[#111] p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <span className="text-[11px] text-gray-400">
+          Step 1 — connect the {walletLabel}{" "}
+          <span className="font-mono text-gray-500">{short(onChainWallet)}</span>
+        </span>
+        <ConnectKitButton.Custom>
+          {({ isConnected: ck, show, truncatedAddress, ensName }) => (
+            <button
+              type="button"
+              onClick={async () => {
+                clearStoredAuth();
+                if (ck) {
+                  show?.();
+                  return;
+                }
+                try {
+                  await connectWallet();
+                } catch (e) {
+                  notify("error", e instanceof Error ? e.message : "Wallet connect failed");
+                }
+              }}
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all ${
+                matches
+                  ? "bg-green-500/10 border-green-500/40 text-green-400"
+                  : ck
+                    ? "bg-yellow-500/10 border-yellow-500/40 text-yellow-400"
+                    : "bg-[#1a1a1a] border-[#333] text-white hover:border-[#f50]"
+              }`}
+            >
+              {matches
+                ? `Connected · ${ensName ?? truncatedAddress}`
+                : ck
+                  ? `Wrong wallet · ${ensName ?? truncatedAddress}`
+                  : `Connect ${walletLabel}`}
+            </button>
+          )}
+        </ConnectKitButton.Custom>
+      </div>
+      {needsFunding ? (
+        <button
+          type="button"
+          disabled={!matches || sending}
+          onClick={send}
+          className="w-full py-2 rounded-lg text-xs font-bold bg-[#f50] text-white disabled:opacity-40"
+        >
+          {sending ? "Sending…" : `Step 2 — send ${amtLabel} to burner`}
+        </button>
+      ) : (
+        <div className="text-[11px] text-green-500/80">
+          Burner already holds enough — go straight to Distribute.
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function AdminDashboard() {
@@ -65,7 +188,7 @@ export default function AdminDashboard() {
   const [upgradeRank, setUpgradeRank] = useState("");
   const [upgradeTier, setUpgradeTier] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  const [companyWallet, setCompanyWallet] = useState<string | null>(null);
+  const [overrideSigner, setOverrideSigner] = useState<string | null>(null);
   const patchUserRef = useRef<
     (
       username: string,
@@ -77,9 +200,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     adminApi
-      .getCompanyWallet()
-      .then((data) => setCompanyWallet(data.address || null))
-      .catch(() => setCompanyWallet(null));
+      .getBurnerHealth()
+      .then((data) => setOverrideSigner(data.onChainAddress || data.configuredAddress || null))
+      .catch(() => setOverrideSigner(null));
   }, []);
 
   const TIER_ORDER = ["Bronze", "Silver", "Gold", "Platinum", "Diamond"] as const;
@@ -134,7 +257,7 @@ export default function AdminDashboard() {
       const month = result.month;
       notify(
         "success",
-        `Leadership distributed${month ? ` for ${month}` : ""}: ${paid} paid${failed ? `, ${failed} failed` : ""} (protocol → burner → users).`,
+        `Leadership distributed${month ? ` for ${month}` : ""}: ${paid} paid${failed ? `, ${failed} failed` : ""} (burner → users).`,
       );
       loadMetrics();
     } catch (err) {
@@ -319,7 +442,7 @@ export default function AdminDashboard() {
         <div className="space-y-6">
           <p className="text-gray-400 text-sm leading-relaxed">
             {leadershipPreview?.hopNote ||
-              "Two-hop: leadership wallet funds the burner (protocol pays gas), then the burner pays eligible Hunter+ users (burner pays gas)."}
+              "Step 1: connect the leadership wallet and transfer USDT/USDC to the burner. Step 2: Distribute pays eligible Hunter+ users from the burner (burner pays gas)."}
           </p>
           <div className="bg-[#1a1a1a] p-4 rounded-xl border border-[#222] space-y-3">
             <div className="flex justify-between">
@@ -338,13 +461,13 @@ export default function AdminDashboard() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-xs text-gray-500 font-bold uppercase">Protocol ETH (hop 1 gas)</span>
+              <span className="text-xs text-gray-500 font-bold uppercase">Funding wallet ETH</span>
               <span className="text-sm font-bold text-white">
                 {(leadershipPreview?.protocolEth ?? 0).toFixed(4)} ETH
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-xs text-gray-500 font-bold uppercase">Burner ETH (hop 2 gas)</span>
+              <span className="text-xs text-gray-500 font-bold uppercase">Burner ETH (gas)</span>
               <span className="text-sm font-bold text-white">
                 {(leadershipPreview?.burnerEth ?? 0).toFixed(4)} ETH
                 {leadershipPreview?.burnerMinEth != null
@@ -354,7 +477,7 @@ export default function AdminDashboard() {
             </div>
             {leadershipPreview?.lastBatch?.status === "PARTIAL" ? (
               <div className="text-xs text-yellow-500 font-bold">
-                Last batch PARTIAL — re-run will use burner remainder first.
+                Last batch PARTIAL — top up the burner and re-run.
               </div>
             ) : null}
             {leadershipPreview?.poolTokens?.length ? (
@@ -388,6 +511,16 @@ export default function AdminDashboard() {
           ) : (
             <p className="text-xs text-gray-500 text-center">No Hunter+ ranks currently eligible.</p>
           )}
+          <FundBurnerConnect
+            walletLabel="leadership wallet"
+            onChainWallet={leadershipPreview?.fundFromWallet ?? leadershipPreview?.leadershipWallet}
+            burnerAddress={leadershipPreview?.burnerWallet}
+            fund={leadershipPreview?.fundToBurner}
+            notify={notify}
+            onFunded={() =>
+              adminApi.getLeadershipPreview().then(setLeadershipPreview).catch(() => {})
+            }
+          />
           <div className="flex gap-3">
             <button onClick={() => setIsLeadershipModalOpen(false)} className="flex-1 px-6 py-3 rounded-xl bg-[#222] text-sm font-bold">
               Cancel
@@ -407,7 +540,7 @@ export default function AdminDashboard() {
         <div className="space-y-6">
           <p className="text-gray-400 text-sm leading-relaxed">
             {achievementPreview?.hopNote ||
-              "Two-hop: achievement wallet funds the burner, then burner pays PENDING rank bonuses. Bonus Review Approve only queues — it does not send funds."}
+              "Step 1: connect the rank wallet and transfer USDT/USDC to the burner. Step 2: Distribute pays PENDING rank bonuses from the burner. Bonus Review Approve only queues — it does not send funds."}
           </p>
           <div className="bg-[#1a1a1a] p-4 rounded-xl border border-[#222] space-y-3">
             <div className="flex justify-between">
@@ -425,20 +558,20 @@ export default function AdminDashboard() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-xs text-gray-500 font-bold uppercase">Protocol ETH (hop 1 gas)</span>
+              <span className="text-xs text-gray-500 font-bold uppercase">Funding wallet ETH</span>
               <span className="text-sm font-bold text-white">
                 {(achievementPreview?.protocolEth ?? 0).toFixed(4)} ETH
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-xs text-gray-500 font-bold uppercase">Burner ETH (hop 2 gas)</span>
+              <span className="text-xs text-gray-500 font-bold uppercase">Burner ETH (gas)</span>
               <span className="text-sm font-bold text-white">
                 {(achievementPreview?.burnerEth ?? 0).toFixed(4)} ETH
               </span>
             </div>
             {achievementPreview?.lastBatch?.status === "PARTIAL" ? (
               <div className="text-xs text-yellow-500 font-bold">
-                Last batch PARTIAL — re-run will use burner remainder first.
+                Last batch PARTIAL — top up the burner and re-run.
               </div>
             ) : null}
           </div>
@@ -457,6 +590,16 @@ export default function AdminDashboard() {
           ) : (
             <p className="text-xs text-gray-500 text-center">No PENDING rank bonuses to pay.</p>
           )}
+          <FundBurnerConnect
+            walletLabel="rank wallet"
+            onChainWallet={achievementPreview?.fundFromWallet ?? achievementPreview?.rankWallet}
+            burnerAddress={achievementPreview?.burnerWallet}
+            fund={achievementPreview?.fundToBurner}
+            notify={notify}
+            onFunded={() =>
+              adminApi.getAchievementPreview().then(setAchievementPreview).catch(() => {})
+            }
+          />
           <div className="flex gap-3">
             <button onClick={() => setIsAchievementModalOpen(false)} className="flex-1 px-6 py-3 rounded-xl bg-[#222] text-sm font-bold">
               Cancel
@@ -479,7 +622,7 @@ export default function AdminDashboard() {
               <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Membership</div>
               <div className="text-sm font-bold text-white">{selectedUser?.tier || "None"}</div>
               <p className="mt-1 text-[11px] text-gray-500">
-                Use “Set Membership” to force tier on-chain (company wallet pays gas only).
+                Use “Set Membership” to force tier on-chain (backend burner wallet pays gas).
               </p>
             </div>
             <div>
@@ -540,14 +683,14 @@ export default function AdminDashboard() {
         <div className="space-y-6">
           <div className="bg-[#1a1a1a] border border-[#222] rounded-xl px-4 py-3 space-y-2">
             <p className="text-[11px] text-gray-400">
-              Company wallet pays gas only. No membership price and no commissions. Marks{" "}
+              Backend burner wallet pays gas only. No membership price and no commissions. Marks{" "}
               <span className="text-amber-400 font-bold">forced membership</span>.
             </p>
             <div className="text-[10px] text-gray-500 font-mono break-all">
-              Company: {companyWallet || "loading…"}
+              Signer: {overrideSigner || "loading…"}
             </div>
             <p className="text-[10px] text-green-500/90">
-              Signed server-side by the backend company wallet — no wallet connection needed.
+              Signed server-side by the backend burner wallet — no wallet connection needed.
             </p>
           </div>
           <div>
@@ -570,7 +713,12 @@ export default function AdminDashboard() {
             ) : (
               <p className="mt-2 text-[11px] text-gray-500">
                 Current: {selectedUser?.tier || "None"}
-                {selectedUser?.isForcedMembership ? " (forced)" : ""}. Upgrade only.
+                {selectedUser?.isForcedMembership && !selectedUser?.isVoucherMembership
+                  ? " (forced)"
+                  : selectedUser?.isVoucherMembership
+                    ? " (gift)"
+                    : ""}
+                . Upgrade only.
               </p>
             )}
           </div>
@@ -586,7 +734,7 @@ export default function AdminDashboard() {
               }
               setActionLoading(true);
               try {
-                // Backend company-wallet signer sends overrideMembershipTier and
+                // Backend burner-wallet signer sends overrideMembershipTier and
                 // persists Mongo state — no browser wallet connection needed.
                 const result = await adminApi.executeMembershipOverride(selectedUser.username, {
                   tier: upgradeTier,
@@ -613,7 +761,7 @@ export default function AdminDashboard() {
             disabled={actionLoading}
             className="w-full bg-[#f50] py-3 rounded-xl text-sm font-bold shadow-lg shadow-orange-500/10 disabled:opacity-50"
           >
-            {actionLoading ? "Confirming on-chain…" : "Set Membership (company wallet)"}
+            {actionLoading ? "Confirming on-chain…" : "Set Membership (burner wallet)"}
           </button>
         </div>
       </AdminModal>
@@ -1011,12 +1159,19 @@ function UsersTabContent({
               <td className="px-6 py-4 text-sm font-medium">
                 <div className="flex items-center gap-2">
                   <span>{u.tier}</span>
-                  {u.isForcedMembership ? (
+                  {u.isForcedMembership && !u.isVoucherMembership ? (
                     <span
                       className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-sky-500/40 text-sky-400"
-                      title="Company free membership override (no payment)"
+                      title="Admin-forced membership override (no payment)"
                     >
                       Forced
+                    </span>
+                  ) : u.isVoucherMembership ? (
+                    <span
+                      className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-violet-500/40 text-violet-400"
+                      title="Membership redeemed via gift code (no payment)"
+                    >
+                      Gift
                     </span>
                   ) : null}
                 </div>
@@ -1052,7 +1207,7 @@ function UsersTabContent({
                   <button
                     onClick={() => onMembershipClick(u)}
                     className="p-2 hover:bg-[#222] rounded-lg border border-[#222] transition-colors text-[10px] font-bold"
-                    title="Set membership (company wallet)"
+                    title="Set membership (burner wallet)"
                   >
                     Tier
                   </button>
@@ -1181,9 +1336,11 @@ function TransactionsTabContent({ notify }: { notify: (type: "success" | "error"
   }, [filter, limit]);
 
   const typeLabel = (t: string) => {
-    if (t === "COMPANY_WALLET_WITHDRAWN") return "Admin Withdrawal";
+    if (t === "UNCLAIMED_WITHDRAWN" || t === "COMPANY_WALLET_WITHDRAWN") return "Unclaimed Withdrawal";
     if (t === "PURCHASE") return "Purchase";
     if (t === "UPGRADE") return "Upgrade";
+    if (t === "VOUCHER_MEMBERSHIP_REDEEM") return "Gift Redemption";
+    if (t === "MEMBERSHIP_OVERRIDE") return "Membership Override";
     if (t.includes("WITHDRAW") || t === "COMMISSION_CLAIM") return "Withdrawal";
     return "Commission";
   };
@@ -1272,16 +1429,16 @@ function UnclaimedTabContent({
   const [limit, setLimit] = useState(10);
   const [totalUnclaimed, setTotalUnclaimed] = useState(0);
   const [counts, setCounts] = useState({ all: 0, never: 0, overdue_30d: 0 });
-  const [companyWallet, setCompanyWallet] = useState<string>("");
+  const [securityWallet, setSecurityWallet] = useState<string>("");
   const [tokenAddress, setTokenAddress] = useState<string>("");
   const [withdrawing, setWithdrawing] = useState<string | null>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  const connectedIsCompany =
-    !!address && !!companyWallet && address.toLowerCase() === companyWallet.toLowerCase();
+  const connectedIsSecurity =
+    !!address && !!securityWallet && address.toLowerCase() === securityWallet.toLowerCase();
 
   useEffect(() => {
-    // Never reuse member wallet JWT while operating company-wallet withdraws.
+    // Never reuse member wallet JWT while operating security-wallet withdraws.
     clearStoredAuth();
   }, []);
 
@@ -1293,9 +1450,9 @@ function UnclaimedTabContent({
   ) => {
     setLoading(true);
     try {
-      const [data, company] = await Promise.all([
+      const [data, security] = await Promise.all([
         adminApi.getOverdueCommissions(nextToken, page, pageLimit, nextFilter),
-        adminApi.getCompanyWallet().catch(() => null),
+        adminApi.getSecurityWallet().catch(() => null),
       ]);
       setRows(data.items || []);
       setPagination(data.pagination);
@@ -1303,8 +1460,8 @@ function UnclaimedTabContent({
       setTotalUnclaimed(total);
       onTotalChange?.(total);
       if (data.counts) setCounts(data.counts);
-      if (data.companyWallet) setCompanyWallet(data.companyWallet);
-      else if (company?.address) setCompanyWallet(company.address);
+      if (data.securityWallet) setSecurityWallet(data.securityWallet);
+      else if (security?.address) setSecurityWallet(security.address);
       if (data.tokenAddress) setTokenAddress(data.tokenAddress);
       else setTokenAddress(TOKEN_ADDRESSES[nextToken] || "");
     } catch (err) {
@@ -1319,18 +1476,18 @@ function UnclaimedTabContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, claimFilter]);
 
-  const ensureCompanyWallet = async () => {
+  const ensureSecurityWallet = async () => {
     clearStoredAuth();
-    if (!companyWallet) {
-      throw new Error("On-chain company wallet address is unknown.");
+    if (!securityWallet) {
+      throw new Error("On-chain security wallet address is unknown.");
     }
     let connected = address;
     if (!isConnected || !connected) {
       connected = await connectWallet();
     }
-    if (connected.toLowerCase() !== companyWallet.toLowerCase()) {
+    if (connected.toLowerCase() !== securityWallet.toLowerCase()) {
       throw new Error(
-        `Connected ${connected.slice(0, 6)}…${connected.slice(-4)} is not the company wallet (${companyWallet.slice(0, 6)}…${companyWallet.slice(-4)}). Switch account in your wallet.`,
+        `Connected ${connected.slice(0, 6)}…${connected.slice(-4)} is not the security wallet (${securityWallet.slice(0, 6)}…${securityWallet.slice(-4)}). Switch account in your wallet.`,
       );
     }
     return connected;
@@ -1341,17 +1498,17 @@ function UnclaimedTabContent({
     if (!CONTRACT_ADDRESS) throw new Error("Contract address is not configured.");
     if (!tokenAddr) throw new Error(`${token} token address is not configured.`);
 
-    await ensureCompanyWallet();
+    await ensureSecurityWallet();
 
     const txHash = await writeContract(config, {
       address: CONTRACT_ADDRESS,
       abi: hntrMembershipAbi,
-      functionName: "withdrawCompanyWallet",
+      functionName: "withdrawUnclaimed",
       args: [userWallet as `0x${string}`, tokenAddr],
     });
     await waitForTransactionReceipt(config, { hash: txHash });
 
-    await adminApi.recordCompanyWithdraw({
+    await adminApi.recordSecurityWithdraw({
       walletAddress: userWallet,
       token: tokenAddr,
       txHash,
@@ -1380,7 +1537,7 @@ function UnclaimedTabContent({
     let succeeded = 0;
     let failed = 0;
     try {
-      await ensureCompanyWallet();
+      await ensureSecurityWallet();
       for (const row of rows) {
         try {
           await withdrawOne(row.walletAddress, row.unclaimedUSD);
@@ -1413,8 +1570,8 @@ function UnclaimedTabContent({
         <div>
           <h3 className="text-lg font-bold">Unclaimed Wallets</h3>
           <p className="text-xs text-gray-500 mt-1">
-            Connect the <span className="text-gray-300 font-bold">company wallet</span> via ConnectKit to sign{" "}
-            <span className="font-mono text-gray-400">withdrawCompanyWallet</span> (member auth is cleared).
+            Connect the <span className="text-gray-300 font-bold">security wallet</span> via ConnectKit to sign{" "}
+            <span className="font-mono text-gray-400">withdrawUnclaimed</span> (member auth is cleared).
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
@@ -1434,18 +1591,18 @@ function UnclaimedTabContent({
                   }
                 }}
                 className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
-                  connectedIsCompany
+                  connectedIsSecurity
                     ? "bg-green-500/10 border-green-500/40 text-green-400"
                     : ckConnected
                       ? "bg-yellow-500/10 border-yellow-500/40 text-yellow-400"
                       : "bg-[#1a1a1a] border-[#333] text-white hover:border-[#f50]"
                 }`}
               >
-                {connectedIsCompany
+                {connectedIsSecurity
                   ? `Company · ${ensName ?? truncatedAddress}`
                   : ckConnected
                     ? `Wrong wallet · ${ensName ?? truncatedAddress}`
-                    : "Connect Company Wallet"}
+                    : "Connect Security Wallet"}
               </button>
             )}
           </ConnectKitButton.Custom>
@@ -1482,7 +1639,7 @@ function UnclaimedTabContent({
           </button>
           <button
             onClick={handleWithdrawAll}
-            disabled={loading || bulkLoading || !!withdrawing || rows.length === 0 || !connectedIsCompany}
+            disabled={loading || bulkLoading || !!withdrawing || rows.length === 0 || !connectedIsSecurity}
             className="px-4 py-2 rounded-xl bg-[#f50] text-xs font-bold disabled:opacity-50"
           >
             {bulkLoading ? "Withdrawing..." : "Withdraw Page"}
@@ -1493,18 +1650,18 @@ function UnclaimedTabContent({
       <div className="bg-[#111] border border-[#222] rounded-2xl p-4 space-y-2">
         <div className="flex justify-between items-center gap-3 flex-wrap">
           <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-            On-chain company wallet
+            On-chain security wallet
           </span>
           <span className="text-xs font-mono text-gray-300">
-            {companyWallet ? `${companyWallet.slice(0, 10)}…${companyWallet.slice(-8)}` : "Loading…"}
+            {securityWallet ? `${securityWallet.slice(0, 10)}…${securityWallet.slice(-8)}` : "Loading…"}
           </span>
         </div>
-        {!connectedIsCompany ? (
+        {!connectedIsSecurity ? (
           <p className="text-[11px] text-yellow-500/90">
-            Connect the company wallet above before withdrawing. Member wallet auth tokens are cleared on this page.
+            Connect the security wallet above before withdrawing. Member wallet auth tokens are cleared on this page.
           </p>
         ) : (
-          <p className="text-[11px] text-green-500/90">Company wallet connected — withdraws will be signed in your wallet.</p>
+          <p className="text-[11px] text-green-500/90">Security wallet connected — withdraws will be signed in your wallet.</p>
         )}
       </div>
 
@@ -1590,7 +1747,7 @@ function UnclaimedTabContent({
               <td className="px-6 py-4">
                 <button
                   onClick={() => handleWithdraw(w)}
-                  disabled={!!withdrawing || bulkLoading || !connectedIsCompany}
+                  disabled={!!withdrawing || bulkLoading || !connectedIsSecurity}
                   className="px-4 py-2 rounded-lg bg-[#1a1a1a] border border-[#333] hover:border-[#f50] hover:text-[#f50] text-xs font-bold transition-all disabled:opacity-50"
                 >
                   {withdrawing === w.walletAddress ? "Withdrawing..." : "Withdraw"}

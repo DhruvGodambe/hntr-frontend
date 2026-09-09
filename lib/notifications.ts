@@ -15,6 +15,7 @@ export type BackendNotificationType =
   | "RANK_UP"
   | "VOUCHER_RECEIVED"
   | "VOUCHER_REDEEMED"
+  | "VOUCHER_CLAIMED_BY_OTHER"
   | "GENERAL";
 
 export interface BackendNotification {

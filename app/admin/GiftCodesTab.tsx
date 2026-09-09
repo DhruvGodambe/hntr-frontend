@@ -597,7 +597,7 @@ function BurnerPane({ notify }: { notify: Notify }) {
           </span>
         </div>
         <p className="text-[11px] text-gray-500">
-          Sends every voucher redemption and pays its gas, so redeemers never sign a tx. Holds ETH
+         Sends every voucher redemption and pays its gas, so redeemers never sign a tx. Holds ETH
           only — never tokens.
         </p>
         <dl className="text-xs space-y-1.5">
