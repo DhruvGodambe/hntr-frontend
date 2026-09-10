@@ -7057,6 +7057,10 @@ body.dark #signupOverlay{background:rgba(0,0,0,.6);}
 .su-field-hint{margin-top:6px;font-family:var(--fm);font-size:11px;line-height:1.45;color:var(--t2);}
 .su-field-hint.is-success{color:#15803d;}
 .su-input.is-valid{border-color:#15803d;}
+/* Cloudflare Turnstile — centre the fixed-width widget in every signup step */
+.su-turnstile{display:flex;justify-content:center;}
+.su-turnstile-widget{display:flex;justify-content:center;width:100%;}
+.su-turnstile-widget iframe{margin:0 auto;}
 body.dark .su-field-error{color:#fca5a5;}
 body.dark .su-field-hint{color:var(--t3);}
 body.dark .su-field-hint.is-success{color:#86efac;}

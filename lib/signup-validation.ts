@@ -1,4 +1,5 @@
 import {
+  defaultCountryForRegion,
   getCountriesForRegion,
   getCountryOption,
   toIsoCountry,
@@ -36,7 +37,16 @@ export type SignupStep2Values = {
 export type SignupStep2Errors = Partial<Record<keyof SignupStep2Values, string>>;
 
 const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,20}$/;
-const FULL_NAME_PATTERN = /^[a-zA-Z\s'.-]{2,80}$/;
+const FULL_NAME_ALLOWED = /^[a-zA-Z\s'.-]+$/;
+
+/** Obvious filler words people type to skip the field. */
+const PLACEHOLDER_NAME_TOKENS = new Set([
+  "test", "testing", "tester", "user", "users", "username", "admin", "administrator",
+  "demo", "sample", "example", "name", "fullname", "firstname", "lastname", "surname",
+  "asdf", "asdfg", "qwerty", "abc", "abcd", "xyz", "foo", "bar", "baz", "lorem", "ipsum",
+  "none", "null", "undefined", "unknown", "anonymous", "nobody", "someone", "dummy",
+  "aaa", "aaaa", "xxx", "xxxx", "nil",
+]);
 
 export function validateUsername(value: string, label = "Username"): string | undefined {
   const trimmed = value.trim();
@@ -50,9 +60,44 @@ export function validateUsername(value: string, label = "Username"): string | un
 export function validateFullName(value: string): string | undefined {
   const trimmed = value.trim().replace(/\s+/g, " ");
   if (!trimmed) return "Full name is required.";
-  if (!FULL_NAME_PATTERN.test(trimmed)) {
-    return "Full name may only contain letters, spaces, hyphens, apostrophes, or periods.";
+  if (trimmed.length < 3 || trimmed.length > 80) {
+    return "Full name must be between 3 and 80 characters.";
   }
+  if (!FULL_NAME_ALLOWED.test(trimmed) || !/^[a-zA-Z]/.test(trimmed) || !/[a-zA-Z]$/.test(trimmed)) {
+    return "Enter your name using letters, spaces, hyphens, apostrophes, or periods only.";
+  }
+
+  const letters = trimmed.replace(/[^a-zA-Z]/g, "").toLowerCase();
+  const distinctLetters = new Set(letters).size;
+  // A name built from one repeated letter ("aaaa", "aa aa"), from two letters
+  // ("abababab"), or with a 3+ identical run ("Jaaaane") is not a real name.
+  if (distinctLetters < 2 || (letters.length >= 6 && distinctLetters < 3)) {
+    return "Enter your real full name.";
+  }
+  if (/([a-zA-Z])\1\1/i.test(trimmed)) {
+    return "Enter your real full name.";
+  }
+
+  const parts = trimmed.split(" ").filter(Boolean);
+  if (parts.length < 2) {
+    return "Enter your first and last name.";
+  }
+
+  const alphaParts = parts.map((part) => part.replace(/[^a-zA-Z]/g, ""));
+  const first = alphaParts[0];
+  const last = alphaParts[alphaParts.length - 1];
+  if (first.length < 2 || last.length < 2) {
+    return "Enter your full first and last name (no single-letter names).";
+  }
+
+  const lowerParts = alphaParts.map((part) => part.toLowerCase());
+  if (lowerParts.every((part) => PLACEHOLDER_NAME_TOKENS.has(part))) {
+    return "Enter your real full name, not a placeholder.";
+  }
+  if (lowerParts.length === 2 && lowerParts[0] === lowerParts[1]) {
+    return "Enter your real full name.";
+  }
+
   return undefined;
 }
 
@@ -71,6 +116,22 @@ export function validateCountry(value: SignupCountryCode | "", region: SignupReg
   return undefined;
 }
 
+/**
+ * Reject numbers that pass a length check but are obviously not real:
+ * all-identical digits, only two distinct digits, or a full ascending/descending
+ * run (e.g. 1111111111, 1212121212, 1234567890).
+ */
+export function hasFakePhonePattern(nationalDigits: string): boolean {
+  if (nationalDigits.length < 5) return false;
+  if (/^(\d)\1+$/.test(nationalDigits)) return true;
+  if (/(\d)\1{5,}/.test(nationalDigits)) return true;
+  if (new Set(nationalDigits).size <= 2) return true;
+  const ascending = "01234567890";
+  const descending = "09876543210";
+  if (ascending.includes(nationalDigits) || descending.includes(nationalDigits)) return true;
+  return false;
+}
+
 export function validatePhone(
   value: string,
   countryCode: SignupCountryCode | "",
@@ -79,28 +140,56 @@ export function validatePhone(
   const trimmed = value.trim();
   if (!trimmed) return "Phone number is required.";
 
-  const countryError = validateCountry(countryCode, region);
+  const effectiveCountry = countryCode || defaultCountryForRegion(region);
+  const countryError = validateCountry(effectiveCountry, region);
   if (countryError) return countryError;
 
-  const country = getCountryOption(countryCode);
-  const isoCountry = toIsoCountry(countryCode);
-  if (!isoCountry) return "Select a valid country.";
+  const country = getCountryOption(effectiveCountry);
+  const isoCountry = toIsoCountry(effectiveCountry);
+  if (!country || !isoCountry) return "Select a valid country.";
+
+  let parsed: ReturnType<typeof parsePhoneNumber> | undefined;
+  try {
+    parsed = parsePhoneNumber(trimmed);
+  } catch {
+    parsed = undefined;
+  }
+
+  if (!parsed || !parsed.nationalNumber) {
+    return `Enter a valid ${country.label} mobile number, including +${country.dialCode}.`;
+  }
+
+  // The dialled country code must match the country picked in the form.
+  if (parsed.countryCallingCode && String(parsed.countryCallingCode) !== country.dialCode) {
+    return `Use a +${country.dialCode} ${country.label} number, or change the selected country.`;
+  }
+
+  const nationalDigits = String(parsed.nationalNumber);
+  if (
+    nationalDigits.length < country.nationalMinDigits ||
+    nationalDigits.length > country.nationalMaxDigits
+  ) {
+    const expected =
+      country.nationalMinDigits === country.nationalMaxDigits
+        ? `${country.nationalMinDigits} digits`
+        : `${country.nationalMinDigits}–${country.nationalMaxDigits} digits`;
+    return `A ${country.label} number must be ${expected} after +${country.dialCode}.`;
+  }
+
+  if (hasFakePhonePattern(nationalDigits)) {
+    return "Enter a real phone number.";
+  }
 
   if (!isPossiblePhoneNumber(trimmed, isoCountry)) {
-    return `Enter a valid ${country?.label ?? "phone"} number for +${country?.dialCode ?? ""}.`;
+    return `Enter a valid ${country.label} number for +${country.dialCode}.`;
   }
 
   if (!isValidPhoneNumber(trimmed, isoCountry)) {
-    return `Enter a complete ${country?.label ?? "phone"} number (include +${country?.dialCode ?? ""}).`;
+    return `Enter a complete, valid ${country.label} mobile number.`;
   }
 
-  try {
-    const parsed = parsePhoneNumber(trimmed);
-    if (parsed?.country && parsed.country.toLowerCase() !== countryCode) {
-      return `This number does not match ${country?.label ?? "the selected country"}.`;
-    }
-  } catch {
-    // isValidPhoneNumber already passed
+  if (parsed.country && parsed.country.toLowerCase() !== effectiveCountry) {
+    return `This number does not match ${country.label}.`;
   }
 
   return undefined;

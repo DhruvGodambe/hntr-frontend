@@ -86,6 +86,9 @@ export default function SignupOverlays() {
   const [sponsorVerified, setSponsorVerified] = useState(false);
   const [sponsorChecking, setSponsorChecking] = useState(false);
   const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [usernameChecking, setUsernameChecking] = useState(false);
   const [region, setRegion] = useState<SignupRegion | "">("");
   const [country, setCountry] = useState<SignupCountryCode | "">("");
   const [phone, setPhone] = useState("");
@@ -152,8 +155,60 @@ export default function SignupOverlays() {
   sponsorLockedRef.current = sponsorLocked;
   sponsorUsernameRef.current = sponsorUsername;
 
-  const usernameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
+
+  const checkUsernameAvailability = useCallback(
+    async (rawUsername: string): Promise<boolean | null> => {
+      const candidate = rawUsername.trim().replace(/^@/, "");
+      if (validateUsername(candidate)) {
+        setUsernameAvailable(null);
+        setUsernameChecking(false);
+        return null;
+      }
+      setUsernameChecking(true);
+      try {
+        const res = await api.get<{ username: string; available: boolean }>(
+          `/api/users/username/${encodeURIComponent(candidate)}/available`,
+        );
+        setUsernameAvailable(res.available);
+        if (res.available) {
+          clearStep2Error("username");
+        } else {
+          setStep2Errors((prev) => ({
+            ...prev,
+            username: "This username is already taken. Choose another.",
+          }));
+        }
+        return res.available;
+      } catch {
+        // Network/validation hiccup — let the register call be the final arbiter.
+        setUsernameAvailable(null);
+        return null;
+      } finally {
+        setUsernameChecking(false);
+      }
+    },
+    [clearStep2Error],
+  );
+
+  // Debounced "is this username free?" check while the user types (mirrors the
+  // sponsor-username verification and the backend uniqueness guard).
+  useEffect(() => {
+    const candidate = username.trim().replace(/^@/, "");
+    setUsernameAvailable(null);
+    if (validateUsername(candidate)) {
+      setUsernameChecking(false);
+      return;
+    }
+    setUsernameChecking(true);
+    const handle = window.setTimeout(() => {
+      void checkUsernameAvailability(candidate);
+    }, 400);
+    return () => {
+      window.clearTimeout(handle);
+      setUsernameChecking(false);
+    };
+  }, [username, checkUsernameAvailability]);
 
   useEffect(() => {
     const sponsor = resolveReferralSponsor();
@@ -208,6 +263,9 @@ export default function SignupOverlays() {
         skipStep2Ref.current = false;
         setIsProfileRegistered(false);
         setSponsorChecking(false);
+        setUsername("");
+        setUsernameAvailable(null);
+        setUsernameChecking(false);
         const storedSponsor = resolveReferralSponsor();
         if (storedSponsor && !sponsorLockedRef.current) {
           setSponsorUsername(storedSponsor);
@@ -423,12 +481,12 @@ export default function SignupOverlays() {
       if (!verified) return;
     }
 
-    const username = usernameRef.current?.value.trim() ?? "";
+    const trimmedUsername = username.trim().replace(/^@/, "");
     const email = emailRef.current?.value.trim() ?? "";
 
     const errors = validateSignupStep2({
       sponsor,
-      username,
+      username: trimmedUsername,
       fullName,
       region,
       country,
@@ -438,6 +496,21 @@ export default function SignupOverlays() {
     if (Object.keys(errors).length > 0) {
       setRegisterFormError("Please complete the required fields before continuing.");
       setStep2Errors(errors);
+      return;
+    }
+    if (usernameChecking) {
+      setRegisterFormError("Checking username availability — try again in a moment.");
+      return;
+    }
+    // Authoritative availability check (covers the case where the debounce
+    // hasn't fired yet). The backend register call is still the final guard.
+    const available = usernameAvailable ?? (await checkUsernameAvailability(trimmedUsername));
+    if (available === false) {
+      setRegisterFormError("This username is already taken. Choose another.");
+      setStep2Errors((prev) => ({
+        ...prev,
+        username: "This username is already taken. Choose another.",
+      }));
       return;
     }
     if (!address) {
@@ -455,14 +528,14 @@ export default function SignupOverlays() {
     setRegisterBusy(true);
     try {
       await api.post("/api/users/register", {
-        username,
+        username: trimmedUsername,
         walletAddress: address,
         email,
         phone: formatPhoneE164(phone, country),
         sponsorUsername: sponsor,
         turnstileToken: captchaToken || undefined,
       });
-      setCurrentUsername(username);
+      setCurrentUsername(trimmedUsername);
       skipStep2Ref.current = true;
       setIsProfileRegistered(true);
       setPurchaseStatus({ state: "idle" });
@@ -622,18 +695,28 @@ export default function SignupOverlays() {
                 <div>
                   <label className="su-lbl">Username</label>
                   <input
-                    className={`su-input${step2Errors.username ? " is-error" : ""}`}
+                    className={`su-input${step2Errors.username ? " is-error" : ""}${
+                      usernameAvailable === true && !step2Errors.username ? " is-valid" : ""
+                    }`}
                     id="suUsername"
-                    ref={usernameRef}
+                    value={username}
                     placeholder="e.g. ALPHA"
                     required
+                    maxLength={20}
+                    autoComplete="off"
                     disabled={profileFieldsDisabled}
                     aria-invalid={!!step2Errors.username}
                     onChange={(e) => {
-                      e.target.value = e.target.value.replace(/[^a-zA-Z0-9_]/g, "");
+                      setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 20));
                       clearStep2Error("username");
                     }}
                   />
+                  {usernameChecking && <p className="su-field-hint">Checking availability…</p>}
+                  {!usernameChecking &&
+                    usernameAvailable === true &&
+                    !step2Errors.username && (
+                      <p className="su-field-hint is-success">Username is available.</p>
+                    )}
                   {step2Errors.username && <p className="su-field-error">{step2Errors.username}</p>}
                 </div>
                 <div>
@@ -734,8 +817,9 @@ export default function SignupOverlays() {
                 {step2Errors.email && <p className="su-field-error">{step2Errors.email}</p>}
               </div>
               {isTurnstileEnabled() && (
-                <div className="su-field">
+                <div className="su-field su-turnstile">
                   <Turnstile
+                    className="su-turnstile-widget"
                     theme="dark"
                     onVerify={setCaptchaToken}
                     onExpire={() => setCaptchaToken("")}
@@ -749,10 +833,18 @@ export default function SignupOverlays() {
                 disabled={
                   registerBusy ||
                   sponsorChecking ||
+                  usernameChecking ||
+                  usernameAvailable === false ||
                   (isTurnstileEnabled() && !captchaToken)
                 }
               >
-                {registerBusy ? "Registering..." : sponsorChecking ? "Verifying sponsor..." : <>Continue&nbsp;&nbsp;→</>}
+                {registerBusy
+                  ? "Registering..."
+                  : sponsorChecking
+                    ? "Verifying sponsor..."
+                    : usernameChecking
+                      ? "Checking username..."
+                      : <>Continue&nbsp;&nbsp;→</>}
               </button>
             </div>
             <div className="su-foot">
