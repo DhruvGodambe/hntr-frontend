@@ -191,6 +191,7 @@ export function resolveAppError(
         sub: message || "Could not prepare your membership payment. Try again or switch token.",
         code,
       };
+    case "BURNER_NOT_CONFIGURED":
     case "COMPANY_WALLET_NOT_CONFIGURED":
       return {
         title: "Purchases unavailable",

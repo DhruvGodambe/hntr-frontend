@@ -48,7 +48,10 @@ const TX_TYPE_LABEL: Record<TransactionEntry["type"], string> = {
   MembershipUpgraded: "Membership Upgrade",
   UPGRADE: "Membership Upgrade",
   COMMISSION_CLAIM: "Commission Claimed",
-  COMPANY_WALLET_WITHDRAWN: "Company Wallet Withdrawal",
+  UNCLAIMED_WITHDRAWN: "Unclaimed Withdrawal",
+  COMPANY_WALLET_WITHDRAWN: "Unclaimed Withdrawal",
+  VOUCHER_MEMBERSHIP_REDEEM: "Gift Redemption",
+  MEMBERSHIP_OVERRIDE: "Membership Override",
   LEADERSHIP_PAYOUT: "Global Sales Bonus",
   ACHIEVEMENT_BONUS: "Rank Bonus",
 };
@@ -111,10 +114,13 @@ function getTxTypeCategory(type: TransactionEntry["type"]) {
     case "CommissionWithdrawn":
     case "COMMISSION_WITHDRAWN":
     case "COMMISSION_CLAIM":
+    case "UNCLAIMED_WITHDRAWN":
     case "COMPANY_WALLET_WITHDRAWN":
       return "claimed";
     case "MembershipPurchased":
     case "PURCHASE":
+    case "VOUCHER_MEMBERSHIP_REDEEM":
+    case "MEMBERSHIP_OVERRIDE":
       return "purchase";
     case "MembershipUpgraded":
     case "UPGRADE":

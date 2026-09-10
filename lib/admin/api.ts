@@ -37,7 +37,7 @@ export interface AdminMetrics {
   totalUsers: number;
   totalVolume: number;
   totalCommissions: number;
-  treasuryBalance: number;
+  companyBalance: number;
   soldMemberships: number;
   activePools: number;
   pendingWithdrawals: number;
@@ -57,6 +57,7 @@ export interface AdminUser {
   isBlocked: boolean;
   isForcedRank?: boolean;
   isForcedMembership?: boolean;
+  isVoucherMembership?: boolean;
   actualTier?: string;
   actualRank?: string;
   tierOverride?: string | null;
@@ -126,6 +127,10 @@ export interface LeadershipPreview {
   totalShares: number;
   month?: string;
   fundTotals?: { USDT: number; USDC: number };
+  burnerHas?: { USDT: number; USDC: number };
+  /** How much USDT then USDC to send the burner from `fundFromWallet` before Distribute. */
+  fundToBurner?: { USDT: number; USDC: number };
+  fundFromWallet?: string;
   hopNote?: string;
   protocolEth?: number;
   burnerEth?: number;
@@ -145,10 +150,14 @@ export interface LeadershipPreview {
 export interface AchievementPreview {
   poolBalanceUSD: number;
   poolTokens: { symbol: string; balance: number }[];
-  achievementWallet?: string;
+  rankWallet?: string;
   pendingCount: number;
   pendingReviewCount: number;
   totalPendingUSD: number;
+  burnerHas?: { USDT: number; USDC: number };
+  /** How much USDT then USDC to send the burner from `fundFromWallet` before Distribute. */
+  fundToBurner?: { USDT: number; USDC: number };
+  fundFromWallet?: string;
   pendingBonuses: {
     id: string;
     username: string;
@@ -320,7 +329,7 @@ export const adminApi = {
       message: string;
     }>(`/api/admin/users/${encodeURIComponent(username)}/override`, {
       method: "POST",
-      // Rank upgrades only via this endpoint — membership force is on-chain company wallet.
+      // Rank upgrades only via this endpoint — membership force is on-chain via the burner wallet.
       body: { rank },
     }),
 
@@ -338,6 +347,26 @@ export const adminApi = {
       txHash: string;
       message: string;
     }>(`/api/admin/users/${encodeURIComponent(username)}/record-membership-override`, {
+      method: "POST",
+      body: params,
+    }),
+
+  // Backend burner-wallet signer executes overrideMembershipTier on-chain, then
+  // persists Mongo state. No browser wallet connection required.
+  executeMembershipOverride: (username: string, params: { tier: string }) =>
+    adminRequest<{
+      username: string;
+      walletAddress: string;
+      tier: string;
+      rank: string;
+      isForcedMembership: boolean;
+      isForcedRank?: boolean;
+      previousTier?: string;
+      tierOverride?: string | null;
+      rankOverride?: string | null;
+      txHash: string;
+      message: string;
+    }>(`/api/admin/users/${encodeURIComponent(username)}/execute-membership-override`, {
       method: "POST",
       body: params,
     }),
@@ -371,20 +400,17 @@ export const adminApi = {
       PaginatedResult<OverdueWallet> & {
         totalUnclaimedUSD: number;
         configured?: boolean;
-        companyWallet?: string;
+        securityWallet?: string;
         tokenAddress?: string;
         filter?: OverdueClaimFilter;
         counts?: { all: number; never: number; overdue_30d: number };
       }
     >(`/api/admin/commissions/overdue${qs({ token, page, limit, filter })}`),
 
-  getCompanyWallet: () =>
-    adminRequest<{ address: string; backendSignerConfigured: boolean }>("/api/admin/company-wallet"),
+  getSecurityWallet: () =>
+    adminRequest<{ address: string }>("/api/admin/security-wallet"),
 
-  claimCommissions: (walletAddresses: string[], token = "USDT") =>
-    adminRequest("/api/admin/commissions/claim", { method: "POST", body: { walletAddresses, token } }),
-
-  recordCompanyWithdraw: (params: {
+  recordSecurityWithdraw: (params: {
     walletAddress: string;
     token: string;
     txHash: string;
@@ -396,7 +422,7 @@ export const adminApi = {
       txHash: string;
       token: string;
       amount: number;
-      type: "COMPANY_WALLET_WITHDRAWN";
+      type: "UNCLAIMED_WITHDRAWN";
       status: string;
       duplicate?: boolean;
     }>("/api/admin/commissions/record-withdraw", { method: "POST", body: params }),

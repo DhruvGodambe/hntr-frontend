@@ -108,7 +108,13 @@ export interface PointsLedgerEntry {
   _id: string;
   walletAddress: string;
   amount: number;
-  source: "MEMBERSHIP_PURCHASE" | "MEMBERSHIP_UPGRADE" | "COMMISSION_EARNED" | "POOL_DEPOSIT";
+  source:
+    | "MEMBERSHIP_PURCHASE"
+    | "MEMBERSHIP_UPGRADE"
+    | "MEMBERSHIP_VOUCHER_REDEEM"
+    | "MEMBERSHIP_OVERRIDE"
+    | "COMMISSION_EARNED"
+    | "POOL_DEPOSIT";
   usdValue: number;
   txHash?: string;
   timestamp: string;
@@ -130,7 +136,10 @@ export interface TransactionEntry {
     | "COMMISSION_CLAIM"
     | "PURCHASE"
     | "UPGRADE"
+    | "UNCLAIMED_WITHDRAWN"
     | "COMPANY_WALLET_WITHDRAWN"
+    | "VOUCHER_MEMBERSHIP_REDEEM"
+    | "MEMBERSHIP_OVERRIDE"
     | "LEADERSHIP_PAYOUT"
     | "ACHIEVEMENT_BONUS";
   txHash?: string;
