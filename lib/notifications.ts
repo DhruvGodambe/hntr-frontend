@@ -69,6 +69,32 @@ export function formatRelativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString();
 }
 
+/**
+ * Collapse back-to-back identical notifications (same type/title/body within a
+ * two-minute window). The backend now dedupes rank-up / membership events at
+ * write time, but historical rows created before that fix can still arrive in
+ * pairs — this keeps the list clean without hiding genuinely repeated events
+ * that happen minutes or hours apart.
+ */
+export function dedupeNotifications(items: BackendNotification[]): BackendNotification[] {
+  const WINDOW_MS = 2 * 60 * 1000;
+  const kept: BackendNotification[] = [];
+  const seen: { sig: string; ts: number }[] = [];
+
+  for (const n of items) {
+    const sig = `${n.type}|${n.title}|${n.sub}`;
+    const ts = new Date(n.createdAt).getTime();
+    const dup = seen.some(
+      (s) => s.sig === sig && Number.isFinite(ts) && Math.abs(s.ts - ts) <= WINDOW_MS,
+    );
+    if (dup) continue;
+    seen.push({ sig, ts });
+    kept.push(n);
+  }
+
+  return kept;
+}
+
 export function useNotifications(limit = 50) {
   const { address, isConnected } = useAccount();
 
@@ -76,9 +102,19 @@ export function useNotifications(limit = 50) {
     queryKey: ["notifications", address, limit],
     queryFn: async () => {
       await ensureAuth();
-      return api.get<NotificationsResponse>(`/api/network/${address}/notifications?limit=${limit}`, {
-        auth: true,
-      });
+      const res = await api.get<NotificationsResponse>(
+        `/api/network/${address}/notifications?limit=${limit}`,
+        { auth: true },
+      );
+      const original = res.notifications ?? [];
+      const notifications = dedupeNotifications(original);
+      const keptIds = new Set(notifications.map((n) => n._id));
+      const removedUnread = original.filter((n) => !keptIds.has(n._id) && !n.read).length;
+      return {
+        ...res,
+        notifications,
+        unreadCount: Math.max(0, (res.unreadCount ?? 0) - removedUnread),
+      };
     },
     enabled: isConnected && !!address,
     staleTime: 15_000,
