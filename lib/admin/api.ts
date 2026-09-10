@@ -256,10 +256,14 @@ function qs(params: Record<string, string | number | undefined>) {
 }
 
 export const adminApi = {
-  login: async (username: string, password: string): Promise<StoredAdminAuth> => {
+  login: async (
+    username: string,
+    password: string,
+    turnstileToken?: string,
+  ): Promise<StoredAdminAuth> => {
     const data = await adminRequest<{ token: string; expiresAt: number; role: "admin"; username: string }>(
       "/api/admin/auth/login",
-      { method: "POST", body: { username, password }, auth: false },
+      { method: "POST", body: { username, password, turnstileToken }, auth: false },
     );
     const auth: StoredAdminAuth = {
       token: data.token,
@@ -271,10 +275,15 @@ export const adminApi = {
     return auth;
   },
 
-  register: async (username: string, password: string, setupSecret?: string) =>
+  register: async (
+    username: string,
+    password: string,
+    setupSecret?: string,
+    turnstileToken?: string,
+  ) =>
     adminRequest<{ id: string; username: string }>("/api/admin/auth/register", {
       method: "POST",
-      body: { username, password },
+      body: { username, password, turnstileToken },
       auth: false,
       headers: setupSecret ? { "x-admin-setup-secret": setupSecret } : undefined,
     }),

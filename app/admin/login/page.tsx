@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminApi, AdminApiError } from "@/lib/admin/api";
+import Turnstile, { isTurnstileEnabled } from "@/components/Turnstile";
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -16,16 +18,21 @@ export default function AdminLoginPage() {
     setError("");
     setLoading(true);
     try {
-      await adminApi.login(username.trim(), password);
+      await adminApi.login(username.trim(), password, captchaToken || undefined);
       router.push("/admin");
     } catch (err) {
       setError(err instanceof AdminApiError ? err.message : "Login failed. Please try again.");
+      setCaptchaToken("");
     } finally {
       setLoading(false);
     }
   };
 
-  const canSubmit = username.trim().length > 0 && password.length > 0 && !loading;
+  const canSubmit =
+    username.trim().length > 0 &&
+    password.length > 0 &&
+    !loading &&
+    (!isTurnstileEnabled() || captchaToken.length > 0);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
@@ -68,6 +75,15 @@ export default function AdminLoginPage() {
               className="w-full bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#f50] transition-colors disabled:opacity-50"
             />
           </div>
+
+          {isTurnstileEnabled() && (
+            <Turnstile
+              theme="dark"
+              className="flex justify-center"
+              onVerify={setCaptchaToken}
+              onExpire={() => setCaptchaToken("")}
+            />
+          )}
 
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 

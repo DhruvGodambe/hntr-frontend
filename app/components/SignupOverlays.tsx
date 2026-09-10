@@ -11,6 +11,7 @@ import { useConnectWallet } from "../../lib/useConnectWallet";
 import PaymentTokenToggle from "./PaymentTokenToggle";
 import MembershipPaySummary from "./MembershipPaySummary";
 import SignupPhoneInput from "./SignupPhoneInput";
+import Turnstile, { isTurnstileEnabled } from "@/components/Turnstile";
 import type { PaymentToken } from "../../lib/tokens";
 import { resolveReferralSponsor } from "../../lib/referral";
 import {
@@ -88,6 +89,7 @@ export default function SignupOverlays() {
   const [region, setRegion] = useState<SignupRegion | "">("");
   const [country, setCountry] = useState<SignupCountryCode | "">("");
   const [phone, setPhone] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
   const purchaseBusyRef = useRef(false);
   const paymentTokenRef = useRef<PaymentToken>("USDT");
   const skipStep2Ref = useRef(false);
@@ -443,6 +445,10 @@ export default function SignupOverlays() {
       setStep2Errors({ sponsor: "Wallet not connected. Go back and connect your wallet." });
       return;
     }
+    if (isTurnstileEnabled() && !captchaToken) {
+      setRegisterFormError("Please complete the “verify you are human” check.");
+      return;
+    }
 
     setStep2Errors({});
     setRegisterFormError("");
@@ -454,6 +460,7 @@ export default function SignupOverlays() {
         email,
         phone: formatPhoneE164(phone, country),
         sponsorUsername: sponsor,
+        turnstileToken: captchaToken || undefined,
       });
       setCurrentUsername(username);
       skipStep2Ref.current = true;
@@ -461,6 +468,7 @@ export default function SignupOverlays() {
       setPurchaseStatus({ state: "idle" });
       goToSignupStep(3);
     } catch (error) {
+      setCaptchaToken("");
       const { fieldErrors, formError } = mapRegistrationApiError(error);
       setStep2Errors(fieldErrors);
       setRegisterFormError(formError ?? "");
@@ -725,11 +733,24 @@ export default function SignupOverlays() {
                 />
                 {step2Errors.email && <p className="su-field-error">{step2Errors.email}</p>}
               </div>
+              {isTurnstileEnabled() && (
+                <div className="su-field">
+                  <Turnstile
+                    theme="dark"
+                    onVerify={setCaptchaToken}
+                    onExpire={() => setCaptchaToken("")}
+                  />
+                </div>
+              )}
               <button
                 className="su-primary"
                 type="button"
                 onClick={handleContinueRegistration}
-                disabled={registerBusy || sponsorChecking}
+                disabled={
+                  registerBusy ||
+                  sponsorChecking ||
+                  (isTurnstileEnabled() && !captchaToken)
+                }
               >
                 {registerBusy ? "Registering..." : sponsorChecking ? "Verifying sponsor..." : <>Continue&nbsp;&nbsp;→</>}
               </button>

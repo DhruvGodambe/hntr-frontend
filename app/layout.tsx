@@ -1,5 +1,6 @@
 import "./globals.css";
 import ThemeTopLoader from "./components/ThemeTopLoader";
+import HumanGate from "./components/HumanGate";
 import Providers from "./providers";
 import { rootMetadata } from "../lib/metadata";
 
@@ -24,7 +25,9 @@ export default function RootLayout({
         }}
       >
         <ThemeTopLoader />
-        <Providers>{children}</Providers>
+        <Providers>
+          <HumanGate>{children}</HumanGate>
+        </Providers>
       </body>
     </html>
   );
