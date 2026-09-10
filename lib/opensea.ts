@@ -551,6 +551,48 @@ export function useOpenSeaListings(slug: string, limit = 8) {
   });
 }
 
+/**
+ * Best current listing per collection slug, keyed by slug. One query for an
+ * arbitrary (dynamic) set of collections — used to layer live art/price onto
+ * backend-managed strategy pools.
+ */
+export interface PoolLiveMarket {
+  listing: OpenSeaListing | null;
+  /** Live collection floor price in ETH — used as the pool target. */
+  floorEth: number;
+}
+
+export function useOpenSeaListingsForSlugs(slugs: string[], limit = 1) {
+  const key = [...slugs].sort();
+  return useQuery({
+    queryKey: ["opensea", "listings-multi", key, limit],
+    queryFn: async () => {
+      const results = await Promise.allSettled(
+        slugs.map(async (slug): Promise<readonly [string, PoolLiveMarket]> => {
+          const [listings, nfts, stats] = await Promise.all([
+            fetchBestListings(slug, limit),
+            fetchCollectionNFTs(slug, Math.max(4, limit)).catch(() => [] as OpenSeaNFT[]),
+            fetchCollectionStats(slug).catch(() => null),
+          ]);
+          const enriched = await enrichListingsWithImages(listings, nfts);
+          const listing = enriched[0] ?? null;
+          const floorEth = stats?.floorPrice || listing?.priceEth || 0;
+          return [slug, { listing, floorEth }] as const;
+        }),
+      );
+      const record: Record<string, PoolLiveMarket> = {};
+      results.forEach((result, index) => {
+        record[slugs[index]] =
+          result.status === "fulfilled" ? result.value[1] : { listing: null, floorEth: 0 };
+      });
+      return record;
+    },
+    enabled: slugs.length > 0,
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+  });
+}
+
 export function formatFloorPrice(price: number): string {
   return `${price.toFixed(2)} ETH`;
 }

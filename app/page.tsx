@@ -20,69 +20,12 @@ import { hasSeenIntro, markIntroSeen } from "../lib/intro-state";
 import { useRouter } from "nextjs-toploader/app";
 import {
   formatUsd,
-  useOpenSeaListings,
+  toPoolRouteId,
+  useOpenSeaListingsForSlugs,
   // useOpenSeaMarketplaceListings,
   // useOpenSeaMarketplaceSales,
 } from "@/lib/opensea";
-
-const STRATEGY_POOLS = [
-  {
-    slug: "boredapeyachtclub",
-    name: "Bored Ape Yacht Club",
-    img: "/assets/images/image-11.jpg",
-    tags: ["YUGA LABS", "SERIES 1/1000"],
-    fallbackTokenId: "3362",
-    fallbackTargetEth: 10,
-    raisedEth: 4.52,
-    progress: 45.2,
-    gpProfit: "10.00%",
-    ethProfit: "1.75",
-    usdtProfit: "$4,198",
-    users: "132",
-  },
-  {
-    slug: "pudgypenguins",
-    name: "Pudgy Penguins",
-    img: "/assets/images/image-6.jpg",
-    tags: ["PPENGUIN", "SERIES V/500"],
-    fallbackTokenId: "3362",
-    fallbackTargetEth: 5.45,
-    raisedEth: 2.73,
-    progress: 50.1,
-    gpProfit: "10.00%",
-    ethProfit: "1.75",
-    usdtProfit: "$4,198",
-    users: "132",
-  },
-  {
-    slug: "cryptopunks",
-    name: "CryptoPunks",
-    img: "/assets/images/image-3.jpg",
-    tags: ["LARVA LABS", "SERIES 1/10000"],
-    fallbackTokenId: "7804",
-    fallbackTargetEth: 31,
-    raisedEth: 22.3,
-    progress: 71.9,
-    gpProfit: "9.20%",
-    ethProfit: "2.10",
-    usdtProfit: "$5,040",
-    users: "88",
-  },
-  {
-    slug: "azuki",
-    name: "Azuki",
-    img: "/assets/images/image-7.jpg",
-    tags: ["AZUKI", "SERIES 2/8888"],
-    fallbackTokenId: "4521",
-    fallbackTargetEth: 8.5,
-    raisedEth: 6.12,
-    progress: 72.0,
-    gpProfit: "9.80%",
-    ethProfit: "1.92",
-    usdtProfit: "$4,220",
-    users: "104",
-  },
-] as const;
+import { usePools, poolCollectionSlug, poolProgress } from "@/lib/pools";
 
 const INTRO_MOBILE_MQ = "(max-width: 900px)";
 
@@ -280,75 +223,51 @@ export default function HomePage() {
   // const [mobileListingsVisible, setMobileListingsVisible] = useState(MOBILE_LISTINGS_BATCH);
   // const [mobileListingsAnimFrom, setMobileListingsAnimFrom] = useState(MOBILE_LISTINGS_BATCH);
 
-  const { data: baycListings, isLoading: baycLoading } = useOpenSeaListings("boredapeyachtclub", 1);
-  const { data: pudgyListings, isLoading: pudgyLoading } = useOpenSeaListings("pudgypenguins", 1);
-  const { data: punksListings, isLoading: punksLoading } = useOpenSeaListings("cryptopunks", 1);
-  const { data: azukiListings, isLoading: azukiLoading } = useOpenSeaListings("azuki", 1);
-  const strategiesLoading = baycLoading || pudgyLoading || punksLoading || azukiLoading;
+  const { data: pools, isLoading: poolsLoading } = usePools();
+  const openPools = useMemo(
+    () => (pools ?? []).filter((p) => p.status !== "CLOSED").slice(0, 8),
+    [pools],
+  );
+  const collectionSlugs = useMemo(
+    () => Array.from(new Set(openPools.map((p) => poolCollectionSlug(p)))),
+    [openPools],
+  );
+  const { data: liveListings, isLoading: listingsLoading } = useOpenSeaListingsForSlugs(collectionSlugs, 1);
+  const strategiesLoading = poolsLoading || (collectionSlugs.length > 0 && listingsLoading);
   // const { data: openSeaListings } = useOpenSeaMarketplaceListings(3);
   // const { data: openSeaSales } = useOpenSeaMarketplaceSales(3);
 
   const strategyPools = useMemo(() => {
-    const liveBySlug: Record<
-      string,
-      { tokenId: string; priceEth: number; imageUrl: string; openseaUrl: string } | undefined
-    > = {
-      boredapeyachtclub: baycListings?.[0]
-        ? {
-            tokenId: baycListings[0].tokenId,
-            priceEth: baycListings[0].priceEth,
-            imageUrl: baycListings[0].imageUrl,
-            openseaUrl: baycListings[0].openseaUrl,
-          }
-        : undefined,
-      pudgypenguins: pudgyListings?.[0]
-        ? {
-            tokenId: pudgyListings[0].tokenId,
-            priceEth: pudgyListings[0].priceEth,
-            imageUrl: pudgyListings[0].imageUrl,
-            openseaUrl: pudgyListings[0].openseaUrl,
-          }
-        : undefined,
-      cryptopunks: punksListings?.[0]
-        ? {
-            tokenId: punksListings[0].tokenId,
-            priceEth: punksListings[0].priceEth,
-            imageUrl: punksListings[0].imageUrl,
-            openseaUrl: punksListings[0].openseaUrl,
-          }
-        : undefined,
-      azuki: azukiListings?.[0]
-        ? {
-            tokenId: azukiListings[0].tokenId,
-            priceEth: azukiListings[0].priceEth,
-            imageUrl: azukiListings[0].imageUrl,
-            openseaUrl: azukiListings[0].openseaUrl,
-          }
-        : undefined,
-    };
-
-    return STRATEGY_POOLS.map((pool) => {
-      const live = liveBySlug[pool.slug];
-      const tokenId = live?.tokenId || pool.fallbackTokenId;
-      const targetEth = live?.priceEth && live.priceEth > 0 ? live.priceEth : pool.fallbackTargetEth;
-      const img = live?.imageUrl || pool.img;
-      const progress =
-        targetEth > 0 ? Math.min(100, Number(((pool.raisedEth / targetEth) * 100).toFixed(1))) : pool.progress;
+    return openPools.map((pool) => {
+      const slug = poolCollectionSlug(pool);
+      const live = liveListings?.[slug];
+      const tokenId = live?.listing?.tokenId || "0";
+      const targetEth = live?.floorEth ?? 0;
+      const img = live?.listing?.imageUrl || pool.imageUrl;
+      const raisedEth = pool.raisedEth;
 
       return {
-        ...pool,
-        img,
-        tokenId,
+        slug: pool.slug,
+        collectionSlug: slug,
         displayName: pool.name,
+        img,
+        tags: pool.tags && pool.tags.length ? pool.tags : ["STRATEGY POOL", pool.name.toUpperCase()],
+        tokenId,
+        raisedEth,
         targetEth,
-        targetLabel: targetEth.toFixed(2),
-        targetUsd: formatUsd(targetEth),
-        raisedUsd: formatUsd(pool.raisedEth),
-        progress,
-        openseaUrl: live?.openseaUrl || `https://opensea.io/collection/${pool.slug}`,
+        targetLabel: targetEth > 0 ? targetEth.toFixed(2) : "—",
+        targetUsd: targetEth > 0 ? formatUsd(targetEth) : "$—",
+        raisedUsd: formatUsd(raisedEth),
+        progress: poolProgress(raisedEth, targetEth),
+        gpProfit: pool.gpProfit,
+        ethProfit: pool.ethProfit,
+        usdtProfit: pool.usdtProfit,
+        users: String(pool.participants),
+        routeId: toPoolRouteId(pool.slug, tokenId),
+        openseaUrl: live?.listing?.openseaUrl || `https://opensea.io/collection/${slug}`,
       };
     });
-  }, [baycListings, pudgyListings, punksListings, azukiListings]);
+  }, [openPools, liveListings]);
 
 //   const listingCards = useMemo(() => {
 //     if (!openSeaListings?.length) return FALLBACK_LISTING_CARDS;
@@ -1570,7 +1489,7 @@ export default function HomePage() {
                   return (
                   <div className={`npc${isExpanded ? " open" : ""}`} key={poolKey}>
                     <div className="npc-row">
-                      <div className="npc-art" onClick={() => router.push("/pool/54587")} style={{ cursor: "pointer" }}>
+                      <div className="npc-art" onClick={() => router.push(`/pool/${pool.routeId}`)} style={{ cursor: "pointer" }}>
                         <img src={pool.img} alt={`${pool.displayName} #${pool.tokenId}`} />
                         <div className="npc-pool">POOL #{pool.tokenId}</div>
                       </div>
@@ -1588,7 +1507,7 @@ export default function HomePage() {
                               ))}
                             </div>
                           </div>
-                          <button className="npc-insights" onClick={() => router.push("/pool/54587")}>
+                          <button className="npc-insights" onClick={() => router.push(`/pool/${pool.routeId}`)}>
                             <i></i>VIEW INSIGHTS
                           </button>
                         </div>

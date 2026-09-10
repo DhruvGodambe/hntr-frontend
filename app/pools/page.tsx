@@ -11,10 +11,11 @@ import {
   OPENSEA_POOL_META,
   poolDisplayName,
   toPoolRouteId,
-  useOpenSeaFeaturedPoolListings,
+  useOpenSeaListingsForSlugs,
   useOpenSeaMarketplaceSales,
   type PoolCollectionSlug,
 } from "@/lib/opensea";
+import { usePools, poolCollectionSlug, poolProgress } from "@/lib/pools";
 
 const ACTIVITY_COLUMNS = ["Wallet", "Bid Amount", "Collection", "Completion", "Action"];
 
@@ -56,58 +57,54 @@ export default function PoolsPage() {
   const router = useRouter();
   const [expandedPool, setExpandedPool] = useState<string | null>(null);
   const [progWidths, setProgWidths] = useState<Record<string, number>>({});
-  const { data: featured, isLoading: listingsLoading, error: listingsError } =
-    useOpenSeaFeaturedPoolListings();
+  const { data: poolRecords, isLoading: poolsLoading, error: listingsError } = usePools();
+  const openPoolRecords = useMemo(
+    () => (poolRecords ?? []).filter((p) => p.status !== "CLOSED"),
+    [poolRecords],
+  );
+  const collectionSlugs = useMemo(
+    () => Array.from(new Set(openPoolRecords.map((p) => poolCollectionSlug(p)))),
+    [openPoolRecords],
+  );
+  const { data: liveListings, isLoading: liveLoading } = useOpenSeaListingsForSlugs(collectionSlugs, 1);
+  const listingsLoading = poolsLoading || (collectionSlugs.length > 0 && liveLoading);
   const { data: sales, isLoading: salesLoading } = useOpenSeaMarketplaceSales(2);
 
   const pools = useMemo(() => {
-    return (featured || [])
-      .map((item) => {
-        const meta = OPENSEA_POOL_META[item.slug];
-        const tokenId = item.listing?.tokenId || item.nft?.tokenId;
-        if (!tokenId) return null;
-        const targetEth = item.listing?.priceEth || item.stats?.floorPrice || 0;
-        const img = item.listing?.imageUrl || item.nft?.imageUrl || item.stats?.imageUrl || "";
-        return {
-          id: toPoolRouteId(item.slug, tokenId),
-          slug: item.slug,
-          tokenId,
-          name: meta?.name || poolDisplayName(item.slug),
-          number: `#${tokenId}`,
-          img,
-          tags: meta?.tags || ["OPENSEA", "LIVE"],
-          color: meta?.color || "var(--olive)",
-          target: formatEth(targetEth),
-          raised: "0.00",
-          targetUsd: formatUsd(targetEth),
-          raisedUsd: "$0",
-          progress: 0,
-          gpProfit: "—",
-          ethProfit: "—",
-          usdtProfit: "—",
-          users: 0,
-        };
-      })
-      .filter(Boolean) as Array<{
-      id: string;
-      slug: PoolCollectionSlug;
-      tokenId: string;
-      name: string;
-      number: string;
-      img: string;
-      tags: readonly string[];
-      color: string;
-      target: string;
-      raised: string;
-      targetUsd: string;
-      raisedUsd: string;
-      progress: number;
-      gpProfit: string;
-      ethProfit: string;
-      usdtProfit: string;
-      users: number;
-    }>;
-  }, [featured]);
+    return openPoolRecords.map((p) => {
+      const slug = poolCollectionSlug(p);
+      const live = liveListings?.[slug];
+      const tokenId = live?.listing?.tokenId || "0";
+      const targetEth = live?.floorEth ?? 0;
+      return {
+        id: toPoolRouteId(p.slug, tokenId),
+        slug,
+        tokenId,
+        name: p.name,
+        number: tokenId !== "0" ? `#${tokenId}` : "",
+        img: live?.listing?.imageUrl || p.imageUrl || "",
+        tags: (p.tags && p.tags.length ? p.tags : ["STRATEGY POOL"]) as readonly string[],
+        target: targetEth > 0 ? formatEth(targetEth) : "—",
+        raised: formatEth(p.raisedEth),
+        targetUsd: targetEth > 0 ? formatUsd(targetEth) : "$—",
+        raisedUsd: formatUsd(p.raisedEth),
+        progress: poolProgress(p.raisedEth, targetEth),
+        gpProfit: p.gpProfit,
+        ethProfit: p.ethProfit,
+        usdtProfit: p.usdtProfit,
+        users: p.participants,
+      };
+    });
+  }, [openPoolRecords, liveListings]);
+
+  const totals = useMemo(() => {
+    const raised = openPoolRecords.reduce((sum, p) => sum + (p.raisedEth || 0), 0);
+    const users = openPoolRecords.reduce((sum, p) => sum + (p.participants || 0), 0);
+    const avgProgress = pools.length
+      ? Math.round(pools.reduce((s, p) => s + p.progress, 0) / pools.length)
+      : 0;
+    return { raised, users, avgProgress };
+  }, [openPoolRecords, pools]);
 
   const activityRows = useMemo<ActivityRow[]>(() => {
     return (sales || []).slice(0, 8).map((sale) => {
@@ -159,10 +156,10 @@ export default function PoolsPage() {
             <div className="ss">
               <div className="ss-lbl">Total ETH Raised</div>
               <div className="ss-val">
-                0 <span className="eth-ic"></span>
+                {formatEth(totals.raised)} <span className="eth-ic"></span>
               </div>
               <div className="ss-chg" style={{ color: "var(--t0)" }}>
-                ≈ $0
+                ≈ {formatUsd(totals.raised)}
               </div>
             </div>
             <div className="ss">
@@ -179,19 +176,19 @@ export default function PoolsPage() {
               </div>
             </div>
             <div className="ss">
-              <div className="ss-lbl">Avg. LTV</div>
+              <div className="ss-lbl">Avg. Progress</div>
               <div className="ss-val">
-                0<span className="ss-unit">%</span>
+                {totals.avgProgress}<span className="ss-unit">%</span>
               </div>
               <div className="ss-chg" style={{ color: "var(--t0)" }}>
-                Collateral ratio
+                Across live pools
               </div>
             </div>
             <div className="ss">
               <div className="ss-lbl">Total Users</div>
-              <div className="ss-val">0</div>
+              <div className="ss-val">{totals.users.toLocaleString()}</div>
               <div className="ss-chg" style={{ color: "var(--t0)" }}>
-                —
+                Contributors
               </div>
             </div>
           </div>
@@ -211,7 +208,17 @@ export default function PoolsPage() {
                 }}
               ></span>
             </div>
-            <div className="manage-link">Manage All</div>
+            {pools.length > 0 && (
+              <div
+                className="manage-link"
+                role="link"
+                tabIndex={0}
+                style={{ cursor: "pointer" }}
+                onClick={() => goToPool(pools[0].id)}
+              >
+                View All
+              </div>
+            )}
           </div>
 
           <div className="np-grid">

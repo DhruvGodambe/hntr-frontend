@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getPoolById } from "../../../lib/pools-data";
+import { parsePoolRouteId } from "../../../lib/opensea";
+import { fetchPool } from "../../../lib/pools";
 import { SITE_NAME } from "../../../lib/metadata";
 
 type LayoutProps = {
@@ -9,12 +10,20 @@ type LayoutProps = {
 
 export async function generateMetadata({ params }: Pick<LayoutProps, "params">): Promise<Metadata> {
   const { id } = await params;
-  const pool = getPoolById(id);
+  const { slug } = parsePoolRouteId(id);
 
-  return {
-    title: pool.shortName,
-    description: `${pool.name} — co-ownership pool on ${SITE_NAME}. Target ${pool.target} ETH, ${pool.progress.toFixed(1)}% funded.`,
-  };
+  try {
+    const pool = await fetchPool(slug);
+    return {
+      title: pool.name,
+      description: `${pool.name} — co-ownership strategy pool on ${SITE_NAME}. Target tracks the live OpenSea floor price; ${pool.raisedEth} ETH raised so far.`,
+    };
+  } catch {
+    return {
+      title: "Strategy Pool",
+      description: `Co-ownership strategy pool on ${SITE_NAME}.`,
+    };
+  }
 }
 
 export default function PoolDetailLayout({ children }: LayoutProps) {

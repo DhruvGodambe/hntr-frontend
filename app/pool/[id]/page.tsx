@@ -6,112 +6,84 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useRouter } from "nextjs-toploader/app";
 import {
-  OPENSEA_POOL_META,
   parsePoolRouteId,
   poolDisplayName,
   toPoolRouteId,
   useOpenSeaOtherPoolListings,
   useOpenSeaPoolNft,
   type OpenSeaPoolNft,
-  type PoolCollectionSlug,
 } from "@/lib/opensea";
-import type { PoolDetail } from "../../../lib/pools-data";
+import { usePool, poolCollectionSlug, poolProgress, type PublicPool } from "@/lib/pools";
+import { useEthUsdPrice } from "@/lib/coingecko";
 
-type TxRow = {
-  id: string;
-  wallet: string;
-  date: string;
-  amount: string;
-  isNew?: boolean;
+/** Merged view model: admin-managed pool economics + live OpenSea art/floor. */
+type PoolView = {
+  routeId: string;
+  metaId: string;
+  name: string;
+  shortName: string;
+  target: string;
+  raised: string;
+  progress: number;
+  gpProfit: string;
+  ethProfit: string;
+  usdtProfit: string;
+  participants: number;
+  floorEth: string;
+  img: string;
+  avatarImg: string;
+  daysRemaining: number;
+  tags: [string, string];
 };
 
-type DepositRow = {
-  id: string;
-  addr: string;
-  amt: string;
-  ago: string;
-  isNew?: boolean;
-};
+function tagsFor(pool: PublicPool | undefined, slug: string): [string, string] {
+  const t = pool?.tags ?? [];
+  if (t.length >= 2) return [t[0], t[1]];
+  if (t.length === 1) return [t[0], "STRATEGY POOL"];
+  return [poolDisplayName(slug).toUpperCase(), "STRATEGY POOL"];
+}
 
-const WALLETS = ["0x71C...492", "0x3A8...12D", "0x9FE...88A", "0x12C...55B", "0xB4D...F31"];
-const AMOUNTS = ["0.50 ETH", "0.85 ETH", "1.25 ETH", "2.10 ETH", "3.40 ETH"];
-const DATES = ["Jun 14, 2026", "Jun 12, 2026", "Jun 10, 2026", "Jun 08, 2026"];
+function buildPoolView(
+  slug: string,
+  pool: PublicPool | undefined,
+  nft: OpenSeaPoolNft | null | undefined,
+): PoolView {
+  const tokenId = nft?.tokenId || "";
+  const collectionName = pool?.name || nft?.collectionName || poolDisplayName(slug);
+  // Pool target is the live OpenSea floor price.
+  const floorEth = nft?.floorPriceEth || nft?.listingPriceEth || 0;
+  const raisedEthNum = pool?.raisedEth ?? 0;
+  const img = nft?.imageUrl || pool?.imageUrl || "/assets/images/image-6.jpg";
 
-const MOBILE_WALLETS = ["0x9F2…A17", "0x71C…492", "0x3aD…0C9", "0xB4e…77F", "0x6cc…D21"];
-const MOBILE_AMOUNTS = ["2.40", "1.85", "0.75", "3.10", "0.50"];
-const MOBILE_AGOS = ["2m ago", "14m ago", "38m ago", "1h ago", "2h ago"];
-
-const ETH_USD_RATE = 2203.67;
-
-function makeTxRow(isNew = false): TxRow {
   return {
-    id: `${Date.now()}-${Math.random()}`,
-    wallet: WALLETS[Math.floor(Math.random() * WALLETS.length)],
-    date: DATES[Math.floor(Math.random() * DATES.length)],
-    amount: AMOUNTS[Math.floor(Math.random() * AMOUNTS.length)],
-    isNew,
+    routeId: toPoolRouteId(slug, tokenId || "0"),
+    metaId: tokenId ? `${slug}-${tokenId}` : slug,
+    name: tokenId ? `${collectionName} #${tokenId}` : collectionName,
+    shortName: nft?.name || collectionName,
+    target: floorEth > 0 ? floorEth.toFixed(2) : "—",
+    raised: raisedEthNum.toFixed(2),
+    progress: poolProgress(raisedEthNum, floorEth),
+    gpProfit: pool?.gpProfit ?? "0",
+    ethProfit: pool?.ethProfit ?? "0",
+    usdtProfit: pool?.usdtProfit ?? "0",
+    participants: pool?.participants ?? 0,
+    floorEth: floorEth > 0 ? floorEth.toFixed(2) : "—",
+    img,
+    avatarImg: img,
+    daysRemaining: pool?.daysRemaining ?? 0,
+    tags: tagsFor(pool, slug),
   };
 }
 
-function makeDepositRow(isNew = false): DepositRow {
-  const i = Math.floor(Math.random() * MOBILE_WALLETS.length);
-  return {
-    id: `${Date.now()}-${Math.random()}`,
-    addr: MOBILE_WALLETS[i],
-    amt: MOBILE_AMOUNTS[i],
-    ago: MOBILE_AGOS[i],
-    isNew,
+function makeEthToUsd(rate: number | undefined) {
+  return (eth: string): string => {
+    const value = parseFloat(eth);
+    if (Number.isNaN(value) || !rate) return "$—";
+    return `$${(value * rate).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   };
-}
-
-function extractTokenId(name: string): string {
-  const match = name.match(/#(\d+)/);
-  return match ? `#${match[1]}` : "#—";
-}
-
-function collectionDisplayName(name: string): string {
-  return name.replace(/\s*#\d+\s*$/, "").trim();
-}
-
-function tagsForSlug(slug: string): [string, string] {
-  if (slug in OPENSEA_POOL_META) {
-    return OPENSEA_POOL_META[slug as PoolCollectionSlug].tags;
-  }
-  return ["OPENSEA", "LIVE LISTING"];
-}
-
-function mapNftToPool(nft: OpenSeaPoolNft): PoolDetail {
-  const target = (nft.listingPriceEth || nft.floorPriceEth || 0).toFixed(2);
-  return {
-    id: toPoolRouteId(nft.slug, nft.tokenId),
-    metaId: `${nft.slug}-${nft.tokenId}`,
-    name: `${nft.collectionName} #${nft.tokenId}`,
-    shortName: nft.name,
-    series: "OpenSea listing",
-    target,
-    raised: "0.00",
-    progress: 0,
-    gpProfit: "—",
-    gpChange: "Coming soon",
-    ethProfit: "0.00",
-    ethChange: "—",
-    usdtProfit: "$0.00",
-    usdtNote: "Unrealised P&L",
-    participants: 0,
-    floorEth: (nft.floorPriceEth || 0).toFixed(2),
-    img: nft.imageUrl || "/assets/images/image-6.jpg",
-    avatarImg: nft.imageUrl || "/assets/images/image-6.jpg",
-    daysRemaining: 0,
-  };
-}
-
-function ethToUsd(eth: string): string {
-  const value = parseFloat(eth);
-  if (Number.isNaN(value)) return "$—";
-  return `$${(value * ETH_USD_RATE).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
 }
 
 function remainingEth(target: string, raised: string): string {
@@ -192,7 +164,7 @@ function PoolDetailView({
   openseaUrl,
   otherListings,
 }: {
-  pool: PoolDetail;
+  pool: PoolView;
   slug: string;
   openseaUrl?: string;
   otherListings: Array<{
@@ -205,20 +177,12 @@ function PoolDetailView({
 }) {
   const router = useRouter();
   const [shareCopied, setShareCopied] = useState(false);
-  const [txRows, setTxRows] = useState<TxRow[]>(() => Array.from({ length: 4 }, () => makeTxRow()));
-  const [depositRows, setDepositRows] = useState<DepositRow[]>(() =>
-    MOBILE_WALLETS.map((addr, i) => ({
-      id: `seed-${i}`,
-      addr,
-      amt: MOBILE_AMOUNTS[i],
-      ago: MOBILE_AGOS[i],
-    })),
-  );
-  const [txCount, setTxCount] = useState(1244);
+  const { data: ethUsd } = useEthUsdPrice();
+  const ethToUsd = useMemo(() => makeEthToUsd(ethUsd), [ethUsd]);
 
-  const tokenId = extractTokenId(pool.name);
-  const collectionName = collectionDisplayName(pool.name);
-  const [tagPrimary, tagSecondary] = tagsForSlug(slug);
+  const tokenId = pool.metaId.includes("-") ? `#${pool.metaId.split("-").pop()}` : "#—";
+  const collectionName = pool.name.replace(/\s*#\d+\s*$/, "").trim();
+  const [tagPrimary, tagSecondary] = pool.tags;
   const poolLabel = `POOL ${tokenId}`;
   const targetUsd = ethToUsd(pool.target);
   const raisedUsd = ethToUsd(pool.raised);
@@ -240,16 +204,6 @@ function PoolDetailView({
     return () => {
       delete document.body.dataset.page;
     };
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTxRows((rows) => [makeTxRow(true), ...rows].slice(0, 4));
-      setDepositRows((rows) => [makeDepositRow(true), ...rows].slice(0, 5));
-      setTxCount((count) => count + 1);
-    }, 2500 + Math.random() * 2000);
-
-    return () => clearInterval(timer);
   }, []);
 
   const goBack = () => {
@@ -358,31 +312,11 @@ function PoolDetailView({
               <div className="pd-mobile-section">
                 <div className="pd-mobile-deposits-head">
                   <div className="pd-mobile-section-title">Recent Deposits</div>
-                  <div className="pd-mobile-live">
-                    <span className="pd-mobile-live-dot" aria-hidden="true" />
-                    LIVE
-                  </div>
                 </div>
                 <div className="pd-mobile-deposits-card">
-                  {depositRows.map((row, index) => (
-                    <div
-                      className={`pd-mobile-deposit-row${row.isNew ? " is-new" : ""}${index === depositRows.length - 1 ? " is-last" : ""}`}
-                      key={row.id}
-                    >
-                      <div className="pd-mobile-deposit-left">
-                        <div className="pd-mobile-deposit-avatar" aria-hidden="true">
-                          👤
-                        </div>
-                        <div>
-                          <div className="pd-mobile-deposit-addr">{row.addr}</div>
-                          <div className="pd-mobile-deposit-ago">{row.ago}</div>
-                        </div>
-                      </div>
-                      <div className="pd-mobile-deposit-amt">
-                        +{row.amt} <span className="eth-ic" aria-hidden="true" />
-                      </div>
-                    </div>
-                  ))}
+                  <div className="pd-mobile-deposit-row is-last" style={{ justifyContent: "center", opacity: 0.6 }}>
+                    Deposit activity will appear here once the pool goes live.
+                  </div>
                 </div>
               </div>
             </div>
@@ -513,109 +447,42 @@ function PoolDetailView({
               <div className="metric">
                 <div className="metric-lbl">GP (Gross Profit)</div>
                 <div className="metric-val">{pool.gpProfit}</div>
-                <div className="metric-chg">{pool.gpChange}</div>
+                <div className="metric-chg">Strategy P&amp;L</div>
               </div>
               <div className="metric">
                 <div className="metric-lbl">ETH Profit</div>
                 <div className="metric-val">{pool.ethProfit}</div>
-                <div className="metric-chg pos">{pool.ethChange}</div>
+                <div className="metric-chg pos">Since inception</div>
               </div>
               <div className="metric">
                 <div className="metric-lbl">USDT Profit</div>
                 <div className="metric-val">{pool.usdtProfit}</div>
                 <div className="metric-chg" style={{ color: "var(--t0)" }}>
-                  {pool.usdtNote}
+                  Unrealised P&amp;L
                 </div>
               </div>
               <div className="metric">
                 <div className="metric-lbl">Participants</div>
                 <div className="metric-val">{pool.participants}</div>
-                <div className="participants-wrap">
-                  {[0, 1, 2].map((i) => (
-                    <div className="p-avatar" key={i}>
-                      <img src={pool.avatarImg} alt="" />
-                    </div>
-                  ))}
-                  <span className="p-more">+{pool.participants - 3}</span>
-                </div>
+                {pool.participants > 3 && (
+                  <div className="participants-wrap">
+                    {[0, 1, 2].map((i) => (
+                      <div className="p-avatar" key={i}>
+                        <img src={pool.avatarImg} alt="" />
+                      </div>
+                    ))}
+                    <span className="p-more">+{pool.participants - 3}</span>
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="section-hdr">
               <div className="section-title">Transaction Activity</div>
-              <div className="section-actions">
-                <button className="act-btn" type="button">
-                  Export CSV
-                </button>
-                <button className="act-btn" type="button">
-                  Filters
-                </button>
-              </div>
             </div>
             <div className="tx-table-wrap table-scroll">
-              <table className="tx-table">
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Type</th>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="txTable">
-                  {txRows.map((row) => (
-                    <tr key={row.id} className={row.isNew ? "row-new" : undefined}>
-                      <td className="td-wallet">{row.wallet}</td>
-                      <td>
-                        <span className="td-badge">POOL_DEPOSIT</span>
-                      </td>
-                      <td className="td-date">{row.date}</td>
-                      <td className="td-amount">{row.amount}</td>
-                      <td>
-                        <span className="td-action">View Transaction</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="pagination">
-                <div className="pg-info" id="pgInfo">
-                  Showing 1-4 of {txCount.toLocaleString()} entries
-                </div>
-                <div className="pg-btns">
-                  <button className="pg-btn pg-arrow" type="button" aria-label="Previous page">
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <polyline
-                        points="7,2 3,5 7,8"
-                        stroke="currentColor"
-                        strokeWidth="1.3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
-                  <button className="pg-btn active" type="button">
-                    1
-                  </button>
-                  <button className="pg-btn" type="button">
-                    2
-                  </button>
-                  <button className="pg-btn" type="button">
-                    3
-                  </button>
-                  <button className="pg-btn pg-arrow" type="button" aria-label="Next page">
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <polyline
-                        points="3,2 7,5 3,8"
-                        stroke="currentColor"
-                        strokeWidth="1.3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
-                </div>
+              <div className="pd-empty-state" style={{ padding: "40px 16px", textAlign: "center", color: "var(--t0)" }}>
+                Transaction activity will appear here once the pool goes live.
               </div>
             </div>
 
@@ -679,35 +546,41 @@ export default function PoolDetailPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : "";
   const parsed = parsePoolRouteId(id);
-  const { data, isLoading, error } = useOpenSeaPoolNft(parsed.slug || null, parsed.tokenId);
+
+  const { data: poolRecord, isLoading: poolLoading } = usePool(parsed.slug || null);
+  const collectionSlug = poolRecord ? poolCollectionSlug(poolRecord) : parsed.slug;
+  const { data: nft, isLoading: nftLoading, error } = useOpenSeaPoolNft(
+    collectionSlug || null,
+    parsed.tokenId,
+  );
   const { data: others = [] } = useOpenSeaOtherPoolListings(
-    parsed.slug || undefined,
-    data?.tokenId || parsed.tokenId || undefined,
+    collectionSlug || undefined,
+    nft?.tokenId || parsed.tokenId || undefined,
   );
 
-  if (isLoading) {
+  if (poolLoading || nftLoading) {
     return <PoolDetailSkeleton />;
   }
 
-  if (error || !data) {
+  if (!poolRecord && (error || !nft)) {
     return (
       <MainLayout>
         <div className="feed pd-error" id="feed-pooldetail">
-          <div className="pd-error-title">NFT not found</div>
+          <div className="pd-error-title">Pool not found</div>
           <div className="pd-error-sub">
-            This pool id is not a live OpenSea token. Go back to Pools and pick a listing.
+            This strategy pool is not available. Go back to Pools and pick one.
           </div>
         </div>
       </MainLayout>
     );
   }
 
-  const pool = mapNftToPool(data);
+  const view = buildPoolView(parsed.slug, poolRecord, nft);
   return (
     <PoolDetailView
-      pool={pool}
-      slug={data.slug}
-      openseaUrl={data.openseaUrl}
+      pool={view}
+      slug={parsed.slug}
+      openseaUrl={nft?.openseaUrl}
       otherListings={others.map((listing) => ({
         tokenId: listing.tokenId,
         name: listing.name,
@@ -715,7 +588,7 @@ export default function PoolDetailPage() {
         collection: listing.collection,
         priceEth: listing.priceEth,
       }))}
-      key={pool.id}
+      key={view.routeId}
     />
   );
 }
