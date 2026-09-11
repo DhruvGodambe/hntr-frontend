@@ -1,5 +1,16 @@
 import { parseAbi } from "viem";
-import { CONTRACT_ADDRESS, USDC_ADDRESS, USDT_ADDRESS } from "./constants";
+import { mainnet, sepolia } from "wagmi/chains";
+import {
+  CONTRACT_ADDRESS,
+  USDC_ADDRESS,
+  USDT_ADDRESS,
+  SEPOLIA_CONTRACT_ADDRESS,
+  SEPOLIA_USDT_ADDRESS,
+  SEPOLIA_USDC_ADDRESS,
+  MAINNET_CONTRACT_ADDRESS,
+  MAINNET_USDT_ADDRESS,
+  MAINNET_USDC_ADDRESS,
+} from "./constants";
 
 export { CONTRACT_ADDRESS, USDT_ADDRESS, USDC_ADDRESS };
 
@@ -7,6 +18,46 @@ export const TOKEN_ADDRESSES: Record<"USDT" | "USDC", `0x${string}`> = {
   USDT: USDT_ADDRESS,
   USDC: USDC_ADDRESS,
 };
+
+export interface ChainAddresses {
+  contract: `0x${string}` | "";
+  usdt: `0x${string}` | "";
+  usdc: `0x${string}` | "";
+}
+
+/**
+ * Per-chain deployment addresses, for preflight reads and the payment-token
+ * availability check. The actual purchase/upgrade/claim writes always use the
+ * contract/token address the backend hands back in its prepared-tx response.
+ */
+export const ADDRESSES_BY_CHAIN: Record<number, ChainAddresses> = {
+  [sepolia.id]: { contract: SEPOLIA_CONTRACT_ADDRESS, usdt: SEPOLIA_USDT_ADDRESS, usdc: SEPOLIA_USDC_ADDRESS },
+  [mainnet.id]: { contract: MAINNET_CONTRACT_ADDRESS, usdt: MAINNET_USDT_ADDRESS, usdc: MAINNET_USDC_ADDRESS },
+};
+
+export function getAddressesForChain(chainId: number | undefined): ChainAddresses {
+  if (chainId && ADDRESSES_BY_CHAIN[chainId]) return ADDRESSES_BY_CHAIN[chainId];
+  return ADDRESSES_BY_CHAIN[sepolia.id];
+}
+
+export function chainLabel(chainId: number | undefined): string {
+  if (chainId === mainnet.id) return "Ethereum Mainnet";
+  if (chainId === sepolia.id) return "Sepolia";
+  return chainId ? `Chain ${chainId}` : "Unknown network";
+}
+
+/** Block-explorer base for the given chain — etherscan.io on mainnet, sepolia.etherscan.io otherwise. */
+function explorerBase(chainId: number | undefined): string {
+  return chainId === mainnet.id ? "https://etherscan.io" : "https://sepolia.etherscan.io";
+}
+
+export function explorerTxUrl(chainId: number | undefined, txHash: string): string {
+  return `${explorerBase(chainId)}/tx/${txHash}`;
+}
+
+export function explorerAddressUrl(chainId: number | undefined, address: string): string {
+  return `${explorerBase(chainId)}/address/${address}`;
+}
 
 /**
  * Kept in lockstep with hntr-backend/src/services/contract.service.ts and

@@ -5,6 +5,7 @@ import NetworkTopologyTree from "../components/NetworkTopologyTree";
 import PageHeroBanner from "../components/PageHeroBanner";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAccount } from "wagmi";
 import QRCode from "qrcode";
 import { useRouter } from "nextjs-toploader/app";
 import { handleAppError } from "../../lib/errors";
@@ -26,6 +27,7 @@ import {
 } from "../../lib/rewards";
 import { formatClaimableByToken, formatTokenLabel } from "../../lib/tokens";
 import { hasActiveMembership } from "../../lib/membership";
+import { explorerTxUrl } from "../../lib/contracts";
 import { useConnectWallet } from "../../lib/useConnectWallet";
 import type { StandardToastData } from "../../lib/notification-data";
 
@@ -184,9 +186,14 @@ function getPageNumbers(current: number, total: number) {
 export default function NetworkPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { chainId } = useAccount();
   const [profileFlipped, setProfileFlipped] = useState(false);
   const { summary, refetchSummary, isFetching, isConnected } = useDashboardData();
-  const { data: txData } = useTransactionHistory(100);
+  const {
+    data: txData,
+    refetch: refetchTransactions,
+    isFetching: txFetching,
+  } = useTransactionHistory(100);
   const [treeDepth, setTreeDepth] = useState<NetworkTreeDepth>(3);
   const {
     data: treeData,
@@ -1064,6 +1071,30 @@ export default function NetworkPage() {
             <div className="txh-hdr">
               <div className="txh-title">Transaction History</div>
               <div className="txh-controls">
+                <button
+                  type="button"
+                  className="txh-filter-btn"
+                  onClick={() => refetchTransactions()}
+                  disabled={txFetching}
+                  title="Refresh transaction history"
+                >
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    style={txFetching ? { animation: "spin 0.8s linear infinite" } : undefined}
+                  >
+                    <path
+                      d="M13.5 8a5.5 5.5 0 1 1-1.68-3.96M13.5 2.5v3.5h-3.5"
+                      stroke="currentColor"
+                      strokeWidth="1.3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>{" "}
+                  {txFetching ? "Refreshing…" : "Refresh"}
+                </button>
                 <div className="txh-search">
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                     <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4"></circle>
@@ -1248,7 +1279,7 @@ export default function NetworkPage() {
                         <td>
                           {tx.txHash ? (
                             <a
-                              href={`https://sepolia.etherscan.io/tx/${tx.txHash}`}
+                              href={explorerTxUrl(chainId, tx.txHash)}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{ fontFamily: "monospace", color: "var(--t4)" }}

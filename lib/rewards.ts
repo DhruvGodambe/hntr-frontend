@@ -7,7 +7,7 @@ import { getAddress } from "viem";
 import { api } from "./api";
 import { ensureAuth } from "./auth";
 import { config } from "./wagmi";
-import { hntrMembershipAbi, CONTRACT_ADDRESS } from "./contracts";
+import { hntrMembershipAbi, getAddressesForChain } from "./contracts";
 
 export interface RankProgress {
   percent: number;
@@ -388,7 +388,7 @@ export interface PreparedCommissionClaim {
  */
 export function useClaimCommissions() {
   const queryClient = useQueryClient();
-  const { address } = useAccount();
+  const { address, chainId } = useAccount();
 
   return async function claimTokens(claimableTokens: TokenBalance[]) {
     const toClaim = claimableTokens.filter((t) => t.claimable > 0 && t.address);
@@ -407,8 +407,10 @@ export function useClaimCommissions() {
       // Fresh on-chain balance — skip MetaMask if already drained.
       if (publicClient && address) {
         try {
+          const chainContract = getAddressesForChain(chainId).contract;
+          if (!chainContract) throw new Error("Contract not configured for this chain");
           const live = (await publicClient.readContract({
-            address: getAddress(CONTRACT_ADDRESS),
+            address: getAddress(chainContract),
             abi: hntrMembershipAbi,
             functionName: "withdrawableCommissions",
             args: [getAddress(address), tokenAddress],

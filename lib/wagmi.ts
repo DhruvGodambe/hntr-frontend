@@ -5,7 +5,9 @@ import { mainnet, sepolia } from "wagmi/chains";
 import { getDefaultConfig } from "connectkit";
 
 const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
-// Mainnet RPC is only used for ENS name/avatar resolution (membership stays on Sepolia).
+// Mainnet RPC — used for ENS name/avatar resolution today, and for
+// reads/writes on the mainnet HNTRMembership contract once it's deployed
+// and NEXT_PUBLIC_MAINNET_CONTRACT_ADDRESS (see lib/constants.ts) is set.
 const mainnetRpcUrl =
   process.env.NEXT_PUBLIC_MAINNET_RPC_URL || "https://ethereum-rpc.publicnode.com";
 

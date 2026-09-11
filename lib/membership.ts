@@ -8,7 +8,7 @@ import {
   getPublicClient,
 } from "wagmi/actions";
 import { config } from "./wagmi";
-import { erc20Abi, hntrMembershipAbi, TOKEN_ADDRESSES, TIERS, type TierName } from "./contracts";
+import { erc20Abi, hntrMembershipAbi, TOKEN_ADDRESSES, TIERS, explorerTxUrl, type TierName } from "./contracts";
 import { api, ApiError } from "./api";
 import { ensureAuth } from "./auth";
 import { getAddress, maxUint256 } from "viem";
@@ -404,7 +404,8 @@ export function showMembershipSuccessModal(result: PurchaseResult, username: str
 
   const explorerBtn = document.querySelector<HTMLButtonElement>(".ms-explorer");
   if (explorerBtn) {
-    explorerBtn.onclick = () => window.open(`https://sepolia.etherscan.io/tx/${result.txHash}`, "_blank");
+    const chainId = getAccount(config).chainId;
+    explorerBtn.onclick = () => window.open(explorerTxUrl(chainId, result.txHash), "_blank");
   }
 
   document.getElementById("signupOverlay")?.classList.remove("open");
