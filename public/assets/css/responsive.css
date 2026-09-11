@@ -1357,6 +1357,25 @@ body.dark .mkt-filter-tab.active {
     color: color-mix(in srgb, var(--t4) 72%, transparent);
   }
 
+  .mobile-home-rail-card .mobile-profile-edit-btn {
+    width: 26px;
+    height: 26px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: color-mix(in srgb, var(--t4) 55%, transparent);
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  body.dark .mobile-home-rail-card .mobile-profile-edit-btn {
+    color: color-mix(in srgb, var(--t4) 72%, transparent);
+  }
+
   .mobile-home-rail-card .mobile-upgrade-btn {
     display: inline-flex;
     align-items: center;

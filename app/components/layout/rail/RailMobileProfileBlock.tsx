@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import PrivacyEyeIcon from "../icons/PrivacyEyeIcon";
+import ProfileEditIcon from "../icons/ProfileEditIcon";
 import { formatRankSubtitle } from "../utils";
 import type { RewardsSummary } from "../../../../lib/rewards";
 
@@ -40,6 +41,15 @@ export default function RailMobileProfileBlock({
           title={balancesHidden ? "Show balances" : "Hide balances"}
         >
           <PrivacyEyeIcon hidden={balancesHidden} />
+        </button>
+        <button
+          className="profile-edit-btn mobile-profile-edit-btn"
+          type="button"
+          onClick={() => window.openEditProfile?.()}
+          aria-label="Edit profile"
+          title="Edit profile"
+        >
+          <ProfileEditIcon />
         </button>
         <Link href="/membership" className="mobile-upgrade-btn">
           UPGRADE
