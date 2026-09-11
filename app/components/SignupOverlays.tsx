@@ -25,6 +25,7 @@ import {
   validateSignupStep2,
   validateUsername,
   validatePhone,
+  validateFullName,
 } from "../../lib/signup-validation";
 
 function setModalBodyLock(locked: boolean) {
@@ -60,6 +61,7 @@ declare global {
     closeMembership?: () => void;
     reconnectWallet?: () => void;
     connectWalletForSignup?: () => Promise<void>;
+    openEditProfile?: () => void;
     startSignupFx?: (canvas: HTMLCanvasElement | null) => void;
     suGoto?: (n: number) => void;
     msCopyRef?: (btn: HTMLButtonElement) => void;
@@ -96,10 +98,17 @@ export default function SignupOverlays() {
   const purchaseBusyRef = useRef(false);
   const paymentTokenRef = useRef<PaymentToken>("USDT");
   const skipStep2Ref = useRef(false);
+  const editProfileBusyRef = useRef(false);
   const verifySponsorRef = useRef<(rawSponsor: string) => Promise<boolean>>(async () => false);
   const sponsorLockedRef = useRef(sponsorLocked);
   const sponsorUsernameRef = useRef(sponsorUsername);
   const [isProfileRegistered, setIsProfileRegistered] = useState(false);
+  const [isEditProfileMode, setIsEditProfileMode] = useState(false);
+
+  const closeSignupOverlay = useCallback(() => {
+    closeSignupFlow();
+    setIsEditProfileMode(false);
+  }, []);
 
   const goToSignupStep = useCallback((step: number) => {
     if (skipStep2Ref.current && step === 2) return;
@@ -194,6 +203,7 @@ export default function SignupOverlays() {
   // Debounced "is this username free?" check while the user types (mirrors the
   // sponsor-username verification and the backend uniqueness guard).
   useEffect(() => {
+    if (isEditProfileMode) return;
     const candidate = username.trim().replace(/^@/, "");
     setUsernameAvailable(null);
     if (validateUsername(candidate)) {
@@ -208,7 +218,7 @@ export default function SignupOverlays() {
       window.clearTimeout(handle);
       setUsernameChecking(false);
     };
-  }, [username, checkUsernameAvailability]);
+  }, [username, checkUsernameAvailability, isEditProfileMode]);
 
   useEffect(() => {
     const sponsor = resolveReferralSponsor();
@@ -219,10 +229,11 @@ export default function SignupOverlays() {
   }, []);
 
   useEffect(() => {
+    if (isEditProfileMode) return;
     if (sponsorLocked && sponsorUsername.trim()) {
       void verifySponsor(sponsorUsername);
     }
-  }, [sponsorLocked, sponsorUsername, verifySponsor]);
+  }, [sponsorLocked, sponsorUsername, verifySponsor, isEditProfileMode]);
 
   useEffect(() => {
     paymentTokenRef.current = paymentToken;
@@ -262,10 +273,13 @@ export default function SignupOverlays() {
       window.openSignup = () => {
         skipStep2Ref.current = false;
         setIsProfileRegistered(false);
+        setIsEditProfileMode(false);
         setSponsorChecking(false);
         setUsername("");
         setUsernameAvailable(null);
         setUsernameChecking(false);
+        setFullName("");
+        if (emailRef.current) emailRef.current.value = "";
         const storedSponsor = resolveReferralSponsor();
         if (storedSponsor && !sponsorLockedRef.current) {
           setSponsorUsername(storedSponsor);
@@ -296,7 +310,7 @@ export default function SignupOverlays() {
     document.body.appendChild(script);
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeSignupFlow();
+      if (e.key === "Escape") closeSignupOverlay();
     };
     document.addEventListener("keydown", onKeyDown);
 
@@ -356,7 +370,7 @@ export default function SignupOverlays() {
           tier: result.tier,
           message: `${result.tier} membership activated (${result.amountLabel}). Redirecting to your network...`,
         });
-        closeSignupFlow();
+        closeSignupOverlay();
         window.setTimeout(() => {
           window.location.assign("/network");
         }, 700);
@@ -420,7 +434,7 @@ export default function SignupOverlays() {
             sub: `Signed in as @${profile.profile.username} (${profile.profile.tier})`,
             link: "",
           });
-          closeSignupFlow();
+          closeSignupOverlay();
           return;
         }
         // Registered but hasn't purchased a tier yet - skip straight to tier selection.
@@ -450,7 +464,7 @@ export default function SignupOverlays() {
       }
     } catch (error) {
       if (isUserRejectedError(error)) {
-        closeSignupFlow();
+        closeSignupOverlay();
         window.showToast?.({
           title: "Signature rejected",
           sub: "You were logged out and your wallet was disconnected.",
@@ -463,7 +477,7 @@ export default function SignupOverlays() {
       setConnectBusy(false);
       setAwaitingSignature(false);
     }
-  }, [address, connectBusy, connectWallet, goToSignupStep, isConnected, openSignupOverlay, sponsorLocked, sponsorUsername, verifySponsor]);
+  }, [address, closeSignupOverlay, connectBusy, connectWallet, goToSignupStep, isConnected, openSignupOverlay, sponsorLocked, sponsorUsername, verifySponsor]);
 
   useEffect(() => {
     window.connectWalletForSignup = handleConnectWallet;
@@ -550,6 +564,111 @@ export default function SignupOverlays() {
     }
   };
 
+  const handleOpenEditProfile = useCallback(async () => {
+    if (editProfileBusyRef.current) return;
+    if (!address) {
+      window.showToast?.({ title: "Wallet required", sub: "Connect your wallet first.", link: "" });
+      openSignupOverlay();
+      goToSignupStep(1);
+      return;
+    }
+    editProfileBusyRef.current = true;
+    // The profile fetch (and a possible wallet-signature prompt inside ensureAuth) can take
+    // a few seconds - without this the click can look like it did nothing while it's in flight.
+    window.showToast?.({ title: "Loading your profile...", sub: "Approve the wallet prompt if one appears.", link: "" });
+    try {
+      await ensureAuth({ interactive: true });
+      const { profile } = await api.get<{
+        profile: { username: string; sponsorUsername?: string | null; email?: string; fullName?: string };
+      }>(`/api/users/wallet/${address}`, { auth: true });
+
+      skipStep2Ref.current = false;
+      setIsProfileRegistered(true);
+      setIsEditProfileMode(true);
+      setStep2Errors({});
+      setRegisterFormError("");
+      setSponsorUsername(profile.sponsorUsername ?? "");
+      setSponsorLocked(true);
+      setSponsorVerified(true);
+      setSponsorChecking(false);
+      setUsername(profile.username ?? "");
+      setUsernameAvailable(true);
+      setUsernameChecking(false);
+      setFullName(profile.fullName ?? "");
+      if (emailRef.current) emailRef.current.value = profile.email ?? "";
+
+      openSignupOverlay();
+      goToSignupStep(2);
+    } catch (error) {
+      // Wallet connected but registration was never completed (e.g. still showing
+      // "Unregistered" in the rail) - there's no profile to edit yet, so fall back
+      // to the normal signup flow instead of leaving the click looking like a no-op.
+      if (error instanceof ApiError && error.statusCode === 404) {
+        skipStep2Ref.current = false;
+        setIsProfileRegistered(false);
+        setIsEditProfileMode(false);
+        openSignupOverlay();
+        goToSignupStep(2);
+        const referralSponsor = resolveReferralSponsor();
+        const activeSponsor = (referralSponsor ?? sponsorUsername).trim();
+        if (referralSponsor && referralSponsor !== sponsorUsername.trim()) {
+          setSponsorUsername(referralSponsor);
+          setSponsorLocked(true);
+        }
+        if (activeSponsor) {
+          void verifySponsor(activeSponsor);
+        }
+        return;
+      }
+      console.error("openEditProfile failed:", error);
+      notifyError("Could not load your profile", error);
+    } finally {
+      editProfileBusyRef.current = false;
+    }
+  }, [address, goToSignupStep, openSignupOverlay, sponsorUsername, verifySponsor]);
+
+  useEffect(() => {
+    window.openEditProfile = handleOpenEditProfile;
+    return () => {
+      delete window.openEditProfile;
+    };
+  }, [handleOpenEditProfile]);
+
+  const handleUpdateFullName = async () => {
+    if (registerBusy) return;
+    const trimmedFullName = fullName.trim().replace(/\s+/g, " ");
+    const fullNameError = validateFullName(trimmedFullName);
+    if (fullNameError) {
+      setStep2Errors({ fullName: fullNameError });
+      setRegisterFormError("Please enter a valid full name.");
+      return;
+    }
+    if (!address) {
+      setRegisterFormError("Wallet not connected. Reconnect your wallet and try again.");
+      return;
+    }
+
+    setStep2Errors({});
+    setRegisterFormError("");
+    setRegisterBusy(true);
+    try {
+      await api.patch(
+        `/api/users/wallet/${address}/full-name`,
+        { fullName: trimmedFullName },
+        { auth: true },
+      );
+      setFullName(trimmedFullName);
+      window.showToast?.({ title: "Profile updated", sub: "Your full name has been updated.", link: "" });
+      closeSignupOverlay();
+    } catch (error) {
+      const resolved = resolveAppError(error, "Update failed");
+      setRegisterFormError(resolved.sub);
+      notifyError(resolved.title, error);
+    } finally {
+      setRegisterBusy(false);
+    }
+  };
+
   const profileFieldsDisabled = registerBusy;
 
   return (
@@ -557,7 +676,7 @@ export default function SignupOverlays() {
       <div
         id="signupOverlay"
         onClick={(e) => {
-          if (e.target === e.currentTarget) closeSignupFlow();
+          if (e.target === e.currentTarget) closeSignupOverlay();
         }}
       >
         <div className="su-modal" id="suModal" role="dialog" aria-modal="true" aria-label="Sign up">
@@ -571,7 +690,7 @@ export default function SignupOverlays() {
                   <i></i>
                 </div>
               </div>
-              <button className="su-x" type="button" onClick={() => closeSignupFlow()} aria-label="Close">
+              <button className="su-x" type="button" onClick={() => closeSignupOverlay()} aria-label="Close">
                 <svg viewBox="0 0 16 16" width="15" height="15" fill="none">
                   <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                 </svg>
@@ -629,22 +748,28 @@ export default function SignupOverlays() {
           <div className="su-step" id="suStep2">
             <div className="su-head">
               <div className="su-eyebrow">
-                Sign up: Step 2 of 3
-                <div className="su-prog">
-                  <i className="on"></i>
-                  <i className="on"></i>
-                  <i></i>
-                </div>
+                {isEditProfileMode ? "Edit Profile" : "Sign up: Step 2 of 3"}
+                {!isEditProfileMode && (
+                  <div className="su-prog">
+                    <i className="on"></i>
+                    <i className="on"></i>
+                    <i></i>
+                  </div>
+                )}
               </div>
-              <button className="su-x" type="button" onClick={() => closeSignupFlow()} aria-label="Close">
+              <button className="su-x" type="button" onClick={() => closeSignupOverlay()} aria-label="Close">
                 <svg viewBox="0 0 16 16" width="15" height="15" fill="none">
                   <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                 </svg>
               </button>
             </div>
             <div className="su2-body">
-              <div className="su2-title">Step 2 of 3: User Information</div>
-              <div className="su2-sub">Complete your profile to access the terminal.</div>
+              <div className="su2-title">{isEditProfileMode ? "Edit Profile" : "Step 2 of 3: User Information"}</div>
+              <div className="su2-sub">
+                {isEditProfileMode
+                  ? "Update your full name below. Other fields are locked."
+                  : "Complete your profile to access the terminal."}
+              </div>
               {registerFormError && (
                 <div className="su-form-errors" role="alert">
                   {registerFormError}
@@ -656,7 +781,7 @@ export default function SignupOverlays() {
                   className={`su-input${step2Errors.sponsor ? " is-error" : ""}${sponsorVerified ? " is-valid" : ""}`}
                   value={sponsorUsername}
                   placeholder="sponsor_username"
-                  disabled={sponsorLocked || sponsorChecking || registerBusy}
+                  disabled={sponsorLocked || sponsorChecking || registerBusy || isEditProfileMode}
                   required
                   aria-invalid={!!step2Errors.sponsor}
                   onChange={(e) => {
@@ -670,26 +795,27 @@ export default function SignupOverlays() {
                     }
                   }}
                 />
-                {sponsorChecking && (
+                {isEditProfileMode && <p className="su-field-hint">Locked. Contact support to change your sponsor.</p>}
+                {!isEditProfileMode && sponsorChecking && (
                   <p className="su-field-hint">
                     {sponsorLocked ? "Verifying referral sponsor..." : "Verifying sponsor..."}
                   </p>
                 )}
-                {!sponsorChecking && sponsorVerified && !step2Errors.sponsor && (
+                {!isEditProfileMode && !sponsorChecking && sponsorVerified && !step2Errors.sponsor && (
                   <p className="su-field-hint is-success">
                     {sponsorLocked
                       ? "Referral sponsor verified. Complete your profile below."
                       : "Sponsor verified. You can complete your profile."}
                   </p>
                 )}
-                {!sponsorChecking && !sponsorVerified && !step2Errors.sponsor && (
+                {!isEditProfileMode && !sponsorChecking && !sponsorVerified && !step2Errors.sponsor && (
                   <p className="su-field-hint">
                     {sponsorLocked
                       ? "Referral sponsor applied from your invite link."
                       : "Enter your sponsor username to verify eligibility before continuing."}
                   </p>
                 )}
-                {step2Errors.sponsor && <p className="su-field-error">{step2Errors.sponsor}</p>}
+                {!isEditProfileMode && step2Errors.sponsor && <p className="su-field-error">{step2Errors.sponsor}</p>}
               </div>
               <div className="su-field su-row">
                 <div>
@@ -704,20 +830,22 @@ export default function SignupOverlays() {
                     required
                     maxLength={20}
                     autoComplete="off"
-                    disabled={profileFieldsDisabled}
+                    disabled={profileFieldsDisabled || isEditProfileMode}
                     aria-invalid={!!step2Errors.username}
                     onChange={(e) => {
                       setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 20));
                       clearStep2Error("username");
                     }}
                   />
-                  {usernameChecking && <p className="su-field-hint">Checking availability…</p>}
-                  {!usernameChecking &&
+                  {isEditProfileMode && <p className="su-field-hint">Locked. Your username cannot be changed.</p>}
+                  {!isEditProfileMode && usernameChecking && <p className="su-field-hint">Checking availability…</p>}
+                  {!isEditProfileMode &&
+                    !usernameChecking &&
                     usernameAvailable === true &&
                     !step2Errors.username && (
                       <p className="su-field-hint is-success">Username is available.</p>
                     )}
-                  {step2Errors.username && <p className="su-field-error">{step2Errors.username}</p>}
+                  {!isEditProfileMode && step2Errors.username && <p className="su-field-error">{step2Errors.username}</p>}
                 </div>
                 <div>
                   <label className="su-lbl">Full Name</label>
@@ -744,7 +872,7 @@ export default function SignupOverlays() {
                       className={`su-select${step2Errors.region ? " is-error" : ""}`}
                       value={region}
                       required
-                      disabled={profileFieldsDisabled}
+                      disabled={profileFieldsDisabled || isEditProfileMode}
                       aria-invalid={!!step2Errors.region}
                       onChange={(e) => {
                         const nextRegion = e.target.value as SignupRegion | "";
@@ -771,7 +899,7 @@ export default function SignupOverlays() {
                       region={region}
                       country={country}
                       value={phone}
-                      disabled={profileFieldsDisabled || !region}
+                      disabled={profileFieldsDisabled || !region || isEditProfileMode}
                       hasError={!!step2Errors.phone || !!step2Errors.country}
                       onChange={(next) => {
                         setPhone(next);
@@ -797,7 +925,7 @@ export default function SignupOverlays() {
                     {step2Errors.phone && <p className="su-field-error">{step2Errors.phone}</p>}
                   </div>
                 </div>
-                {region && !step2Errors.phone && !step2Errors.country && (
+                {!isEditProfileMode && region && !step2Errors.phone && !step2Errors.country && (
                   <p className="su-field-hint">Choose your country and enter a valid mobile number.</p>
                 )}
               </div>
@@ -810,13 +938,14 @@ export default function SignupOverlays() {
                   placeholder="institutional@gmail.com"
                   autoComplete="email"
                   inputMode="email"
-                  disabled={profileFieldsDisabled}
+                  disabled={profileFieldsDisabled || isEditProfileMode}
                   aria-invalid={!!step2Errors.email}
                   onChange={() => clearStep2Error("email")}
                 />
-                {step2Errors.email && <p className="su-field-error">{step2Errors.email}</p>}
+                {isEditProfileMode && <p className="su-field-hint">Locked. Contact support to change your email.</p>}
+                {!isEditProfileMode && step2Errors.email && <p className="su-field-error">{step2Errors.email}</p>}
               </div>
-              {isTurnstileEnabled() && (
+              {isTurnstileEnabled() && !isEditProfileMode && (
                 <div className="su-field su-turnstile">
                   <Turnstile
                     className="su-turnstile-widget"
@@ -829,18 +958,23 @@ export default function SignupOverlays() {
               <button
                 className="su-primary"
                 type="button"
-                onClick={handleContinueRegistration}
+                onClick={isEditProfileMode ? handleUpdateFullName : handleContinueRegistration}
                 disabled={
                   registerBusy ||
-                  sponsorChecking ||
-                  usernameChecking ||
-                  usernameAvailable === false ||
-                  (isTurnstileEnabled() && !captchaToken)
+                  (!isEditProfileMode &&
+                    (sponsorChecking ||
+                      usernameChecking ||
+                      usernameAvailable === false ||
+                      (isTurnstileEnabled() && !captchaToken)))
                 }
               >
                 {registerBusy
-                  ? "Registering..."
-                  : sponsorChecking
+                  ? isEditProfileMode
+                    ? "Saving..."
+                    : "Registering..."
+                  : isEditProfileMode
+                    ? "Save Changes"
+                    : sponsorChecking
                     ? "Verifying sponsor..."
                     : usernameChecking
                       ? "Checking username..."
@@ -863,7 +997,7 @@ export default function SignupOverlays() {
                   <i className="on"></i>
                 </div>
               </div>
-              <button className="su-x" type="button" onClick={() => closeSignupFlow()} aria-label="Close">
+              <button className="su-x" type="button" onClick={() => closeSignupOverlay()} aria-label="Close">
                 <svg viewBox="0 0 16 16" width="15" height="15" fill="none">
                   <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                 </svg>

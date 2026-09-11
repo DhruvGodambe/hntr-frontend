@@ -1,6 +1,7 @@
 "use client";
 
 import PrivacyEyeIcon from "../icons/PrivacyEyeIcon";
+import ProfileEditIcon from "../icons/ProfileEditIcon";
 import type { RewardsSummary } from "../../../../lib/rewards";
 
 type RailProfileCardProps = {
@@ -31,6 +32,15 @@ export default function RailProfileCard({ summary, balancesHidden, onTogglePriva
           title={balancesHidden ? "Show balances" : "Hide balances"}
         >
           <PrivacyEyeIcon hidden={balancesHidden} />
+        </button>
+        <button
+          className="profile-edit-btn"
+          type="button"
+          onClick={() => window.openEditProfile?.()}
+          aria-label="Edit profile"
+          title="Edit profile"
+        >
+          <ProfileEditIcon />
         </button>
       </div>
       <div className="rpb-wrap">

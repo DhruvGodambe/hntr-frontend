@@ -88,4 +88,6 @@ export const api = {
   get: <T = any>(path: string, opts?: { auth?: boolean }) => request<T>(path, { method: "GET", auth: opts?.auth }),
   post: <T = any>(path: string, body?: any, opts?: { auth?: boolean }) =>
     request<T>(path, { method: "POST", body, auth: opts?.auth }),
+  patch: <T = any>(path: string, body?: any, opts?: { auth?: boolean }) =>
+    request<T>(path, { method: "PATCH", body, auth: opts?.auth }),
 };

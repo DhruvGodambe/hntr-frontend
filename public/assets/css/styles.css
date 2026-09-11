@@ -7189,6 +7189,8 @@ body.dark #msOverlay{background:rgba(0,0,0,.62);}
 .privacy-eye{margin-left:auto;flex-shrink:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--t1);cursor:pointer;border-radius:6px;transition:.15s;padding:0}
 .privacy-eye:hover{background:var(--e3);color:var(--t4)}
 .privacy-eye.off{color:var(--olive)}
+.profile-edit-btn{flex-shrink:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--t1);cursor:pointer;border-radius:6px;transition:.15s;padding:0}
+.profile-edit-btn:hover{background:var(--e3);color:var(--t4)}
 
 
 /* === style block 7 === */
