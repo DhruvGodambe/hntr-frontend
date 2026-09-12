@@ -337,7 +337,6 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
   const balances = access?.balances ?? [];
   const bal = balances.find((b) => b.token === token);
   const balance = bal?.balance ?? 0;
-  const issuedTotal = balances.reduce((s, b) => s + b.issued, 0);
   const tiers = access?.tiers ?? [];
 
   const activeCount = useMemo(() => vouchers.filter((v) => v.status === "ACTIVE").length, [vouchers]);
@@ -502,7 +501,12 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
           </div>
           <div className="net-stat">
             <div className="net-stat-lbl">Balance Issued</div>
-            <div className="net-stat-val">{money(issuedTotal)}</div>
+            <div className="net-stat-val gc-issued-val">
+              {balances
+                .filter((b) => b.issued > 0)
+                .map((b) => `${money(b.issued)} ${b.token}`)
+                .join(" + ") || money(0)}
+            </div>
             <div className="net-stat-chg">Locked in outstanding codes</div>
           </div>
           <div className="net-stat">
