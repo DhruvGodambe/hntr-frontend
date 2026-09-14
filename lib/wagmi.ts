@@ -3,13 +3,12 @@
 import { createConfig, http } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
 import { getDefaultConfig } from "connectkit";
+import { SEPOLIA_RPC_URL, MAINNET_RPC_URL } from "./constants";
 
-const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
-// Mainnet RPC — used for ENS name/avatar resolution today, and for
-// reads/writes on the mainnet HNTRMembership contract once it's deployed
-// and NEXT_PUBLIC_MAINNET_CONTRACT_ADDRESS (see lib/constants.ts) is set.
-const mainnetRpcUrl =
-  process.env.NEXT_PUBLIC_MAINNET_RPC_URL || "https://ethereum-rpc.publicnode.com";
+const rpcUrl = SEPOLIA_RPC_URL;
+// Mainnet RPC — used for ENS name/avatar resolution, and for reads/writes on
+// the mainnet HNTRMembership contract (see MAINNET_CONTRACT_ADDRESS in lib/constants.ts).
+const mainnetRpcUrl = MAINNET_RPC_URL;
 
 // WalletConnect Cloud project id (free at https://cloud.reown.com). Only required for the
 // WalletConnect connector (mobile wallet QR codes) - injected/browser wallets still work without it.
@@ -22,8 +21,8 @@ export const config = createConfig(
     appUrl: process.env.NEXT_PUBLIC_APP_URL || "https://hntr.app",
     appIcon: "/assets/images/logoMark.png",
     walletConnectProjectId,
-    // Sepolia first (app chain). Mainnet included so ConnectKit/wagmi can resolve ENS.
-    chains: [sepolia, mainnet],
+    // Mainnet first (app chain). Sepolia kept in config for testing.
+    chains: [mainnet, sepolia],
     transports: {
       [sepolia.id]: http(rpcUrl),
       [mainnet.id]: http(mainnetRpcUrl),

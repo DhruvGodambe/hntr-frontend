@@ -1,27 +1,22 @@
 /**
- * Per-chain HNTRMembership + USDT/USDC deployment addresses.
+ * Per-chain HNTRMembership + USDT/USDC deployment addresses, and the RPC URL used
+ * for each chain. This file is the single source of truth for all of these — no
+ * env vars involved, so switching the active deployment (e.g. going live on
+ * mainnet) means editing the values below, not per-environment .env files.
  *
- * Sepolia is the current live deployment; the actual contract/token address
- * used for a purchase/upgrade/claim always comes from the backend response
- * (`prepared.contractAddress` / `prepared.tokenAddress`), so this file only
- * feeds preflight reads and the payment-token availability check.
- *
- * Mainnet addresses are provisioned via env vars and stay empty until the
- * mainnet contract is deployed and the backend is pointed at it:
- *   NEXT_PUBLIC_MAINNET_CONTRACT_ADDRESS
- *   NEXT_PUBLIC_MAINNET_USDT_ADDRESS
- *   NEXT_PUBLIC_MAINNET_USDC_ADDRESS
+ * The actual contract/token address used for a purchase/upgrade/claim always
+ * comes from the backend response (`prepared.contractAddress` / `prepared.tokenAddress`),
+ * so the addresses below only feed preflight reads and the payment-token
+ * availability check.
  *
  * Update the Sepolia values after each Sepolia redeploy (keep in sync with
- * hntr-backend CONTRACT_ADDRESS).
+ * hntr-backend CONTRACT_ADDRESS/RPC_URL).
  */
 
 type Address0x = `0x${string}`;
 
-function envAddress(name: string): Address0x | "" {
-  const v = process.env[name];
-  return v && v.startsWith("0x") ? (v as Address0x) : "";
-}
+export const SEPOLIA_RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
+export const MAINNET_RPC_URL = "https://ethereum-rpc.publicnode.com";
 
 export const SEPOLIA_CONTRACT_ADDRESS: Address0x =
   "0xba7470F39C90C6ff9AEFa905382eCec69cD112c9" as const satisfies `0x${string}`;
@@ -30,10 +25,9 @@ export const SEPOLIA_USDT_ADDRESS: Address0x =
 export const SEPOLIA_USDC_ADDRESS: Address0x =
   "0x1A1Bf3C12dc85219D2422dd9B936c5845Be899A1" as const satisfies `0x${string}`;
 
-// Empty until the mainnet deployment lands; set via env vars above.
-export const MAINNET_CONTRACT_ADDRESS: Address0x | "" = envAddress("NEXT_PUBLIC_MAINNET_CONTRACT_ADDRESS");
-export const MAINNET_USDT_ADDRESS: Address0x | "" = envAddress("NEXT_PUBLIC_MAINNET_USDT_ADDRESS");
-export const MAINNET_USDC_ADDRESS: Address0x | "" = envAddress("NEXT_PUBLIC_MAINNET_USDC_ADDRESS");
+export const MAINNET_CONTRACT_ADDRESS: Address0x | "" = "0x6AF160Ed0B4be74B3E94d7849624934F65C889a7";
+export const MAINNET_USDT_ADDRESS: Address0x | "" = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+export const MAINNET_USDC_ADDRESS: Address0x | "" = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 
 // Backward-compatible defaults (Sepolia) for call sites not yet chain-aware.
 export const CONTRACT_ADDRESS = SEPOLIA_CONTRACT_ADDRESS;

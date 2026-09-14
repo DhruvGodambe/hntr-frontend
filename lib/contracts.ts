@@ -37,7 +37,7 @@ export const ADDRESSES_BY_CHAIN: Record<number, ChainAddresses> = {
 
 export function getAddressesForChain(chainId: number | undefined): ChainAddresses {
   if (chainId && ADDRESSES_BY_CHAIN[chainId]) return ADDRESSES_BY_CHAIN[chainId];
-  return ADDRESSES_BY_CHAIN[sepolia.id];
+  return ADDRESSES_BY_CHAIN[mainnet.id];
 }
 
 export function chainLabel(chainId: number | undefined): string {
@@ -89,6 +89,12 @@ export const hntrMembershipAbi = parseAbi([
   // --- Burner-wallet free membership override ---
   "function overrideMembershipTier(address user, uint8 tier)",
 
+  // --- Owner or burner wallet: tier prices + unilevel commission percentages ---
+  "function setTierPrice(uint8 tier, uint256 newPrice)",
+  "function setLevelPercentage(uint256 level, uint256 newPercent)",
+  "function levelPercentages(uint256 level) view returns (uint256)",
+  "function totalLevelPercentage() view returns (uint256)",
+
   // --- Burner wallet: voucher redemption + commission signer + tier override ---
   "function setBurnerWallet(address _burnerWallet)",
   "function burnerWallet() view returns (address)",
@@ -116,6 +122,8 @@ export const hntrMembershipAbi = parseAbi([
   "event MembershipPurchased(address indexed user, uint8 tier, uint256 amount, address token)",
   "event MembershipUpgraded(address indexed user, uint8 oldTier, uint8 newTier, uint256 amountPaid, address token)",
   "event MembershipTierOverriden(address indexed user, uint8 tier, uint256 joinedAt)",
+  "event TierPriceUpdated(uint8 indexed tier, uint256 oldPrice, uint256 newPrice)",
+  "event LevelPercentageUpdated(uint256 indexed level, uint256 oldPercent, uint256 newPercent)",
   "event BurnerWalletUpdated(address burnerWallet)",
   "event VoucherRedeemed(address indexed user, bytes32 indexed voucherId, uint8 oldTier, uint8 newTier, uint256 joinedAt)",
   "event CommissionEarned(address indexed user, uint256 liquidAmount, uint256 lockedAmount, uint8 level, address token)",
