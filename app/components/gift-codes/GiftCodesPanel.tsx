@@ -175,6 +175,11 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
               {activeCount} active · {redeemedCount} redeemed
             </div>
           </div>
+          <div className="net-stat">
+            <div className="net-stat-lbl">Codes Redeemed</div>
+            <div className="net-stat-val">{access?.redeemed?.count ?? 0}</div>
+            <div className="net-stat-chg">{money(access?.redeemed?.totalUsd ?? 0)} USD claimed</div>
+          </div>
         </div>
 
         <div className="gf-top">

@@ -24,6 +24,7 @@ export interface VoucherAccess {
   enabled: boolean;
   username: string | null;
   balances: VoucherBalance[];
+  redeemed: { count: number; totalUsd: number };
   expiryDays: number;
   tiers: { name: string; valueUsd: number }[];
 }
