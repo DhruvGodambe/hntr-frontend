@@ -7,7 +7,6 @@ import {
   VoucherToken,
   fetchAllVouchers,
   issueVoucher,
-  revealVoucherCode,
   revokeVoucher,
   useMyVouchers,
   useVoucherAccess,
@@ -31,11 +30,10 @@ function csvCell(value: string): string {
   return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
-/** Never exports the plaintext redeem code — only the masked form shown on-screen. */
 function vouchersToCsv(vouchers: Voucher[]): string {
   const header = ["Code", "Tier", "Value", "Token", "Status", "Redeemer", "Created", "Expires", "Note"];
   const rows = vouchers.map((v) => [
-    `HNTR-****-****-${v.codeLast4}`,
+    v.code,
     v.tier,
     v.amountUsd.toFixed(2),
     v.token,
@@ -76,8 +74,6 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
   const [exportBusy, setExportBusy] = useState(false);
   const [dialog, setDialog] = useState<GiftDialogState | null>(null);
   const [dialogBusy, setDialogBusy] = useState(false);
-
-  const [revealed, setRevealed] = useState<Record<string, string>>({});
 
   const balances = access?.balances ?? [];
   const bal = balances.find((b) => b.token === token);
@@ -138,16 +134,6 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
       setDialog({ kind: "error", title: resolved.title, message: resolved.sub || resolved.title });
     } finally {
       setExportBusy(false);
-    }
-  }
-
-  async function reveal(voucherId: string) {
-    try {
-      const { code } = await revealVoucherCode(voucherId);
-      setRevealed((prev) => ({ ...prev, [voucherId]: code }));
-    } catch (error) {
-      const resolved = resolveAppError(error, "Could not reveal code");
-      setDialog({ kind: "error", title: resolved.title, message: resolved.sub || resolved.title });
     }
   }
 
@@ -330,9 +316,7 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
                 vouchers.map((v) => (
                   <tr key={v.voucherId}>
                     <td>
-                      <span className="gf-code">
-                        {revealed[v.voucherId] ?? `HNTR-••••-••••-${v.codeLast4}`}
-                      </span>
+                      <span className="gf-code">{v.code}</span>
                     </td>
                     <td className="td-asset">{v.tier}</td>
                     <td className="td-price">
@@ -345,9 +329,6 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
                     <td className="td-time">
                       {v.status === "ACTIVE" && (
                         <span className="gc-row-actions">
-                          <button type="button" onClick={() => reveal(v.voucherId)}>
-                            Reveal code
-                          </button>
                           <button type="button" onClick={() => revoke(v.voucherId)}>
                             Cancel
                           </button>

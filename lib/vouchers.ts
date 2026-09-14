@@ -31,6 +31,7 @@ export interface VoucherAccess {
 
 export interface Voucher {
   voucherId: string;
+  code: string;
   codeLast4: string;
   tier: string;
   amountUsd: number;
@@ -118,11 +119,6 @@ export async function fetchAllVouchers(): Promise<Voucher[]> {
 export async function issueVoucher(input: { tier: string; token: VoucherToken; note?: string }): Promise<IssuedVoucher> {
   await ensureAuth({ interactive: true });
   return api.post<IssuedVoucher>("/api/vouchers", input, { auth: true });
-}
-
-export async function revealVoucherCode(voucherId: string): Promise<{ code: string; redeemUrl: string }> {
-  await ensureAuth({ interactive: true });
-  return api.get<{ code: string; redeemUrl: string }>(`/api/vouchers/${voucherId}/code`, { auth: true });
 }
 
 export async function shareVoucher(voucherId: string, usernames: string[]) {
