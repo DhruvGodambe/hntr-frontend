@@ -33,7 +33,7 @@ export interface VoucherAccess {
 
 export interface Voucher {
   voucherId: string;
-  code: string;
+  /** Never sent by the list endpoint — only the last 4 chars are. Call revealVoucherCode() to get the full code. */
   codeLast4: string;
   tier: string;
   amountUsd: number;
@@ -146,6 +146,12 @@ export async function searchUsernames(q: string, limit = 8) {
     { auth: true },
   );
   return data.items ?? [];
+}
+
+/** Issuer-only, rate-limited re-reveal of a voucher's full plaintext code — it's shown once at issue time otherwise. */
+export async function revealVoucherCode(voucherId: string) {
+  await ensureAuth({ interactive: true });
+  return api.get<{ code: string; redeemUrl: string }>(`/api/vouchers/${voucherId}/code`, { auth: true });
 }
 
 export async function revokeVoucher(voucherId: string) {

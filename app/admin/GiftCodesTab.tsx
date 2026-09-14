@@ -347,7 +347,9 @@ function VouchersPane({ notify }: { notify: Notify }) {
               <td className="px-6 py-4">
                 <StatusBadge status={v.status} />
               </td>
-              <td className="px-6 py-4 text-sm text-gray-400">{v.redeemerUsername ?? "—"}</td>
+              <td className="px-6 py-4 text-sm text-gray-400">
+                {v.redeemerUsername ?? (v.restrictedUsername ? `${v.restrictedUsername} (reserved)` : "—")}
+              </td>
               <td className="px-6 py-4 text-xs text-gray-500">{new Date(v.expiresAt).toLocaleDateString()}</td>
               <td className="px-6 py-4">
                 {v.status === "ACTIVE" && (

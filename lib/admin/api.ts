@@ -531,6 +531,7 @@ export interface AdminVoucher {
   token: "USDT" | "USDC";
   status: string;
   note: string | null;
+  restrictedUsername: string | null;
   createdAt: string;
   expiresAt: string;
   redeemedAt: string | null;

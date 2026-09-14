@@ -7,6 +7,7 @@ import {
   VoucherToken,
   fetchAllVouchers,
   issueVoucher,
+  revealVoucherCode,
   revokeVoucher,
   useMyVouchers,
   useVoucherAccess,
@@ -33,12 +34,12 @@ function csvCell(value: string): string {
 function vouchersToCsv(vouchers: Voucher[]): string {
   const header = ["Code", "Tier", "Value", "Token", "Status", "Redeemer", "Created", "Expires", "Used Date", "Note"];
   const rows = vouchers.map((v) => [
-    v.code,
+    `HNTR-****-****-${v.codeLast4}`,
     v.tier,
     v.amountUsd.toFixed(2),
     v.token,
     statusLabel(v.status),
-    v.redeemerUsername ? `@${v.redeemerUsername}` : "",
+    v.redeemerUsername ? `@${v.redeemerUsername}` : v.restrictedUsername ? `@${v.restrictedUsername} (reserved)` : "",
     new Date(v.createdAt).toISOString(),
     new Date(v.expiresAt).toISOString(),
     v.redeemedAt ? new Date(v.redeemedAt).toISOString() : "",
@@ -75,6 +76,7 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
   const [exportBusy, setExportBusy] = useState(false);
   const [dialog, setDialog] = useState<GiftDialogState | null>(null);
   const [dialogBusy, setDialogBusy] = useState(false);
+  const [copyState, setCopyState] = useState<Record<string, "busy" | "copied" | undefined>>({});
 
   const balances = access?.balances ?? [];
   const bal = balances.find((b) => b.token === token);
@@ -146,6 +148,20 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
       setDialog({ kind: "error", title: resolved.title, message: resolved.sub || resolved.title });
     } finally {
       setExportBusy(false);
+    }
+  }
+
+  async function copyCode(voucherId: string) {
+    setCopyState((p) => ({ ...p, [voucherId]: "busy" }));
+    try {
+      const { code } = await revealVoucherCode(voucherId);
+      await navigator.clipboard?.writeText(code);
+      setCopyState((p) => ({ ...p, [voucherId]: "copied" }));
+      setTimeout(() => setCopyState((p) => ({ ...p, [voucherId]: undefined })), 1500);
+    } catch (error) {
+      setCopyState((p) => ({ ...p, [voucherId]: undefined }));
+      const resolved = resolveAppError(error, "Could not retrieve gift code");
+      setDialog({ kind: "error", title: resolved.title, message: resolved.sub || resolved.title });
     }
   }
 
@@ -360,14 +376,35 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
                 vouchers.map((v) => (
                   <tr key={v.voucherId}>
                     <td>
-                      <span className="gf-code">{v.code}</span>
+                      <span className="gc-row-actions">
+                        <span className="gf-code">HNTR-••••-••••-{v.codeLast4}</span>
+                        {v.status === "ACTIVE" && (
+                          <button
+                            type="button"
+                            onClick={() => copyCode(v.voucherId)}
+                            disabled={copyState[v.voucherId] === "busy"}
+                          >
+                            {copyState[v.voucherId] === "copied"
+                              ? "Copied"
+                              : copyState[v.voucherId] === "busy"
+                                ? "…"
+                                : "Copy"}
+                          </button>
+                        )}
+                      </span>
                     </td>
                     <td className="td-asset">{v.tier}</td>
                     <td className="td-price">
                       {money(v.amountUsd)} {v.token}
                     </td>
                     <td className="td-source">{statusLabel(v.status)}</td>
-                    <td className="td-source">{v.redeemerUsername ? `@${v.redeemerUsername}` : "—"}</td>
+                    <td className="td-source">
+                      {v.redeemerUsername
+                        ? `@${v.redeemerUsername}`
+                        : v.restrictedUsername
+                          ? `@${v.restrictedUsername} (reserved)`
+                          : "—"}
+                    </td>
                     <td className="td-time">{new Date(v.createdAt).toLocaleDateString()}</td>
                     <td className="td-time">{new Date(v.expiresAt).toLocaleDateString()}</td>
                     <td className="td-time">{v.redeemedAt ? new Date(v.redeemedAt).toLocaleDateString() : "—"}</td>
