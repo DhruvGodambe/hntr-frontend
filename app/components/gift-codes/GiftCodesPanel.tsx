@@ -224,7 +224,7 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
             <div className="net-stat-chg">Locked in outstanding codes</div>
           </div>
           <div className="net-stat">
-            <div className="net-stat-lbl">Codes</div>
+            <div className="net-stat-lbl">Codes Generated</div>
             <div className="net-stat-val">{vouchers.length}</div>
             <div className="net-stat-chg">
               {activeCount} active · {redeemedCount} redeemed
