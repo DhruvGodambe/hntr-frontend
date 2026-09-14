@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 
 /**
  * Cloudflare Turnstile ("Verify you are human") widget.
@@ -77,18 +77,40 @@ interface TurnstileProps {
   className?: string;
 }
 
-export default function Turnstile({
-  onVerify,
-  onExpire,
-  theme = "auto",
-  className,
-}: TurnstileProps) {
+export interface TurnstileHandle {
+  /**
+   * Forces a fresh challenge/token. Required after any use of the token — Cloudflare
+   * invalidates it server-side on first verify regardless of whether the surrounding
+   * request (e.g. registration) actually succeeded, but the widget itself stays
+   * mounted showing "solved" and never re-fires its callback on its own. Without an
+   * explicit reset, a retry after any failed submit is permanently stuck with a dead
+   * token and a Continue button that can never re-enable.
+   */
+  reset: () => void;
+}
+
+const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Turnstile(
+  { onVerify, onExpire, theme = "auto", className },
+  ref,
+) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const onVerifyRef = useRef(onVerify);
   const onExpireRef = useRef(onExpire);
   onVerifyRef.current = onVerify;
   onExpireRef.current = onExpire;
+
+  useImperativeHandle(ref, () => ({
+    reset: () => {
+      if (widgetIdRef.current && window.turnstile) {
+        try {
+          window.turnstile.reset(widgetIdRef.current);
+        } catch {
+          /* noop */
+        }
+      }
+    },
+  }));
 
   useEffect(() => {
     if (!SITE_KEY) return;
@@ -124,4 +146,6 @@ export default function Turnstile({
 
   if (!SITE_KEY) return null;
   return <div ref={containerRef} className={className} />;
-}
+});
+
+export default Turnstile;

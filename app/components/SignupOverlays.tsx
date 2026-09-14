@@ -11,7 +11,7 @@ import { useConnectWallet } from "../../lib/useConnectWallet";
 import PaymentTokenToggle from "./PaymentTokenToggle";
 import MembershipPaySummary from "./MembershipPaySummary";
 import SignupPhoneInput from "./SignupPhoneInput";
-import Turnstile, { isTurnstileEnabled } from "@/components/Turnstile";
+import Turnstile, { isTurnstileEnabled, type TurnstileHandle } from "@/components/Turnstile";
 import type { PaymentToken } from "../../lib/tokens";
 import { resolveReferralSponsor } from "../../lib/referral";
 import {
@@ -95,6 +95,18 @@ export default function SignupOverlays() {
   const [country, setCountry] = useState<SignupCountryCode | "">("");
   const [phone, setPhone] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
+  const turnstileRef = useRef<TurnstileHandle>(null);
+
+  // Cloudflare invalidates a Turnstile token the moment it's verified server-side,
+  // whether or not the request it rode along with actually succeeded — so a retry
+  // after ANY registration failure (duplicate email, taken username, etc.) needs a
+  // fresh token. The widget never re-fires its callback on its own once solved, so
+  // clearing the token without also resetting the widget leaves Continue permanently
+  // disabled with no way to re-verify.
+  const resetCaptcha = useCallback(() => {
+    setCaptchaToken("");
+    turnstileRef.current?.reset();
+  }, []);
   const purchaseBusyRef = useRef(false);
   const paymentTokenRef = useRef<PaymentToken>("USDT");
   const skipStep2Ref = useRef(false);
@@ -285,6 +297,7 @@ export default function SignupOverlays() {
         setUsernameAvailable(null);
         setUsernameChecking(false);
         setFullName("");
+        resetCaptcha();
         if (emailRef.current) emailRef.current.value = "";
         const storedSponsor = resolveReferralSponsor();
         if (storedSponsor && !sponsorLockedRef.current) {
@@ -561,7 +574,7 @@ export default function SignupOverlays() {
       setPurchaseStatus({ state: "idle" });
       goToSignupStep(3);
     } catch (error) {
-      setCaptchaToken("");
+      resetCaptcha();
       const { fieldErrors, formError } = mapRegistrationApiError(error);
       setStep2Errors(fieldErrors);
       setRegisterFormError(formError ?? "");
@@ -954,10 +967,11 @@ export default function SignupOverlays() {
               {isTurnstileEnabled() && !isEditProfileMode && (
                 <div className="su-field su-turnstile">
                   <Turnstile
+                    ref={turnstileRef}
                     className="su-turnstile-widget"
                     theme="dark"
                     onVerify={setCaptchaToken}
-                    onExpire={() => setCaptchaToken("")}
+                    onExpire={resetCaptcha}
                   />
                 </div>
               )}
