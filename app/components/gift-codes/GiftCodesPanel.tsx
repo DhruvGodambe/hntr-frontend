@@ -31,7 +31,7 @@ function csvCell(value: string): string {
 }
 
 function vouchersToCsv(vouchers: Voucher[]): string {
-  const header = ["Code", "Tier", "Value", "Token", "Status", "Redeemer", "Created", "Expires", "Note"];
+  const header = ["Code", "Tier", "Value", "Token", "Status", "Redeemer", "Created", "Expires", "Used Date", "Note"];
   const rows = vouchers.map((v) => [
     v.code,
     v.tier,
@@ -41,6 +41,7 @@ function vouchersToCsv(vouchers: Voucher[]): string {
     v.redeemerUsername ? `@${v.redeemerUsername}` : "",
     new Date(v.createdAt).toISOString(),
     new Date(v.expiresAt).toISOString(),
+    v.redeemedAt ? new Date(v.redeemedAt).toISOString() : "",
     v.note ?? "",
   ]);
   return [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
@@ -308,6 +309,7 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
                 <th>Redeemer</th>
                 <th>Created</th>
                 <th>Expires</th>
+                <th>Used Date</th>
                 <th></th>
               </tr>
             </thead>
@@ -326,6 +328,7 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
                     <td className="td-source">{v.redeemerUsername ? `@${v.redeemerUsername}` : "—"}</td>
                     <td className="td-time">{new Date(v.createdAt).toLocaleDateString()}</td>
                     <td className="td-time">{new Date(v.expiresAt).toLocaleDateString()}</td>
+                    <td className="td-time">{v.redeemedAt ? new Date(v.redeemedAt).toLocaleDateString() : "—"}</td>
                     <td className="td-time">
                       {v.status === "ACTIVE" && (
                         <span className="gc-row-actions">
@@ -339,7 +342,7 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8}>
+                  <td colSpan={9}>
                     <div className="gf-empty">No codes with this status.</div>
                   </td>
                 </tr>
