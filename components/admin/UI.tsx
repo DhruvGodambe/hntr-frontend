@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
+import { explorerTxUrl } from "../../lib/contracts";
 
 export function TxHashLink({
   txHash,
@@ -11,13 +13,17 @@ export function TxHashLink({
   end?: number;
   className?: string;
 }) {
+  // Goes to etherscan.io or sepolia.etherscan.io based on whichever chain the
+  // connected wallet is on (falls back to Mainnet when no wallet is connected).
+  const { chainId } = useAccount();
+
   if (!txHash) {
     return <span className={className}>—</span>;
   }
 
   return (
     <a
-      href={`https://sepolia.etherscan.io/tx/${txHash}`}
+      href={explorerTxUrl(chainId, txHash)}
       target="_blank"
       rel="noopener noreferrer"
       className={className}

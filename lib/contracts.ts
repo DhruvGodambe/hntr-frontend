@@ -46,9 +46,9 @@ export function chainLabel(chainId: number | undefined): string {
   return chainId ? `Chain ${chainId}` : "Unknown network";
 }
 
-/** Block-explorer base for the given chain — etherscan.io on mainnet, sepolia.etherscan.io otherwise. */
+/** Block-explorer base for the given chain — sepolia.etherscan.io only when explicitly on Sepolia, etherscan.io (mainnet) otherwise. */
 function explorerBase(chainId: number | undefined): string {
-  return chainId === mainnet.id ? "https://etherscan.io" : "https://sepolia.etherscan.io";
+  return chainId === sepolia.id ? "https://sepolia.etherscan.io" : "https://etherscan.io";
 }
 
 export function explorerTxUrl(chainId: number | undefined, txHash: string): string {
