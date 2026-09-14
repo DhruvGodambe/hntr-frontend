@@ -82,6 +82,7 @@ export default function SignupOverlays() {
   const [pendingTier, setPendingTier] = useState<string | null>(null);
   const [purchasePhase, setPurchasePhase] = useState<SignupPurchasePhase | null>(null);
   const [purchaseStatus, setPurchaseStatus] = useState<SignupPurchaseStatus>({ state: "idle" });
+  const [signupSuccessMessage, setSignupSuccessMessage] = useState<string | null>(null);
   const [paymentToken, setPaymentToken] = useState<PaymentToken>("USDT");
   const [selectedSignupTier, setSelectedSignupTier] = useState<string | null>(null);
   const [step2Errors, setStep2Errors] = useState<SignupStep2Errors>({});
@@ -121,6 +122,7 @@ export default function SignupOverlays() {
   const closeSignupOverlay = useCallback(() => {
     closeSignupFlow();
     setIsEditProfileMode(false);
+    setSignupSuccessMessage(null);
   }, []);
 
   const handleSkipMembership = useCallback(() => {
@@ -299,6 +301,7 @@ export default function SignupOverlays() {
         setUsernameChecking(false);
         setFullName("");
         resetCaptcha();
+        setSignupSuccessMessage(null);
         if (emailRef.current) emailRef.current.value = "";
         const storedSponsor = resolveReferralSponsor();
         if (storedSponsor && !sponsorLockedRef.current) {
@@ -347,6 +350,7 @@ export default function SignupOverlays() {
       if (selectedSignupTier !== tierName) {
         setSelectedSignupTier(tierName);
         setPurchaseStatus({ state: "idle" });
+        setSignupSuccessMessage(null);
         return;
       }
 
@@ -573,6 +577,10 @@ export default function SignupOverlays() {
       skipStep2Ref.current = true;
       setIsProfileRegistered(true);
       setPurchaseStatus({ state: "idle" });
+      // Registration succeeded but the modal stays open (moving to step 3), so the
+      // global toast system would silently drop this — it refuses to show anything
+      // while document.body has "modal-open". An inline banner here is the reliable path.
+      setSignupSuccessMessage("Account created successfully! Choose a membership tier below to finish setting up, or skip for now.");
       goToSignupStep(3);
     } catch (error) {
       resetCaptcha();
@@ -678,8 +686,11 @@ export default function SignupOverlays() {
         { auth: true },
       );
       setFullName(trimmedFullName);
-      window.showToast?.({ title: "Profile updated", sub: "Your full name has been updated.", link: "" });
+      // canShowToast() refuses to render while document.body still has "modal-open" —
+      // close the overlay (which clears that class synchronously) before firing the
+      // toast, otherwise it's silently dropped and the user sees no confirmation at all.
       closeSignupOverlay();
+      window.showToast?.({ title: "Profile updated", sub: "Your full name has been updated.", link: "" });
     } catch (error) {
       const resolved = resolveAppError(error, "Update failed");
       setRegisterFormError(resolved.sub);
@@ -1025,6 +1036,11 @@ export default function SignupOverlays() {
               </button>
             </div>
             <div className="su3-body">
+              {signupSuccessMessage && (
+                <div className="su-purchase-status is-success" role="status">
+                  {signupSuccessMessage}
+                </div>
+              )}
               <div className="su3-intro">
                 Choose a Membership tier that aligns with your capital deployment requirements and network expansion
                 objectives. All tiers include full terminal access.
