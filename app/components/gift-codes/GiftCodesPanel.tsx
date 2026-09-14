@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   Voucher,
   VoucherAccess,
@@ -80,9 +80,7 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
   const bal = balances.find((b) => b.token === token);
   const balance = bal?.balance ?? 0;
   const tiers = access?.tiers ?? [];
-
-  const activeCount = useMemo(() => vouchers.filter((v) => v.status === "ACTIVE").length, [vouchers]);
-  const redeemedCount = useMemo(() => vouchers.filter((v) => v.status === "REDEEMED").length, [vouchers]);
+  const counts = access?.counts;
 
   async function generate() {
     const tier = tiers.find((t) => t.valueUsd === tierValue);
@@ -212,9 +210,9 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
           </div>
           <div className="net-stat">
             <div className="net-stat-lbl">Codes Generated</div>
-            <div className="net-stat-val">{vouchers.length}</div>
+            <div className="net-stat-val">{counts?.all ?? 0}</div>
             <div className="net-stat-chg">
-              {activeCount} active · {redeemedCount} redeemed
+              {counts?.active ?? 0} active · {counts?.redeemed ?? 0} redeemed
             </div>
           </div>
           <div className="net-stat">
@@ -292,7 +290,7 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
                 className={`gf-tab${filter === k ? " on" : ""}`}
                 onClick={() => setFilter(k)}
               >
-                {k === "all" ? "All" : k.charAt(0).toUpperCase() + k.slice(1)}
+                {k === "all" ? "All" : k.charAt(0).toUpperCase() + k.slice(1)} {counts?.[k] ?? 0}
               </button>
             ))}
           </div>

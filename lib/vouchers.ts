@@ -25,6 +25,8 @@ export interface VoucherAccess {
   username: string | null;
   balances: VoucherBalance[];
   redeemed: { count: number; totalUsd: number };
+  /** Matches the "Codes Status" filter tabs 1:1 — not derived from the (filtered, paginated) list. */
+  counts: { all: number; active: number; redeemed: number; expired: number };
   expiryDays: number;
   tiers: { name: string; valueUsd: number }[];
 }
