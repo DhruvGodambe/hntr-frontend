@@ -40,6 +40,7 @@ export interface Voucher {
   token: VoucherToken;
   status: "ACTIVE" | "REDEEMING" | "REDEEMED" | "EXPIRED" | "REVOKED" | "FAILED";
   note: string | null;
+  restrictedUsername: string | null;
   createdAt: string;
   expiresAt: string;
   redeemedAt: string | null;
@@ -54,6 +55,7 @@ export interface IssuedVoucher {
   tier: string;
   amountUsd: number;
   token: VoucherToken;
+  redeemerUsername: string;
   expiresAt: string;
   balanceAfter: number;
 }
@@ -118,7 +120,12 @@ export async function fetchAllVouchers(): Promise<Voucher[]> {
   return all;
 }
 
-export async function issueVoucher(input: { tier: string; token: VoucherToken; note?: string }): Promise<IssuedVoucher> {
+export async function issueVoucher(input: {
+  tier: string;
+  token: VoucherToken;
+  redeemerUsername: string;
+  note?: string;
+}): Promise<IssuedVoucher> {
   await ensureAuth({ interactive: true });
   return api.post<IssuedVoucher>("/api/vouchers", input, { auth: true });
 }

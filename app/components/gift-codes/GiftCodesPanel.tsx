@@ -70,7 +70,7 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
 
   const [token, setToken] = useState<VoucherToken>("USDT");
   const [tierValue, setTierValue] = useState<number | "">("");
-  const [note, setNote] = useState("");
+  const [redeemerUsername, setRedeemerUsername] = useState("");
   const [busy, setBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
   const [dialog, setDialog] = useState<GiftDialogState | null>(null);
@@ -79,6 +79,9 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
   const balances = access?.balances ?? [];
   const bal = balances.find((b) => b.token === token);
   const balance = bal?.balance ?? 0;
+  const issued = bal?.issued ?? 0;
+  const issuedTotal = balance + issued;
+  const issuedPct = issuedTotal > 0 ? Math.round((issued / issuedTotal) * 100) : 0;
   const tiers = access?.tiers ?? [];
   const counts = access?.counts;
 
@@ -96,20 +99,30 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
       });
       return;
     }
+    const redeemer = redeemerUsername.trim().replace(/^@/, "");
+    if (!redeemer) {
+      setDialog({
+        kind: "error",
+        title: "Redeemer required",
+        message: "Enter the username of the person who will redeem this code.",
+      });
+      return;
+    }
     setBusy(true);
     try {
-      const result = await issueVoucher({ tier: tier.name, token, note: note.trim() || undefined });
+      const result = await issueVoucher({ tier: tier.name, token, redeemerUsername: redeemer });
       await invalidate();
       await accessQuery.refetch();
       await listQuery.refetch();
       setTierValue("");
-      setNote("");
+      setRedeemerUsername("");
       setDialog({
         kind: "issued",
         title: "Gift code created",
         tier: result.tier,
         code: result.code,
         redeemUrl: result.redeemUrl,
+        redeemerUsername: result.redeemerUsername,
       });
     } catch (error) {
       const resolved = resolveAppError(error, "Could not create gift code");
@@ -229,20 +242,50 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
               <div className="gf-card-n">From balance</div>
             </div>
 
+            <div className="gf-field">
+              <span className="gf-lbl">Currency</span>
+              <select
+                className="gf-select"
+                value={token}
+                onChange={(e) => {
+                  setToken(e.target.value as VoucherToken);
+                  setTierValue("");
+                }}
+              >
+                <option value="USDT">USDT</option>
+                <option value="USDC">USDC</option>
+              </select>
+            </div>
+
+            <div className="gf-avail">
+              <div className="gf-avail-v">{money(balance)}</div>
+              <div className="gf-avail-l">{token} available to issue</div>
+            </div>
+            <div className="gf-bar">
+              <div className="gf-bar-fill" style={{ width: `${issuedPct}%` }} />
+            </div>
+            <div className="gf-bar-lbl">
+              <span>{money(issued)} issued</span>
+              <span>
+                {issuedPct}% of {money(issuedTotal)}
+              </span>
+            </div>
+
+            <div className="gf-chips">
+              {tiers.map((t) => (
+                <div
+                  key={t.name}
+                  className={`gf-chip${tierValue === t.valueUsd ? " on" : ""}${t.valueUsd > balance ? " off" : ""}`}
+                  onClick={() => setTierValue(t.valueUsd)}
+                >
+                  {t.name} · {t.valueUsd.toLocaleString("en-US")}
+                </div>
+              ))}
+            </div>
+
             <div className="gf-row">
               <div className="gf-field">
-                <span className="gf-lbl">Currency</span>
-                <select
-                  className="gf-select"
-                  value={token}
-                  onChange={(e) => setToken(e.target.value as VoucherToken)}
-                >
-                  <option value="USDT">USDT</option>
-                  <option value="USDC">USDC</option>
-                </select>
-              </div>
-              <div className="gf-field">
-                <span className="gf-lbl">Membership tier</span>
+                <span className="gf-lbl">Membership tier value</span>
                 <select
                   className="gf-select"
                   value={tierValue}
@@ -256,22 +299,23 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
                   ))}
                 </select>
               </div>
+              <div className="gf-field">
+                <span className="gf-lbl">Expires</span>
+                <div className="gf-static">7 days from issue</div>
+              </div>
             </div>
 
             <div className="gf-field">
-              <span className="gf-lbl">Note (optional)</span>
+              <span className="gf-lbl">Username of redeemer</span>
               <input
                 className="gf-input"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="e.g. Q3 promo"
-                maxLength={64}
+                value={redeemerUsername}
+                onChange={(e) => setRedeemerUsername(e.target.value)}
+                placeholder="e.g. m.ruiz"
+                maxLength={32}
                 autoComplete="off"
               />
-              <div className="gf-hint">
-                Codes are bearer — anyone with the link can redeem. Expires 7 days after issue; the
-                balance is returned automatically if it goes unredeemed.
-              </div>
+              <div className="gf-hint">Only this account can redeem the code.</div>
             </div>
 
             <button type="button" className="gf-btn wide" onClick={generate} disabled={busy}>
