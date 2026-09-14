@@ -97,6 +97,24 @@ export function useMyVouchers(status = "all", page = 1, limit = 20) {
   });
 }
 
+/** Every voucher the caller has issued, across all statuses and pages — for CSV export. */
+export async function fetchAllVouchers(): Promise<Voucher[]> {
+  await ensureAuth();
+  const limit = 100;
+  let page = 1;
+  let all: Voucher[] = [];
+  for (;;) {
+    const res = await api.get<{ items: Voucher[]; pagination: { totalPages: number } }>(
+      `/api/vouchers?status=all&page=${page}&limit=${limit}`,
+      { auth: true },
+    );
+    all = all.concat(res.items);
+    if (res.items.length === 0 || page >= res.pagination.totalPages) break;
+    page++;
+  }
+  return all;
+}
+
 export async function issueVoucher(input: { tier: string; token: VoucherToken; note?: string }): Promise<IssuedVoucher> {
   await ensureAuth({ interactive: true });
   return api.post<IssuedVoucher>("/api/vouchers", input, { auth: true });

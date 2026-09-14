@@ -5,6 +5,7 @@ import {
   Voucher,
   VoucherAccess,
   VoucherToken,
+  fetchAllVouchers,
   issueVoucher,
   revealVoucherCode,
   revokeVoucher,
@@ -26,6 +27,39 @@ function statusLabel(s: Voucher["status"]) {
   return s.charAt(0) + s.slice(1).toLowerCase();
 }
 
+function csvCell(value: string): string {
+  return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+}
+
+/** Never exports the plaintext redeem code — only the masked form shown on-screen. */
+function vouchersToCsv(vouchers: Voucher[]): string {
+  const header = ["Code", "Tier", "Value", "Token", "Status", "Redeemer", "Created", "Expires", "Note"];
+  const rows = vouchers.map((v) => [
+    `HNTR-****-****-${v.codeLast4}`,
+    v.tier,
+    v.amountUsd.toFixed(2),
+    v.token,
+    statusLabel(v.status),
+    v.redeemerUsername ? `@${v.redeemerUsername}` : "",
+    new Date(v.createdAt).toISOString(),
+    new Date(v.expiresAt).toISOString(),
+    v.note ?? "",
+  ]);
+  return [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
+}
+
+function downloadCsv(csv: string, filename: string) {
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 export default function GiftCodesPanel({ access: initialAccess }: { access?: VoucherAccess }) {
   const accessQuery = useVoucherAccess();
   const access = accessQuery.data ?? initialAccess;
@@ -39,6 +73,7 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
   const [tierValue, setTierValue] = useState<number | "">("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [exportBusy, setExportBusy] = useState(false);
   const [dialog, setDialog] = useState<GiftDialogState | null>(null);
   const [dialogBusy, setDialogBusy] = useState(false);
 
@@ -86,6 +121,23 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
       setDialog({ kind: "error", title: resolved.title, message: resolved.sub || resolved.title });
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function exportCsv() {
+    setExportBusy(true);
+    try {
+      const all = await fetchAllVouchers();
+      if (all.length === 0) {
+        setDialog({ kind: "error", title: "Nothing to export", message: "You haven't issued any gift codes yet." });
+        return;
+      }
+      downloadCsv(vouchersToCsv(all), `gift-codes-${new Date().toISOString().slice(0, 10)}.csv`);
+    } catch (error) {
+      const resolved = resolveAppError(error, "Could not export gift codes");
+      setDialog({ kind: "error", title: resolved.title, message: resolved.sub || resolved.title });
+    } finally {
+      setExportBusy(false);
     }
   }
 
@@ -145,6 +197,9 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
             <div className="gf-title">Gift Codes</div>
             <div className="gf-sub">Issue and track membership vouchers from your balance</div>
           </div>
+          <button type="button" className="gf-btn ghost" onClick={exportCsv} disabled={exportBusy}>
+            {exportBusy ? "Exporting…" : "Export CSV"}
+          </button>
         </div>
 
         <div className="gf-stats">
