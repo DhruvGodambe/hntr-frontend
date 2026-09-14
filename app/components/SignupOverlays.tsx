@@ -24,6 +24,7 @@ import {
   mapRegistrationApiError,
   validateSignupStep2,
   validateUsername,
+  validateNewUsername,
   validatePhone,
   validateFullName,
 } from "../../lib/signup-validation";
@@ -187,7 +188,7 @@ export default function SignupOverlays() {
   const checkUsernameAvailability = useCallback(
     async (rawUsername: string): Promise<boolean | null> => {
       const candidate = rawUsername.trim().replace(/^@/, "");
-      if (validateUsername(candidate)) {
+      if (validateNewUsername(candidate)) {
         setUsernameAvailable(null);
         setUsernameChecking(false);
         return null;
@@ -224,7 +225,7 @@ export default function SignupOverlays() {
     if (isEditProfileMode) return;
     const candidate = username.trim().replace(/^@/, "");
     setUsernameAvailable(null);
-    if (validateUsername(candidate)) {
+    if (validateNewUsername(candidate)) {
       setUsernameChecking(false);
       return;
     }
@@ -852,7 +853,7 @@ export default function SignupOverlays() {
                     disabled={profileFieldsDisabled || isEditProfileMode}
                     aria-invalid={!!step2Errors.username}
                     onChange={(e) => {
-                      setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 20));
+                      setUsername(e.target.value.replace(/[^a-zA-Z]/g, "").slice(0, 20));
                       clearStep2Error("username");
                     }}
                   />

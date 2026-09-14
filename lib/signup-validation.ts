@@ -36,7 +36,11 @@ export type SignupStep2Values = {
 
 export type SignupStep2Errors = Partial<Record<keyof SignupStep2Values, string>>;
 
+/** Existing usernames (e.g. a sponsor referenced by an already-registered member) may
+ *  predate the letters-only rule below — keep this lenient so those still validate. */
 const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,20}$/;
+/** New usernames created from now on: English letters only, no digits/underscore. */
+const NEW_USERNAME_PATTERN = /^[a-zA-Z]{3,20}$/;
 const FULL_NAME_ALLOWED = /^[a-zA-Z\s'.-]+$/;
 
 /** Obvious filler words people type to skip the field. */
@@ -53,6 +57,16 @@ export function validateUsername(value: string, label = "Username"): string | un
   if (!trimmed) return `${label} is required.`;
   if (!USERNAME_PATTERN.test(trimmed)) {
     return `${label} must be 3–20 characters and use letters, numbers, or underscores only.`;
+  }
+  return undefined;
+}
+
+/** Validates a brand-new username being created at signup — letters only. */
+export function validateNewUsername(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return "Username is required.";
+  if (!NEW_USERNAME_PATTERN.test(trimmed)) {
+    return "Username must be 3–20 letters only (no numbers, symbols, or spaces).";
   }
   return undefined;
 }
@@ -220,7 +234,7 @@ export function validateSignupStep2(values: SignupStep2Values): SignupStep2Error
   const sponsorError = validateUsername(values.sponsor, "Sponsor username");
   if (sponsorError) errors.sponsor = sponsorError;
 
-  const usernameError = validateUsername(values.username);
+  const usernameError = validateNewUsername(values.username);
   if (usernameError) errors.username = usernameError;
 
   const fullNameError = validateFullName(values.fullName);
