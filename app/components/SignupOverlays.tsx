@@ -110,6 +110,12 @@ export default function SignupOverlays() {
     setIsEditProfileMode(false);
   }, []);
 
+  const handleSkipMembership = useCallback(() => {
+    setPurchaseStatus({ state: "idle" });
+    setSelectedSignupTier(null);
+    closeSignupOverlay();
+  }, [closeSignupOverlay]);
+
   const goToSignupStep = useCallback((step: number) => {
     if (skipStep2Ref.current && step === 2) return;
     window.suGoto?.(step);
@@ -785,7 +791,7 @@ export default function SignupOverlays() {
                   required
                   aria-invalid={!!step2Errors.sponsor}
                   onChange={(e) => {
-                    setSponsorUsername(e.target.value.replace(/^@/, "").replace(/\s/g, ""));
+                    setSponsorUsername(e.target.value.replace(/^@/, "").replace(/[^a-zA-Z0-9_]/g, ""));
                     setSponsorVerified(false);
                     clearStep2Error("sponsor");
                   }}
@@ -1125,18 +1131,28 @@ export default function SignupOverlays() {
               </div>
             </div>
             <div className="su-foot" style={{ padding: "16px 30px" }}>
-              {!isProfileRegistered && (
+              <div className="su-foot-left">
+                {!isProfileRegistered && (
+                  <button
+                    className="su-back"
+                    type="button"
+                    onClick={() => goToSignupStep(2)}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                      <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Previous Step
+                  </button>
+                )}
                 <button
-                  className="su-back"
+                  className="su-skip"
                   type="button"
-                  onClick={() => goToSignupStep(2)}
+                  onClick={handleSkipMembership}
+                  disabled={!!pendingTier}
                 >
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                    <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Previous Step
+                  Skip
                 </button>
-              )}
+              </div>
               <span className="su-status">
                 Current Status<b>Onboarding</b>
               </span>

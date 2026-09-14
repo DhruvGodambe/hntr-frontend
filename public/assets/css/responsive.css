@@ -1531,6 +1531,12 @@ body.dark .mkt-filter-tab.active {
     flex-direction: column;
   }
 
+  /* Pin the claim/soon button to the card bottom so both cards line up even
+     when one title wraps to two lines and grows taller than the other. */
+  .mobile-home-rail-card .mobile-rail-rewards-grid .rrc > *:last-child {
+    margin-top: auto;
+  }
+
   body.dark .mobile-home-rail-card .mobile-rail-rewards-grid .rrc {
     background: #1c1c1f !important;
   }
