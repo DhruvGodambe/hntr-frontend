@@ -1,6 +1,8 @@
 import { parseAbi } from "viem";
 import { mainnet, sepolia } from "wagmi/chains";
 import {
+  NETWORK_SWITCHER,
+  IS_MAINNET,
   CONTRACT_ADDRESS,
   USDC_ADDRESS,
   USDT_ADDRESS,
@@ -12,7 +14,18 @@ import {
   MAINNET_USDC_ADDRESS,
 } from "./constants";
 
-export { CONTRACT_ADDRESS, USDT_ADDRESS, USDC_ADDRESS };
+export {
+  CONTRACT_ADDRESS,
+  USDT_ADDRESS,
+  USDC_ADDRESS,
+  NETWORK_SWITCHER,
+  IS_MAINNET,
+};
+
+/** Chain id the app expects wallets to be on (from NEXT_PUBLIC_NETWORK). */
+export const APP_CHAIN_ID = IS_MAINNET ? mainnet.id : sepolia.id;
+
+export const APP_CHAIN = IS_MAINNET ? mainnet : sepolia;
 
 export const TOKEN_ADDRESSES: Record<"USDT" | "USDC", `0x${string}`> = {
   USDT: USDT_ADDRESS,
@@ -37,13 +50,24 @@ export const ADDRESSES_BY_CHAIN: Record<number, ChainAddresses> = {
 
 export function getAddressesForChain(chainId: number | undefined): ChainAddresses {
   if (chainId && ADDRESSES_BY_CHAIN[chainId]) return ADDRESSES_BY_CHAIN[chainId];
-  return ADDRESSES_BY_CHAIN[mainnet.id];
+  return ADDRESSES_BY_CHAIN[APP_CHAIN_ID];
 }
 
 export function chainLabel(chainId: number | undefined): string {
   if (chainId === mainnet.id) return "Ethereum Mainnet";
   if (chainId === sepolia.id) return "Sepolia";
   return chainId ? `Chain ${chainId}` : "Unknown network";
+}
+
+export function shortChainLabel(chainId: number | undefined): string {
+  if (chainId === mainnet.id) return "Ethereum";
+  if (chainId === sepolia.id) return "Sepolia";
+  return chainId ? `Chain ${chainId}` : "Network";
+}
+
+/** True when the wallet is on the network configured by NEXT_PUBLIC_NETWORK. */
+export function isCorrectAppChain(chainId: number | undefined | null): boolean {
+  return chainId === APP_CHAIN_ID;
 }
 
 /** Block-explorer base for the given chain — sepolia.etherscan.io only when explicitly on Sepolia, etherscan.io (mainnet) otherwise. */

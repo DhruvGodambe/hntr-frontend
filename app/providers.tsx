@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { WagmiProvider } from "wagmi";
-import { mainnet } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider } from "connectkit";
 import { config } from "../lib/wagmi";
+import { APP_CHAIN_ID } from "../lib/contracts";
 import HntrAvatar from "./components/HntrAvatar";
 import ReferralCapture from "./components/ReferralCapture";
 
@@ -22,8 +22,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             hideTooltips: false,
             embedGoogleFonts: false,
             enforceSupportedChains: true,
-            // Default users onto Mainnet; Sepolia stays in config for testing.
-            initialChainId: mainnet.id,
+            // Driven by NEXT_PUBLIC_NETWORK → NETWORK_SWITCHER → APP_CHAIN_ID.
+            initialChainId: APP_CHAIN_ID,
             truncateLongENSAddress: true,
             customAvatar: HntrAvatar,
           }}
