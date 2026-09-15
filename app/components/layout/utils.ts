@@ -24,15 +24,6 @@ export function filterActivityByTab(entries: ActivityEntry[], tab: ActivityTab):
   return entries;
 }
 
-/** ISO 3166-1 alpha-2 code -> flag emoji via regional indicator symbols. No asset/dependency needed. */
-export function countryCodeToFlagEmoji(code?: string): string {
-  if (!code) return "";
-  const upper = code.trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(upper)) return "";
-  const points = [...upper].map((char) => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...points);
-}
-
 const TIER_ICONS: Record<string, string> = {
   Bronze: "🥉",
   Silver: "🥈",
