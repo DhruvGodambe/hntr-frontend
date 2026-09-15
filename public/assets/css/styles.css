@@ -7050,7 +7050,6 @@ body.dark #signupOverlay{background:rgba(0,0,0,.6);}
 .su-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .su-row > div{min-width:0;}
 .su-field .su-row{align-items:start;}
-.su-field .su-row .su-phone-field{min-height:46px;}
 .su-lbl{display:block;font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:.15em;color:var(--t2);text-transform:uppercase;margin-bottom:8px;}
 .su-input,.su-select{width:100%;font-family:var(--fn);font-size:13px;color:var(--t4);background:var(--e2);border:1px solid var(--bd2);border-radius:5px;padding:12px 14px;outline:none;transition:border-color .15s,box-shadow .15s;}
 .su-input::placeholder{color:var(--t1);}
@@ -7069,43 +7068,28 @@ body.dark #signupOverlay{background:rgba(0,0,0,.6);}
 body.dark .su-field-error{color:#fca5a5;}
 body.dark .su-field-hint{color:var(--t3);}
 body.dark .su-field-hint.is-success{color:#86efac;}
-.su-phone-field{display:flex;align-items:stretch;width:100%;gap:8px;background:var(--e2);border:1px solid var(--bd2);border-radius:5px;padding:4px 6px 4px 4px;transition:border-color .15s,box-shadow .15s;}
-.su-phone-field:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--sage-faint);}
-.su-phone-field.is-error{border-color:rgba(180,35,24,.55);box-shadow:0 0 0 3px rgba(180,35,24,.1);}
-.su-phone-field .PhoneInputInput{border:none!important;box-shadow:none!important;background:transparent!important;padding:8px 10px!important;min-width:0;}
-.su-phone-field .PhoneInputInput:focus{box-shadow:none!important;}
-.su-phone-field .PhoneInputCountry{margin-right:4px;}
-.su-phone-field .PhoneInputCountrySelect{
-  font-family:var(--fn);
-  font-size:12px;
-  color:#111;
-  color-scheme:light;
-  background:transparent;
-  border:none;
-  outline:none;
-  cursor:pointer;
-  opacity:0;
-}
-.su-phone-field .PhoneInputCountrySelect option,
-.su-phone-field .PhoneInputCountrySelect optgroup{
-  color:#111;
-  background:#fff;
-}
-body.dark .su-phone-field .PhoneInputCountrySelect{
-  color:#111;
-}
-body.dark .su-phone-field .PhoneInputCountrySelect option,
-body.dark .su-phone-field .PhoneInputCountrySelect optgroup{
-  color:#111;
-  background:#fff;
-}
-.su-phone-field .PhoneInputCountrySelectArrow{
-  opacity:.65;
-  border-color:var(--t4);
-}
-.su-phone-field .PhoneInputCountryIcon{border-radius:2px;overflow:hidden;}
-.su-phone-field:has(.PhoneInputInput:disabled){background:var(--e4);opacity:.92;}
 body.dark .su-input.is-valid{border-color:#86efac;}
+/* Country select (signup + edit profile) — custom dropdown so flags render as
+   real SVGs (react-phone-number-input/flags) instead of emoji, which Windows
+   browsers often show as plain letters instead of a flag glyph. */
+.cs-wrap{position:relative;}
+.cs-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;font-family:var(--fn);font-size:13px;color:var(--t4);background:var(--e2);border:1px solid var(--bd2);border-radius:5px;padding:12px 14px;outline:none;cursor:pointer;transition:border-color .15s,box-shadow .15s;text-align:left;}
+.cs-trigger:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--sage-faint);}
+.cs-trigger.is-error{border-color:rgba(180,35,24,.55);box-shadow:0 0 0 3px rgba(180,35,24,.1);}
+.cs-trigger:disabled{background:var(--e4);color:var(--t1);cursor:not-allowed;}
+.cs-trigger-val{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;}
+.cs-trigger-val span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cs-placeholder{color:var(--t1);}
+.cs-chevron{flex-shrink:0;color:#888;transition:transform .15s;}
+.cs-open .cs-chevron{transform:rotate(180deg);}
+.cs-panel{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:40;background:var(--e2);border:1px solid var(--bd2);border-radius:8px;box-shadow:0 12px 28px rgba(0,0,0,.28);overflow:hidden;}
+.cs-search{width:100%;box-sizing:border-box;font-family:var(--fn);font-size:12px;color:var(--t4);background:var(--e1);border:none;border-bottom:1px solid var(--bd2);padding:10px 12px;outline:none;}
+.cs-list{max-height:220px;overflow-y:auto;}
+.cs-option{display:flex;align-items:center;gap:8px;width:100%;font-family:var(--fn);font-size:12px;color:var(--t4);background:none;border:none;padding:9px 12px;cursor:pointer;text-align:left;}
+.cs-option:hover,.cs-option.is-selected{background:var(--sage-faint);}
+.cs-option .an-flag,.cs-trigger .an-flag{margin-left:0;flex-shrink:0;}
+.cs-dial{margin-left:auto;flex-shrink:0;color:var(--t2);font-family:var(--fm);font-size:10px;}
+.cs-empty{padding:14px 12px;font-size:12px;color:var(--t2);text-align:center;}
 .su-form-errors{margin:0 0 16px;padding:10px 12px;border-radius:5px;font-family:var(--fm);font-size:11px;line-height:1.45;color:#b42318;background:rgba(180,35,24,.08);border:0.5px solid rgba(180,35,24,.24);}
 body.dark .su-form-errors{color:#fca5a5;background:rgba(240,112,111,.12);border-color:rgba(240,112,111,.28);}
 .su-select{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'><path d='M2.5 4.5L6 8l3.5-3.5' stroke='%23888' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;}

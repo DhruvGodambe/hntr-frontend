@@ -1,35 +1,13 @@
-import {
-  defaultCountryForRegion,
-  getCountriesForRegion,
-  getCountryOption,
-  toIsoCountry,
-  type SignupCountryCode,
-  type SignupRegion,
-} from "./signup-countries";
+import { getCountryOption, type Country } from "./signup-countries";
 import { isValidPhoneNumber, isPossiblePhoneNumber, parsePhoneNumber } from "react-phone-number-input";
 
-export type { SignupCountryCode, SignupRegion } from "./signup-countries";
-
-export type SignupRegionOption = {
-  value: SignupRegion;
-  label: string;
-};
-
-export const SIGNUP_REGION_OPTIONS: SignupRegionOption[] = [
-  { value: "north-america", label: "North America" },
-  { value: "europe", label: "Europe" },
-  { value: "asia-pacific", label: "Asia Pacific" },
-  { value: "latin-america", label: "Latin America" },
-  { value: "middle-east", label: "Middle East" },
-  { value: "africa", label: "Africa" },
-];
+export type { Country } from "./signup-countries";
 
 export type SignupStep2Values = {
   sponsor: string;
   username: string;
   fullName: string;
-  region: SignupRegion | "";
-  country: SignupCountryCode | "";
+  country: Country | "";
   phone: string;
   email: string;
 };
@@ -115,18 +93,9 @@ export function validateFullName(value: string): string | undefined {
   return undefined;
 }
 
-export function validateRegion(value: SignupRegion | ""): string | undefined {
-  if (!value) return "Select your nationality region.";
-  return undefined;
-}
-
-export function validateCountry(value: SignupCountryCode | "", region: SignupRegion | ""): string | undefined {
+export function validateCountry(value: Country | ""): string | undefined {
   if (!value) return "Select your country.";
-  const country = getCountryOption(value);
-  if (!country) return "Select a valid country.";
-  if (region && country.region !== region) {
-    return "Selected country does not match the chosen region.";
-  }
+  if (!getCountryOption(value)) return "Select a valid country.";
   return undefined;
 }
 
@@ -146,21 +115,15 @@ export function hasFakePhonePattern(nationalDigits: string): boolean {
   return false;
 }
 
-export function validatePhone(
-  value: string,
-  countryCode: SignupCountryCode | "",
-  region: SignupRegion | "",
-): string | undefined {
+export function validatePhone(value: string, country: Country | ""): string | undefined {
   const trimmed = value.trim();
   if (!trimmed) return "Phone number is required.";
 
-  const effectiveCountry = countryCode || defaultCountryForRegion(region);
-  const countryError = validateCountry(effectiveCountry, region);
+  const countryError = validateCountry(country);
   if (countryError) return countryError;
 
-  const country = getCountryOption(effectiveCountry);
-  const isoCountry = toIsoCountry(effectiveCountry);
-  if (!country || !isoCountry) return "Select a valid country.";
+  const option = getCountryOption(country as Country);
+  if (!option) return "Select a valid country.";
 
   let parsed: ReturnType<typeof parsePhoneNumber> | undefined;
   try {
@@ -170,46 +133,34 @@ export function validatePhone(
   }
 
   if (!parsed || !parsed.nationalNumber) {
-    return `Enter a valid ${country.label} mobile number, including +${country.dialCode}.`;
+    return `Enter a valid ${option.label} mobile number, including +${option.dialCode}.`;
   }
 
   // The dialled country code must match the country picked in the form.
-  if (parsed.countryCallingCode && String(parsed.countryCallingCode) !== country.dialCode) {
-    return `Use a +${country.dialCode} ${country.label} number, or change the selected country.`;
+  if (parsed.countryCallingCode && String(parsed.countryCallingCode) !== option.dialCode) {
+    return `Use a +${option.dialCode} ${option.label} number, or change the selected country.`;
   }
 
-  const nationalDigits = String(parsed.nationalNumber);
-  if (
-    nationalDigits.length < country.nationalMinDigits ||
-    nationalDigits.length > country.nationalMaxDigits
-  ) {
-    const expected =
-      country.nationalMinDigits === country.nationalMaxDigits
-        ? `${country.nationalMinDigits} digits`
-        : `${country.nationalMinDigits}–${country.nationalMaxDigits} digits`;
-    return `A ${country.label} number must be ${expected} after +${country.dialCode}.`;
-  }
-
-  if (hasFakePhonePattern(nationalDigits)) {
+  if (hasFakePhonePattern(String(parsed.nationalNumber))) {
     return "Enter a real phone number.";
   }
 
-  if (!isPossiblePhoneNumber(trimmed, isoCountry)) {
-    return `Enter a valid ${country.label} number for +${country.dialCode}.`;
+  if (!isPossiblePhoneNumber(trimmed, option.code)) {
+    return `Enter a valid ${option.label} number for +${option.dialCode}.`;
   }
 
-  if (!isValidPhoneNumber(trimmed, isoCountry)) {
-    return `Enter a complete, valid ${country.label} mobile number.`;
+  if (!isValidPhoneNumber(trimmed, option.code)) {
+    return `Enter a complete, valid ${option.label} mobile number.`;
   }
 
-  if (parsed.country && parsed.country.toLowerCase() !== effectiveCountry) {
-    return `This number does not match ${country.label}.`;
+  if (parsed.country && parsed.country !== option.code) {
+    return `This number does not match ${option.label}.`;
   }
 
   return undefined;
 }
 
-export function formatPhoneE164(value: string, _countryCode?: SignupCountryCode | ""): string {
+export function formatPhoneE164(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return "";
   try {
@@ -240,13 +191,10 @@ export function validateSignupStep2(values: SignupStep2Values): SignupStep2Error
   const fullNameError = validateFullName(values.fullName);
   if (fullNameError) errors.fullName = fullNameError;
 
-  const regionError = validateRegion(values.region);
-  if (regionError) errors.region = regionError;
-
-  const countryError = validateCountry(values.country, values.region);
+  const countryError = validateCountry(values.country);
   if (countryError) errors.country = countryError;
 
-  const phoneError = validatePhone(values.phone, values.country, values.region);
+  const phoneError = validatePhone(values.phone, values.country);
   if (phoneError) errors.phone = phoneError;
 
   const emailError = validateEmail(values.email);
@@ -255,17 +203,7 @@ export function validateSignupStep2(values: SignupStep2Values): SignupStep2Error
   return errors;
 }
 
-export function countriesForRegion(region: SignupRegion | "") {
-  return getCountriesForRegion(region);
-}
-
-export {
-  defaultCountryForRegion,
-  fromIsoCountry,
-  getCountryOption,
-  getIsoCountriesForRegion,
-  toIsoCountry,
-} from "./signup-countries";
+export { SIGNUP_COUNTRIES, getCountryOption } from "./signup-countries";
 
 function duplicateFieldMessage(message: string, field: keyof SignupStep2Values, label: string): string | undefined {
   const lower = message.toLowerCase();

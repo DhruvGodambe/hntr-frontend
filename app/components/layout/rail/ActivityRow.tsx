@@ -1,7 +1,7 @@
 "use client";
 
 import { activityAccentColor, formatActivityTimeAgo } from "../utils";
-import CountryFlag from "./CountryFlag";
+import CountryFlag from "../../CountryFlag";
 import type { ActivityEntry } from "../types";
 
 export default function ActivityRow({ entry }: { entry: ActivityEntry }) {

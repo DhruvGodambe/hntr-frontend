@@ -1,16 +1,8 @@
 "use client";
 
-import PhoneInput, { isPossiblePhoneNumber } from "react-phone-number-input";
+import PhoneInput, { isPossiblePhoneNumber } from "react-phone-number-input/input";
 import { parsePhoneNumberFromString } from "libphonenumber-js/min";
-import "react-phone-number-input/style.css";
-import {
-  defaultCountryForRegion,
-  fromIsoCountry,
-  getIsoCountriesForRegion,
-  toIsoCountry,
-  type SignupCountryCode,
-  type SignupRegion,
-} from "../../lib/signup-countries";
+import type { Country } from "react-phone-number-input";
 
 const E164_MAX_DIGITS = 15;
 
@@ -19,29 +11,23 @@ function countPhoneDigits(value: string): number {
 }
 
 type SignupPhoneInputProps = {
-  region: SignupRegion | "";
-  country: SignupCountryCode | "";
+  country: Country | "";
   value: string;
   onChange: (value: string) => void;
-  onCountryChange: (country: SignupCountryCode) => void;
   onBlur?: () => void;
   disabled?: boolean;
   hasError?: boolean;
 };
 
+/** Country is chosen separately via <CountrySelect> — this is just the number field. */
 export default function SignupPhoneInput({
-  region,
   country,
   value,
   onChange,
-  onCountryChange,
   onBlur,
   disabled = false,
   hasError = false,
 }: SignupPhoneInputProps) {
-  const countries = getIsoCountriesForRegion(region);
-  const resolvedCountry = toIsoCountry(country || defaultCountryForRegion(region));
-
   const handleChange = (next?: string) => {
     if (!next) {
       onChange("");
@@ -53,15 +39,15 @@ export default function SignupPhoneInput({
       return;
     }
 
-    if (resolvedCountry) {
-      const parsed = parsePhoneNumberFromString(next, resolvedCountry);
+    if (country) {
+      const parsed = parsePhoneNumberFromString(next, country);
       if (parsed && !parsed.isPossible()) {
         return;
       }
       if (
         next.length > (value?.length ?? 0) &&
         digitCount > 3 &&
-        !isPossiblePhoneNumber(next, resolvedCountry)
+        !isPossiblePhoneNumber(next, country)
       ) {
         return;
       }
@@ -72,27 +58,15 @@ export default function SignupPhoneInput({
 
   return (
     <PhoneInput
-      key={`${region}-${resolvedCountry ?? "none"}`}
+      key={country || "none"}
       international
-      limitMaxLength
-      countryCallingCodeEditable={false}
-      addInternationalOption={false}
-      countries={countries.length > 0 ? countries : undefined}
-      defaultCountry={resolvedCountry}
+      country={country || undefined}
       value={value || undefined}
       onChange={handleChange}
-      onCountryChange={(iso) => {
-        const mapped = fromIsoCountry(iso);
-        if (mapped) onCountryChange(mapped);
-      }}
       onBlur={onBlur}
-      disabled={disabled || countries.length === 0}
-      className={`su-phone-field${hasError ? " is-error" : ""}`}
-      numberInputProps={{
-        className: "su-input PhoneInputInput",
-        "aria-invalid": hasError,
-        autoComplete: "tel",
-      }}
+      disabled={disabled || !country}
+      className={`su-input${hasError ? " is-error" : ""}`}
+      autoComplete="tel"
     />
   );
 }
