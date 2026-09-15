@@ -4,7 +4,7 @@ var SU_TIERS=[
   {no:'Tier 02',name:'Silver',price:'250',uni:'6 Levels',dep:'$1,500 Max Deposit'},
   {no:'Tier 03',name:'Gold',price:'750',uni:'9 Levels',dep:'$4,000 Max Deposit',rec:true},
   {no:'Tier 04',name:'Platinum',price:'1,500',uni:'12 Levels',dep:'$8,000 Max Deposit',extra:'OTC Desk & NFT Lending'},
-  {no:'Tier 05',name:'Diamond',price:'2,000',uni:'12 Levels',dep:'$20,000 Max Deposit',extra:'OTC Desk & NFT Lending'},
+  {no:'Tier 05',name:'Diamond',price:'2,500',uni:'12 Levels',dep:'$20,000 Max Deposit',extra:'OTC Desk & NFT Lending'},
 ];
 function initSuTiers(){
   var c=document.getElementById('suTiers');if(!c)return;
@@ -37,7 +37,7 @@ function showMembershipSuccess(name){
     Silver:{amt:'250 USDT',uni:'6 Levels',pool:'All Strategy Pools'},
     Gold:{amt:'750 USDT',uni:'9 Levels',pool:'All Strategy Pools'},
     Platinum:{amt:'1,500 USDT',uni:'12 Levels',pool:'All Strategy Pools'},
-    Diamond:{amt:'2,000 USDT',uni:'12 Levels',pool:'All Strategy Pools'}
+    Diamond:{amt:'2,500 USDT',uni:'12 Levels',pool:'All Strategy Pools'}
   }[name]||{amt:'—',uni:'—',pool:'—'};
   var handle=(document.getElementById('suUsername')&&document.getElementById('suUsername').value.trim())||'';
   handle=(handle||name).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12)||'RANGER';
