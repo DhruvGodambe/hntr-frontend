@@ -1283,84 +1283,6 @@ export default function HomePage() {
         >
           <HomeHeroBanner />
 
-              <div className="pbar">
-                <div className="pbar-lbl">Partners</div>
-                <div className="tick-wrap">
-                  <div className="tick-track">
-                    <div className="pt">
-                      <svg width="13" height="13" viewBox="0 0 100 100" fill="none">
-                        <circle cx="50" cy="50" r="45" fill="#1a9eff"></circle>
-                        <path d="M25 60 Q50 20 75 60" stroke="white" strokeWidth="8" fill="none"></path>
-                        <circle cx="50" cy="68" r="10" fill="white"></circle>
-                      </svg>
-                      Pudgy Penguins
-                    </div>
-                    <div className="pt">
-                      <svg width="13" height="13" viewBox="0 0 32 32" fill="none">
-                        <circle cx="16" cy="16" r="14" fill="#2081E2"></circle>
-                        <path d="M16 8.5L8 13v6l8 4.5 8-4.5v-6L16 8.5z" fill="white" opacity=".9"></path>
-                      </svg>
-                      OpenSea
-                    </div>
-                    <div className="pt" style={{ fontStyle: 'italic', letterSpacing: '.06em' }}>
-                      YugaLabs
-                    </div>
-                    <div className="pt">
-                      <svg width="13" height="13" viewBox="0 0 32 32" fill="none">
-                        <circle cx="16" cy="16" r="14" fill="#2081E2"></circle>
-                        <path d="M16 8.5L8 13v6l8 4.5 8-4.5v-6L16 8.5z" fill="white" opacity=".9"></path>
-                      </svg>
-                      OpenSea
-                    </div>
-                    <div className="pt" style={{ letterSpacing: '.08em', fontWeight: 700 }}>
-                      BLUR
-                    </div>
-                    <div className="pt">
-                      <svg width="13" height="13" viewBox="0 0 32 32" fill="none">
-                        <circle cx="16" cy="16" r="14" fill="#FF007A"></circle>
-                        <path d="M10 16 Q16 8 22 16 Q16 24 10 16z" fill="white"></path>
-                      </svg>
-                      Uniswap
-                    </div>
-                    <div className="pt">
-                      <svg width="13" height="13" viewBox="0 0 100 100" fill="none">
-                        <circle cx="50" cy="50" r="45" fill="#1a9eff"></circle>
-                        <path d="M25 60 Q50 20 75 60" stroke="white" strokeWidth="8" fill="none"></path>
-                        <circle cx="50" cy="68" r="10" fill="white"></circle>
-                      </svg>
-                      Pudgy Penguins
-                    </div>
-                    <div className="pt">
-                      <svg width="13" height="13" viewBox="0 0 32 32" fill="none">
-                        <circle cx="16" cy="16" r="14" fill="#2081E2"></circle>
-                        <path d="M16 8.5L8 13v6l8 4.5 8-4.5v-6L16 8.5z" fill="white" opacity=".9"></path>
-                      </svg>
-                      OpenSea
-                    </div>
-                    <div className="pt" style={{ fontStyle: 'italic', letterSpacing: '.06em' }}>
-                      YugaLabs
-                    </div>
-                    <div className="pt">
-                      <svg width="13" height="13" viewBox="0 0 32 32" fill="none">
-                        <circle cx="16" cy="16" r="14" fill="#2081E2"></circle>
-                        <path d="M16 8.5L8 13v6l8 4.5 8-4.5v-6L16 8.5z" fill="white" opacity=".9"></path>
-                      </svg>
-                      OpenSea
-                    </div>
-                    <div className="pt" style={{ letterSpacing: '.08em', fontWeight: 700 }}>
-                      BLUR
-                    </div>
-                    <div className="pt">
-                      <svg width="13" height="13" viewBox="0 0 32 32" fill="none">
-                        <circle cx="16" cy="16" r="14" fill="#FF007A"></circle>
-                        <path d="M10 16 Q16 8 22 16 Q16 24 10 16z" fill="white"></path>
-                      </svg>
-                      Uniswap
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               <div className="sh sh-strategies" style={{ position: 'relative' }}>
                 <div className="sh-strategies-left">
                   <div className="st sh-strategies-title">
@@ -1497,7 +1419,12 @@ export default function HomePage() {
                         <div className="npc-head">
                           <div>
                             <div className="npc-name">
-                              {pool.displayName} <span>#{pool.tokenId}</span>
+                              {pool.displayName}
+                              <svg className="npc-verified" width="14" height="14" viewBox="0 0 22 22" fill="none" aria-label="Verified" role="img">
+                                <path d="M11 1.5l2.36 1.36 2.72-.2 1.36 2.36 2.36 1.36-.2 2.72 1.36 2.36-1.36 2.36.2 2.72-2.36 1.36-1.36 2.36-2.72-.2L11 20.5l-2.36-1.36-2.72.2-1.36-2.36L2.2 15.62l.2-2.72L1.04 10.54 2.4 8.18l-.2-2.72 2.36-1.36L5.92 1.74l2.72.2L11 1.5z" fill="#1a9eff"></path>
+                                <path d="M7.2 11.1l2.4 2.4 5.2-5.2" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
+                              </svg>
+                              {" "}<span>#{pool.tokenId}</span>
                             </div>
                             <div className="npc-tags">
                               {pool.tags.map((tag) => (
@@ -1507,9 +1434,6 @@ export default function HomePage() {
                               ))}
                             </div>
                           </div>
-                          <button className="npc-insights" onClick={() => router.push(`/pool/${pool.routeId}`)}>
-                            <i></i>VIEW INSIGHTS
-                          </button>
                         </div>
                         <div className="npc-stats">
                           <div>

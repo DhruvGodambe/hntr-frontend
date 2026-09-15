@@ -1,18 +1,22 @@
 "use client";
 
 import ActivityEmptyState from "../../empty/ActivityEmptyState";
+import ActivityRow from "./ActivityRow";
 import type { ActivityEntry, ActivityTab } from "../types";
 
 type PlatformActivityProps = {
   activeTab: ActivityTab;
   onTabChange: (tab: ActivityTab) => void;
-  /** Unused — platform activity isn't live yet (reference: "Launching soon"),
-      kept in the prop type so callers don't need to change their wiring. */
   entries?: ActivityEntry[];
   inline?: boolean;
 };
 
-export default function PlatformActivity({ activeTab, onTabChange, inline = false }: PlatformActivityProps) {
+export default function PlatformActivity({
+  activeTab,
+  onTabChange,
+  entries = [],
+  inline = false,
+}: PlatformActivityProps) {
   return (
     <>
       {inline ? (
@@ -50,7 +54,11 @@ export default function PlatformActivity({ activeTab, onTabChange, inline = fals
         </button>
       </div>
       <div id={inline ? "mobileActivityFeed" : "activityFeed"} className={inline ? "mobile-activity-feed" : undefined}>
-        <ActivityEmptyState />
+        {entries.length > 0 ? (
+          entries.map((entry) => <ActivityRow key={entry.id} entry={entry} />)
+        ) : (
+          <ActivityEmptyState />
+        )}
       </div>
     </>
   );

@@ -1,24 +1,4 @@
-import { ACTIVITY_TEMPLATES } from "./constants";
-import type { ActivityEntry, ActivityTab, ActivityTemplate } from "./types";
-
-let activityIdCounter = 0;
-
-export function nextActivityId() {
-  activityIdCounter += 1;
-  return `act-${activityIdCounter}`;
-}
-
-export function seedActivityLog(): ActivityEntry[] {
-  return Array.from({ length: 7 }, (_, index) => {
-    const template = ACTIVITY_TEMPLATES[index % ACTIVITY_TEMPLATES.length];
-    return {
-      ...template,
-      id: nextActivityId(),
-      ts: Date.now() - (index * 47 + 22) * 1000,
-      fresh: false,
-    };
-  });
-}
+import type { ActivityEntry, ActivityTab } from "./types";
 
 export function formatActivityTimeAgo(ts: number): string {
   const seconds = Math.floor((Date.now() - ts) / 1000);
@@ -39,14 +19,26 @@ export function filterActivityByTab(entries: ActivityEntry[], tab: ActivityTab):
   return entries;
 }
 
-export function pickActivityTemplate(tab: ActivityTab): ActivityTemplate {
-  const pool =
-    tab === "bids"
-      ? ACTIVITY_TEMPLATES.filter((entry) => entry.kind === "bid")
-      : tab === "sales"
-        ? ACTIVITY_TEMPLATES.filter((entry) => entry.kind === "sale")
-        : ACTIVITY_TEMPLATES;
-  return pool[Math.floor(Math.random() * pool.length)];
+/** ISO 3166-1 alpha-2 code -> flag emoji via regional indicator symbols. No asset/dependency needed. */
+export function countryCodeToFlagEmoji(code?: string): string {
+  if (!code) return "";
+  const upper = code.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(upper)) return "";
+  const points = [...upper].map((char) => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...points);
+}
+
+const TIER_ICONS: Record<string, string> = {
+  Bronze: "🥉",
+  Silver: "🥈",
+  Gold: "🥇",
+  Platinum: "💎",
+  Diamond: "💎",
+};
+
+export function activityIcon(kind: "join" | "purchase", tier?: string): string {
+  if (kind === "join") return "👋";
+  return (tier && TIER_ICONS[tier]) || "💳";
 }
 
 export function buildNavBarPath(width: number, notchX: number, hasNotch: boolean) {

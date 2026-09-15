@@ -1157,7 +1157,7 @@ function UsersTabContent({
                 </div>
               </td>
               <td className="px-6 py-4 text-sm font-medium">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 whitespace-nowrap">
                   <span>{u.tier}</span>
                   {u.isForcedMembership && !u.isVoucherMembership ? (
                     <span
@@ -1177,7 +1177,7 @@ function UsersTabContent({
                 </div>
               </td>
               <td className="px-6 py-4 text-sm text-gray-400">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 whitespace-nowrap">
                   <span>{u.rank}</span>
                   {u.isForcedRank ? (
                     <span

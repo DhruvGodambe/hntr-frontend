@@ -26,7 +26,7 @@ export function useMobileHomeSlots(showMobileHomeRail: boolean, showMobileHomeAc
     const place = () => {
       if (cancelled) return;
       const panel = document.getElementById("panel-home");
-      const anchor = panel?.querySelector(".pbar") as HTMLElement | null;
+      const anchor = panel?.querySelector(".sh-strategies") as HTMLElement | null;
       if (!anchor) {
         if (attempts++ < 20) {
           timer = window.setTimeout(place, 50);
@@ -43,8 +43,8 @@ export function useMobileHomeSlots(showMobileHomeRail: boolean, showMobileHomeAc
         profileSlotRef.current = slot;
       }
 
-      if (slot.previousElementSibling !== anchor) {
-        anchor.insertAdjacentElement("afterend", slot);
+      if (slot.nextElementSibling !== anchor) {
+        anchor.insertAdjacentElement("beforebegin", slot);
       }
       setProfileAnchor(slot);
     };
