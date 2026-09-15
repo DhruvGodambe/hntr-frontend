@@ -36,12 +36,12 @@ export default function TopNavBar({
       {/* Brand-mark presentation lives in CSS (`.nav-brand`, `.nav-logomark`,
           `.nav-wordmark` in styles.css) so the mobile breakpoint and the dark
           theme can restyle it without fighting inline specificity. */}
-      <div className="nav-brand">
+      <Link href="/" className="nav-brand" aria-label="Go to home">
         <span className="nav-logomark">
-          <img src="/assets/images/logoMark.png" alt="HNTR" />
+          <img src="/assets/images/logoMark.png" alt="" />
         </span>
         <span className="nav-wordmark">HNTR</span>
-      </div>
+      </Link>
       <div className="nav-r">
         {!hideRightRail && !hideMobileRailToggle && (
           <div

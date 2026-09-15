@@ -56,11 +56,14 @@ export default function SignupPhoneInput({
     onChange(next);
   };
 
+  const phoneInputProps = country
+    ? { country, international: true as const }
+    : {};
+
   return (
     <PhoneInput
       key={country || "none"}
-      international
-      country={country || undefined}
+      {...phoneInputProps}
       value={value || undefined}
       onChange={handleChange}
       onBlur={onBlur}

@@ -1,39 +1,196 @@
 /* ── LIVE WEBINAR ── */
-@media (max-width: 900px) {
-  /* The reference's mobile webinar view is a fullscreen takeover with its
-     own compact header (back button + wordmark + LEARN MORE) — not the
-     generic app top bar. .nav is fixed with .shell reserving 48px of
-     padding-top for it (responsive.css); without also clearing that
-     padding, hiding .nav alone would leave an empty 48px gap above the
-     webinar header instead of removing it outright. Scoped to
-     body[data-page="webinar"] so it can't affect any other page even if
-     this stylesheet lingers after navigating away. */
-  body[data-page="webinar"] .nav {
-    display: none;
-  }
-  body[data-page="webinar"] .shell {
-    padding-top: 0;
-  }
-}
-
-#panel-webinar {
-  display: flex;
-  align-items: stretch;
-  gap: 12px;
-  overflow: hidden;
-  min-height: 0;
-  height: 100%;
-}
-
 #panel-webinar > .rail{display:none}
 
-#panel-webinar > .feed{
-  flex:1;
-  min-width:0;
-  padding:0 0 12px;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
+@media (min-width: 901px) {
+  #panel-webinar {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    overflow: hidden;
+    min-height: 0;
+    height: 100%;
+  }
+
+  #panel-webinar > .feed {
+    flex: 1;
+    min-width: 0;
+    padding: 0 0 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .web-scroll {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Mobile reference uses a compact takeover header — hide the global nav. */
+  html:has(body[data-page="webinar"]),
+  body[data-page="webinar"] {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    background: var(--e1) !important;
+  }
+
+  body[data-page="webinar"] .nav {
+    display: none !important;
+  }
+
+  body[data-page="webinar"] .app-shell-root,
+  body[data-page="webinar"] .shell,
+  body[data-page="webinar"] .content,
+  body[data-page="webinar"] .page-panel,
+  body[data-page="webinar"] .page-panel.active,
+  body[data-page="webinar"] #panel-webinar,
+  body[data-page="webinar"] #feed-webinar,
+  body[data-page="webinar"] .web-scroll,
+  body[data-page="webinar"] .web-main {
+    background: var(--e1) !important;
+  }
+
+  body[data-page="webinar"] .app-shell-root {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  body[data-page="webinar"] .shell {
+    display: block !important;
+    padding-top: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body[data-page="webinar"] .content,
+  body[data-page="webinar"] .page-panel,
+  body[data-page="webinar"] .page-panel.active {
+    display: block !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  body[data-page="webinar"] #panel-webinar {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    gap: 0 !important;
+  }
+
+  body[data-page="webinar"] #panel-webinar > .feed,
+  body[data-page="webinar"] #feed-webinar {
+    flex: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: block !important;
+    overflow: visible !important;
+    padding: 0 0 calc(96px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  body[data-page="webinar"] .web-scroll {
+    flex: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  body[data-page="webinar"] .web-main {
+    padding: 0 16px 16px;
+  }
+
+  body[data-page="webinar"] #panel-webinar > .web-chat {
+    display: none !important;
+  }
+
+  body[data-page="webinar"] .vault-footer {
+    display: none !important;
+  }
+
+  .wv-head {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin: 0 -16px 0;
+    padding: 10px 14px;
+    width: calc(100% + 32px);
+    min-height: 54px;
+    box-sizing: border-box;
+    background: var(--e1);
+    border-bottom: 0.5px solid var(--bd0);
+    box-shadow: var(--sh1);
+  }
+
+  .wv-head-left {
+    flex: 1;
+    min-width: 0;
+    gap: 0;
+  }
+
+  .wv-headbrand {
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .wv-head-l,
+  .wv-lang {
+    display: none;
+  }
+
+  .wv-back-btn,
+  .wv-learn-btn {
+    display: flex;
+  }
+
+  .wv-learn-btn {
+    margin-left: auto;
+    height: 30px;
+    padding: 0 10px;
+    font-size: 9px;
+  }
+
+  .web-actbar,
+  .web-brandline,
+  .web-hr {
+    display: none;
+  }
+
+  body[data-page="webinar"] .wv-player {
+    margin: 0 -16px;
+    width: calc(100% + 32px);
+    border-radius: 0;
+    aspect-ratio: 16 / 10;
+  }
+
+  .web-meta {
+    margin: 16px 0 0;
+  }
+
+  .wv-presenter {
+    width: 88px;
+    bottom: 48px;
+    right: 10px;
+  }
+
+  .wv-pcircle {
+    width: 88px;
+    height: 68px;
+  }
 }
 
 #panel-webinar > .web-chat{
@@ -58,7 +215,7 @@ body.dark .si-live-dot{background:#fff;box-shadow:0 0 8px rgba(255,255,255,.9)}
 @keyframes recBlink{0%,50%{opacity:1}50.01%,100%{opacity:0}}
 @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.65)}}
 
-.web-scroll{flex:1;overflow-y:auto;padding:16px 0 24px;display:flex;justify-content:center;scrollbar-width:thin}
+.web-scroll{padding:16px 0 24px;display:flex;justify-content:center;scrollbar-width:thin}
 .web-main{width:100%;max-width:none}
 
 /* video player */
@@ -357,69 +514,9 @@ body.dark .web-deck:hover,body.dark .web-send:hover{background:#fff}
   }
 }
 
-@media (max-width: 768px) {
-  /* Compact phone header: back button + wordmark on the left, LEARN MORE
-     pinned right via margin-left:auto — matches the mobile reference
-     (HNTR.art Mobile.dc.html:854-857) exactly. The LIVE/viewer/timer strip
-     and language switcher move out of the way instead of wrapping into a
-     cluttered second row. */
-  .wv-head {
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-  }
-  .wv-head-l,
-  .wv-lang {
-    display: none;
-  }
-  .wv-back-btn,
-  .wv-learn-btn {
-    display: flex;
-  }
-  .wv-learn-btn {
-    margin-left: auto;
-  }
-  /* The reference's mobile webinar view has no action bar at all (no
-     Share/Language/Subtitles/Deck row) — LEARN MORE now lives in the header
-     above instead, so hide this whole strip rather than duplicate it. */
-  .web-actbar {
-    display: none;
-  }
-  .web-up-grid {
-    grid-template-columns: 1fr;
-  }
-  .web-foot {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-  }
-  .web-foot-links {
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .wv-presenter {
-    width: 88px;
-    bottom: 48px;
-    right: 10px;
-  }
-  .wv-pcircle {
-    width: 88px;
-    height: 68px;
-  }
-  /* Reference's mobile webinar view has no wallet/rewards card and no live
-     chat panel at all — just header, hero, Q4 tag/description, newsletter.
-     Without this, .web-chat (wallet card + live chat) just reflows below
-     the feed at this width instead of disappearing, which is what showed
-     up after the footer. */
-  #panel-webinar > .web-chat {
-    display: none;
-  }
-}
-
 @media (max-width: 480px) {
-  .wv-headbrand,
-  .web-brandline {
-    font-size: 16px;
+  .wv-headbrand {
+    font-size: 13px;
   }
   .web-act {
     padding: 10px 8px;

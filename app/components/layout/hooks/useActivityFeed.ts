@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { usePlatformActivity } from "../../../../lib/activity";
-import { activityIcon, filterActivityByTab } from "../utils";
+import { activityIcon, filterActivityByTab, maskActivityUsername } from "../utils";
 import type { ActivityEntry, ActivityTab } from "../types";
 
 export function useActivityFeed() {
@@ -14,7 +14,7 @@ export function useActivityFeed() {
       (data ?? []).map((entry) => ({
         id: entry.id,
         icon: activityIcon(entry.kind, entry.tier),
-        name: entry.username,
+        name: maskActivityUsername(entry.username),
         country: entry.country,
         action: entry.action,
         val: entry.tier ?? "",

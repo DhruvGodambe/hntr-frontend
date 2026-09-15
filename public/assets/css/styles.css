@@ -7267,6 +7267,8 @@ body.intro-active .nav-r{opacity:0;pointer-events:none}
   display: flex;
   align-items: center;
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 .nav-logomark {
   display: flex;
