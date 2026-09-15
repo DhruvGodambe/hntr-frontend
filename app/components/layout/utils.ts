@@ -1,10 +1,15 @@
 import type { ActivityEntry, ActivityTab } from "./types";
 
+const DAY_SECONDS = 86400;
+const MONTH_SECONDS = 30 * DAY_SECONDS;
+
 export function formatActivityTimeAgo(ts: number): string {
   const seconds = Math.floor((Date.now() - ts) / 1000);
   if (seconds < 60) return `${Math.max(1, seconds)}s`;
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-  return `${Math.floor(seconds / 3600)}h`;
+  if (seconds < DAY_SECONDS) return `${Math.floor(seconds / 3600)}h`;
+  if (seconds < MONTH_SECONDS) return `${Math.floor(seconds / DAY_SECONDS)}d`;
+  return `${Math.floor(seconds / MONTH_SECONDS)}mo`;
 }
 
 export function activityAccentColor(action: string, pos: boolean): string {
