@@ -5553,14 +5553,17 @@ body.dark .mkt-filter-tab.active {
     letter-spacing: 0.2em !important;
   }
 
-  /* Mobile starter loader — match reference HNTR.art animation */
+  /* Mobile starter loader — letters are text; only the cursor bar is a fill. */
   .page-loader {
     display: flex !important;
   }
 
-  body.dark .page-loader .ll,
-  body.dark .page-loader .loader-cursor {
+  body.dark .page-loader .ll {
     color: var(--t4);
+    background: none;
+  }
+
+  body.dark .page-loader .loader-cursor {
     background: var(--t4);
   }
 

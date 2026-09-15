@@ -729,7 +729,7 @@ body{color:var(--t3);font-family:var(--fn);font-size:12px;line-height:1.5;displa
 .page-loader{position:fixed;inset:0;z-index:9999;background:var(--e0);display:flex;align-items:center;justify-content:center;transition:opacity .4s ease}
 .page-loader.out{opacity:0;pointer-events:none}
 .loader-inner{display:flex;align-items:baseline;gap:0}
-.ll{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:52px;letter-spacing:.04em;color:#0a0a0b;opacity:0;transform:translateY(10px);animation:llUp .36s cubic-bezier(.22,1,.36,1) forwards;line-height:1}
+.ll{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:52px;letter-spacing:.04em;color:#0a0a0b;background:none;opacity:0;transform:translateY(10px);animation:llUp .36s cubic-bezier(.22,1,.36,1) forwards;line-height:1}
 .ll:nth-child(1){animation-delay:.10s}.ll:nth-child(2){animation-delay:.28s}.ll:nth-child(3){animation-delay:.46s}.ll:nth-child(4){animation-delay:.64s}
 .ls{font-family:'Space Grotesk',sans-serif;font-weight:400;font-size:26px;letter-spacing:.02em;color:rgba(10,10,11,.5);opacity:0;transform:translateY(6px);animation:llUp .36s cubic-bezier(.22,1,.36,1) .82s forwards;line-height:1;margin-left:1px}
 .loader-cursor{display:inline-block;width:3px;height:42px;background:#0a0a0b;margin-left:4px;vertical-align:middle;opacity:0;animation:lcShow .01s ease 1.00s forwards,lcBlink .55s ease 1.00s 3}
