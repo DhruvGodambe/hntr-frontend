@@ -380,9 +380,10 @@ export default function NetworkPage() {
     setSiteOrigin(window.location.origin);
   }, []);
 
-  const canShareReferral = Boolean(
-    isConnected && summary?.username && hasActiveMembership(summary.tier),
-  );
+  // Referral links are available to every registered user, member or not — only
+  // commission eligibility is gated by membership (enforced on-chain per tier/rank).
+  const canShareReferral = Boolean(isConnected && summary?.username);
+  const isMember = hasActiveMembership(summary?.tier);
 
   const referralLink = useMemo(() => {
     if (!canShareReferral || !siteOrigin || !summary?.username) return "";
@@ -437,21 +438,12 @@ export default function NetworkPage() {
 
   const copyRef = () => {
     if (!canShareReferral) {
-      if (!isConnected || !summary?.username) {
-        window.showToast?.({
-          title: "No referral link yet",
-          sub: "Connect your wallet to get your link.",
-          link: "",
-          variant: "error",
-        });
-      } else {
-        window.showToast?.({
-          title: "Membership required",
-          sub: "Purchase a membership to unlock your referral link.",
-          link: "",
-          variant: "error",
-        });
-      }
+      window.showToast?.({
+        title: "No referral link yet",
+        sub: "Connect your wallet to get your link.",
+        link: "",
+        variant: "error",
+      });
       return;
     }
     navigator.clipboard.writeText(referralLink);
@@ -1041,27 +1033,30 @@ export default function NetworkPage() {
                     <div className="ref-qr-copy">
                       <div className="ref-qr-title">Scan to invite</div>
                       <div className="ref-qr-desc">
-                        Share your link and earn instant commission on every hunter&apos;s pool volume.
+                        {isMember
+                          ? "Share your link and earn instant commission on every hunter's pool volume."
+                          : "Share your link to grow your network now."}
                       </div>
                     </div>
                   </div>
+                  {!isMember && (
+                    <div className="ref-upgrade-note">
+                      <p className="ref-upgrade-msg">
+                        Upgrade to membership to start earning commission on your referrals.
+                      </p>
+                      <button
+                        type="button"
+                        className="ref-locked-btn"
+                        onClick={() => router.push("/membership")}
+                      >
+                        Get Membership
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="ref-locked">
-                  <p className="ref-locked-msg">
-                    {!isConnected || !summary?.username
-                      ? "Membership plan is required to access referral tools."
-                      : "Purchase a membership to unlock your referral link and start inviting hunters."}
-                  </p>
-                  {isConnected && summary?.username && !hasActiveMembership(summary.tier) && (
-                    <button
-                      type="button"
-                      className="ref-locked-btn"
-                      onClick={() => router.push("/membership")}
-                    >
-                      Get Membership
-                    </button>
-                  )}
+                  <p className="ref-locked-msg">Connect your wallet to get your referral link.</p>
                 </div>
               )}
             </div>
