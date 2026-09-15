@@ -37,6 +37,13 @@ export function activityIcon(kind: "join" | "purchase", tier?: string): string {
   return (tier && TIER_ICONS[tier]) || "💳";
 }
 
+/** Show first two characters; mask the rest with dots for privacy. */
+export function maskActivityUsername(name: string): string {
+  const trimmed = name.trim();
+  if (trimmed.length <= 2) return trimmed;
+  return trimmed.slice(0, 2) + ".".repeat(trimmed.length - 2);
+}
+
 export function buildNavBarPath(width: number, notchX: number, hasNotch: boolean) {
   const h = 64;
   const cr = 0;

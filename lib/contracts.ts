@@ -162,7 +162,7 @@ export const TIERS = [
   { name: "Silver", priceUsd: 250, levels: 6, maxDeposit: "$1,500" },
   { name: "Gold", priceUsd: 750, levels: 9, maxDeposit: "$4,000" },
   { name: "Platinum", priceUsd: 1500, levels: 12, maxDeposit: "$8,000" },
-  { name: "Diamond", priceUsd: 2500, levels: 12, maxDeposit: "$25,000" },
+  { name: "Diamond", priceUsd: 2000, levels: 12, maxDeposit: "$20,000" },
 ] as const;
 
 export type TierName = (typeof TIERS)[number]["name"];
@@ -209,14 +209,14 @@ export const RANKS = [
   {
     name: "Master Hunter",
     teamVolumeUsd: 5_000_000,
-    requiredMembership: "Diamond ($2,500)",
+    requiredMembership: "Diamond ($2,000)",
     achievementBonusUsd: 100_000,
     leadershipShares: 7,
   },
   {
     name: "Legend Hunter",
     teamVolumeUsd: 25_000_000,
-    requiredMembership: "Diamond ($2,500)",
+    requiredMembership: "Diamond ($2,000)",
     achievementBonusUsd: 500_000,
     leadershipShares: 15,
   },

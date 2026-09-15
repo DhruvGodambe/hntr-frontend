@@ -5714,3 +5714,99 @@ body.dark .mkt-filter-tab.active {
     letter-spacing: 0.16em !important;
   }
 }
+
+/* Right rail — prevent horizontal overflow on desktop and drawer */
+.rail,
+#app-right-rail {
+  overflow-x: hidden;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.rail > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rp {
+  min-width: 0;
+}
+
+.rp > div:not(.rav) {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rn {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rs2 {
+  min-width: 0;
+}
+
+.rsb {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rsbl,
+.rsbv,
+.rsbg,
+.rsbc {
+  overflow-wrap: break-word;
+}
+
+.rrc {
+  min-width: 0;
+}
+
+.rrcd,
+.rrctype {
+  overflow-wrap: break-word;
+}
+
+.rrcb {
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.rrcv {
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.rrc-claim-btns {
+  max-width: 100%;
+}
+
+.rpls {
+  gap: 8px;
+}
+
+.rpls span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atabs {
+  min-width: 0;
+}
+
+.aa {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail .info-i::after {
+  max-width: min(200px, calc(100vw - 32px));
+  white-space: normal;
+  text-align: center;
+}
