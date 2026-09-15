@@ -63,7 +63,9 @@ export default function MembershipPaySummary({
     <p className={`membership-pay-summary is-ready ${className}`.trim()} role="status">
       You will pay {quote.amountDueFormatted} {token} for {quote.tier}
       {quote.isUpgrade ? " (upgrade)" : ""}.
-      {quote.needsApproval ? ` Your wallet will ask to approve ${token} first.` : ""}
+      {quote.needsApproval
+        ? ` Click Approve ${token}, then Purchase with ${token} on the next step.`
+        : ` Ready to ${quote.isUpgrade ? "upgrade" : "purchase"} — click the button on your selected tier.`}
     </p>
   );
 }

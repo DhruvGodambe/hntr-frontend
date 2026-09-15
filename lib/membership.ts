@@ -154,6 +154,52 @@ export interface PreparedMembershipTx {
 }
 
 /**
+ * Step 1: ERC-20 approve so the membership contract can pull the quoted amount.
+ * When `quote.needsApproval` is true the UI should call this first; after it
+ * confirms, refetch the quote and show Purchase / Upgrade.
+ */
+export async function approveMembershipSpend(
+  tierName: string,
+  tokenSymbol: PaymentToken = "USDT",
+  progress?: PurchaseProgressHandlers,
+): Promise<{ amountDueFormatted: string; tokenSymbol: string }> {
+  assertPaymentTokenConfigured(tokenSymbol);
+
+  const account = getAccount(config);
+  if (!account.address) {
+    throw new MembershipFlowError("CONNECT_WALLET", "Connect your wallet first.");
+  }
+
+  const quote = await getMembershipQuote(tierName, tokenSymbol);
+  if (quote.insufficientBalance) {
+    throw new MembershipFlowError(
+      "INSUFFICIENT_BALANCE",
+      `You need ${quote.amountDueFormatted} ${tokenSymbol} in your wallet to ${quote.isUpgrade ? "upgrade to" : "purchase"} ${tierName}.`,
+    );
+  }
+  if (!quote.needsApproval) {
+    return { amountDueFormatted: quote.amountDueFormatted, tokenSymbol };
+  }
+
+  const tokenAddress = quote.tokenAddress || TOKEN_ADDRESSES[tokenSymbol];
+  progress?.onAwaitingWallet?.();
+  try {
+    const approveHash = await writeContract(config, {
+      address: tokenAddress,
+      abi: erc20Abi,
+      functionName: "approve",
+      args: [quote.contractAddress, BigInt(quote.amountDueRaw)],
+    });
+    progress?.onWalletAccepted?.();
+    await waitForTransactionReceipt(config, { hash: approveHash });
+  } catch (err) {
+    throw toMembershipWalletError(err, `${tokenSymbol} approval failed.`, tokenSymbol);
+  }
+
+  return { amountDueFormatted: quote.amountDueFormatted, tokenSymbol };
+}
+
+/**
  * Full purchase/upgrade flow:
  *  1. Ensure the wallet is connected and authenticated with the backend.
  *  2. Fetch a live quote (price + whether an ERC20 approval is still needed).
@@ -161,6 +207,8 @@ export interface PreparedMembershipTx {
  *  4. Ask the backend to prepare signed uplines + ranks (commission auth).
  *  5. Prompt the user's own wallet to call `purchaseMembership`/`upgradeMembership`
  *     directly on the contract (the user pays the gas).
+ *
+ * Prefer calling `approveMembershipSpend` first when the UI shows Approve.
  */
 export async function purchaseOrUpgradeTier(
   tierName: string,
@@ -184,20 +232,7 @@ export async function purchaseOrUpgradeTier(
   }
 
   if (quote.needsApproval) {
-    const tokenAddress = quote.tokenAddress || TOKEN_ADDRESSES[tokenSymbol];
-    progress?.onAwaitingWallet?.();
-    try {
-      const approveHash = await writeContract(config, {
-        address: tokenAddress,
-        abi: erc20Abi,
-        functionName: "approve",
-        args: [quote.contractAddress, BigInt(quote.amountDueRaw)],
-      });
-      progress?.onWalletAccepted?.();
-      await waitForTransactionReceipt(config, { hash: approveHash });
-    } catch (err) {
-      throw toMembershipWalletError(err, `${tokenSymbol} approval failed.`, tokenSymbol);
-    }
+    await approveMembershipSpend(tierName, tokenSymbol, progress);
   }
 
   // Fetch the signed auth as late as possible (after any approve), so the

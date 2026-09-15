@@ -9,6 +9,7 @@ import { ensureAuth } from "../../lib/auth";
 import { handleAppError } from "../../lib/errors";
 import { useConnectWallet } from "../../lib/useConnectWallet";
 import {
+  approveMembershipSpend,
   purchaseOrUpgradeTier,
   getAmountDueUsd,
   getTierIndex,
@@ -77,7 +78,12 @@ export default function MembershipPage() {
       if (purchasePhase === "loading") return "LOADING...";
       if (purchasePhase === "wallet") return "CONFIRM IN WALLET";
     }
-    if (opts.isSelected) return opts.isUpgrade ? "UPGRADE" : "PURCHASE";
+    if (opts.isSelected) {
+      if (quoteQuery.isLoading) return "CHECKING...";
+      if (quoteQuery.data?.insufficientBalance) return "INSUFFICIENT BALANCE";
+      if (quoteQuery.data?.needsApproval) return `APPROVE ${paymentToken}`;
+      return opts.isUpgrade ? `UPGRADE WITH ${paymentToken}` : `PURCHASE WITH ${paymentToken}`;
+    }
     return "SELECT";
   };
 
@@ -140,15 +146,32 @@ export default function MembershipPage() {
       const ready = await ensureReadyToPurchase(walletAddress);
       if (!ready) return;
 
-      if (quoteQuery.data?.insufficientBalance) {
+      const quote = quoteQuery.data ?? (await quoteQuery.refetch()).data;
+      if (quote?.insufficientBalance) {
         window.showToast?.({
           title: "Insufficient balance",
-          sub: `Add more ${quoteQuery.data.tokenSymbol} or switch to ${paymentToken === "USDT" ? "USDC" : "USDT"}.`,
+          sub: `Add more ${quote.tokenSymbol} or switch to ${paymentToken === "USDT" ? "USDC" : "USDT"}.`,
           link: "",
         });
         return;
       }
 
+      // Step 1 — approve only. Button switches to Purchase after quote refetch.
+      if (quote?.needsApproval) {
+        await approveMembershipSpend(tierName, paymentToken, {
+          onAwaitingWallet: () => setPurchasePhase("wallet"),
+          onWalletAccepted: () => setPurchasePhase("loading"),
+        });
+        await quoteQuery.refetch();
+        window.showToast?.({
+          title: `${paymentToken} approved`,
+          sub: `Now click Purchase with ${paymentToken} to finish.`,
+          link: "",
+        });
+        return;
+      }
+
+      // Step 2 — purchase / upgrade (allowance already set).
       const result = await purchaseOrUpgradeTier(tierName, paymentToken, {
         onAwaitingWallet: () => setPurchasePhase("wallet"),
         onWalletAccepted: () => setPurchasePhase("loading"),
