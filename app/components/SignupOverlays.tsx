@@ -571,6 +571,7 @@ export default function SignupOverlays() {
         email,
         phone: formatPhoneE164(phone, country),
         sponsorUsername: sponsor,
+        country: country || undefined,
         turnstileToken: captchaToken || undefined,
       });
       setCurrentUsername(trimmedUsername);
