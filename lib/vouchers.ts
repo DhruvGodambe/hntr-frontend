@@ -55,7 +55,6 @@ export interface IssuedVoucher {
   tier: string;
   amountUsd: number;
   token: VoucherToken;
-  redeemerUsername: string;
   expiresAt: string;
   balanceAfter: number;
 }
@@ -123,7 +122,6 @@ export async function fetchAllVouchers(): Promise<Voucher[]> {
 export async function issueVoucher(input: {
   tier: string;
   token: VoucherToken;
-  redeemerUsername: string;
   note?: string;
 }): Promise<IssuedVoucher> {
   await ensureAuth({ interactive: true });
