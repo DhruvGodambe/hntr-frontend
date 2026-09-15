@@ -14,6 +14,8 @@ const mainnetRpcUrl = MAINNET_RPC_URL;
 // WalletConnect connector (mobile wallet QR codes) - injected/browser wallets still work without it.
 const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
+const isDev = process.env.NODE_ENV === "development";
+
 export const config = createConfig(
   getDefaultConfig({
     appName: "HNTR",
@@ -21,8 +23,8 @@ export const config = createConfig(
     appUrl: process.env.NEXT_PUBLIC_APP_URL || "https://hntr.app",
     appIcon: "/assets/images/logoMark.png",
     walletConnectProjectId,
-    // Mainnet first (app chain). Sepolia kept in config for testing.
-    chains: [mainnet, sepolia],
+    // Dev defaults to Sepolia; production keeps Mainnet first.
+    chains: isDev ? [sepolia, mainnet] : [mainnet, sepolia],
     transports: {
       [sepolia.id]: http(rpcUrl),
       [mainnet.id]: http(mainnetRpcUrl),

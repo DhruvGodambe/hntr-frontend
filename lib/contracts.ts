@@ -37,7 +37,9 @@ export const ADDRESSES_BY_CHAIN: Record<number, ChainAddresses> = {
 
 export function getAddressesForChain(chainId: number | undefined): ChainAddresses {
   if (chainId && ADDRESSES_BY_CHAIN[chainId]) return ADDRESSES_BY_CHAIN[chainId];
-  return ADDRESSES_BY_CHAIN[mainnet.id];
+  // Dev fallback matches ConnectKit's Sepolia-first default.
+  const fallbackId = process.env.NODE_ENV === "development" ? sepolia.id : mainnet.id;
+  return ADDRESSES_BY_CHAIN[fallbackId];
 }
 
 export function chainLabel(chainId: number | undefined): string {
