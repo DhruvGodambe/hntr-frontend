@@ -39,7 +39,7 @@ function vouchersToCsv(vouchers: Voucher[]): string {
     v.amountUsd.toFixed(2),
     v.token,
     statusLabel(v.status),
-    v.redeemerUsername ? `@${v.redeemerUsername}` : v.restrictedUsername ? `@${v.restrictedUsername} (reserved)` : "",
+    v.redeemerUsername ? `@${v.redeemerUsername}` : "",
     new Date(v.createdAt).toISOString(),
     new Date(v.expiresAt).toISOString(),
     v.redeemedAt ? new Date(v.redeemedAt).toISOString() : "",
@@ -71,7 +71,6 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
 
   const [token, setToken] = useState<VoucherToken>("USDT");
   const [tierValue, setTierValue] = useState<number | "">("");
-  const [redeemerUsername, setRedeemerUsername] = useState("");
   const [busy, setBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
   const [dialog, setDialog] = useState<GiftDialogState | null>(null);
@@ -101,30 +100,19 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
       });
       return;
     }
-    const redeemer = redeemerUsername.trim().replace(/^@/, "");
-    if (!redeemer) {
-      setDialog({
-        kind: "error",
-        title: "Redeemer required",
-        message: "Enter the username of the person who will redeem this code.",
-      });
-      return;
-    }
     setBusy(true);
     try {
-      const result = await issueVoucher({ tier: tier.name, token, redeemerUsername: redeemer });
+      const result = await issueVoucher({ tier: tier.name, token });
       await invalidate();
       await accessQuery.refetch();
       await listQuery.refetch();
       setTierValue("");
-      setRedeemerUsername("");
       setDialog({
         kind: "issued",
         title: "Gift code created",
         tier: result.tier,
         code: result.code,
         redeemUrl: result.redeemUrl,
-        redeemerUsername: result.redeemerUsername,
       });
     } catch (error) {
       const resolved = resolveAppError(error, "Could not create gift code");
@@ -319,19 +307,6 @@ export default function GiftCodesPanel({ access: initialAccess }: { access?: Vou
                 <span className="gf-lbl">Expires</span>
                 <div className="gf-static">7 days from issue</div>
               </div>
-            </div>
-
-            <div className="gf-field">
-              <span className="gf-lbl">Username of redeemer</span>
-              <input
-                className="gf-input"
-                value={redeemerUsername}
-                onChange={(e) => setRedeemerUsername(e.target.value)}
-                placeholder="e.g. m.ruiz"
-                maxLength={32}
-                autoComplete="off"
-              />
-              <div className="gf-hint">Only this account can redeem the code.</div>
             </div>
 
             <button type="button" className="gf-btn wide" onClick={generate} disabled={busy}>

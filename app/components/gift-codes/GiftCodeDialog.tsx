@@ -22,7 +22,7 @@ export type GiftDialogState =
       danger?: boolean;
       onConfirm: () => void | Promise<void>;
     }
-  | { kind: "issued"; title: string; tier: string; code: string; redeemUrl: string; redeemerUsername: string };
+  | { kind: "issued"; title: string; tier: string; code: string; redeemUrl: string };
 
 function iconFor(kind: GiftDialogState["kind"]) {
   switch (kind) {
@@ -101,7 +101,7 @@ export default function GiftCodeDialog({
             </span>
             <p className="gcm-msg">
               {state.kind === "issued"
-                ? `Your ${state.tier} gift code is ready, reserved for @${state.redeemerUsername}. Copy it now — the full code is shown only once.`
+                ? `Your ${state.tier} gift code is ready. Copy it now — the full code is shown only once. Anyone can redeem it; whoever uses it first gets the membership and the code becomes invalid.`
                 : state.message}
             </p>
           </div>
