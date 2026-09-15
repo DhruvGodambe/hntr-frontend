@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { HiBell, HiMoon, HiOutlineVideoCamera, HiSun, HiViewColumns, HiXMark } from "react-icons/hi2";
+import NetworkSwitcher from "./NetworkSwitcher";
 
 type TopNavBarProps = {
   isDark: boolean;
@@ -63,7 +64,7 @@ export default function TopNavBar({
             {railOpen ? <HiXMark size={14} aria-hidden /> : <HiViewColumns size={14} aria-hidden />}
           </div>
         )}
-        {/* Order per client spec: Webinar → Dark Mode → Notification → Wallet */}
+        {/* Order: Webinar → Dark Mode → Notification → Network → Wallet */}
         <Link
           href="/webinar"
           className="nav-btn nav-live"
@@ -93,6 +94,7 @@ export default function TopNavBar({
           <div className="notif-badge" />
           <HiBell size={13} aria-hidden />
         </div>
+        <NetworkSwitcher />
         <div
           className={`conn-pill${walletConnected ? "" : " disconnected"}`}
           id="connPill"

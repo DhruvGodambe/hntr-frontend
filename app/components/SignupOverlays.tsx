@@ -6,7 +6,7 @@ import { api, ApiError } from "../../lib/api";
 import { ensureAuth } from "../../lib/auth";
 import { TIERS, TIERS_WITH_OTC } from "../../lib/contracts";
 import { handleAppError, isUserRejectedError, resolveAppError } from "../../lib/errors";
-import { purchaseOrUpgradeTier, useMembershipQuote } from "../../lib/membership";
+import { approveMembershipSpend, purchaseOrUpgradeTier, useMembershipQuote } from "../../lib/membership";
 import { useConnectWallet } from "../../lib/useConnectWallet";
 import PaymentTokenToggle from "./PaymentTokenToggle";
 import MembershipPaySummary from "./MembershipPaySummary";
@@ -374,6 +374,29 @@ export default function SignupOverlays() {
       try {
         await ensureAuth({ interactive: true });
 
+        const quote = signupQuoteQuery.data ?? (await signupQuoteQuery.refetch()).data;
+
+        if (quote?.needsApproval) {
+          await approveMembershipSpend(tierName, token, {
+            onAwaitingWallet: () => {
+              setPurchasePhase("wallet");
+              setPurchaseStatus({ state: "wallet", tier: tierName });
+            },
+            onWalletAccepted: () => {
+              setPurchasePhase("loading");
+              setPurchaseStatus({ state: "loading", tier: tierName });
+            },
+          });
+          await signupQuoteQuery.refetch();
+          setPurchaseStatus({ state: "idle" });
+          window.showToast?.({
+            title: `${token} approved`,
+            sub: `Now click Purchase with ${token} to finish.`,
+            link: "",
+          });
+          return;
+        }
+
         const result = await purchaseOrUpgradeTier(tierName, token, {
           onAwaitingWallet: () => {
             setPurchasePhase("wallet");
@@ -407,7 +430,7 @@ export default function SignupOverlays() {
         }
       }
     },
-    [selectedSignupTier, signupQuoteQuery.data]
+    [selectedSignupTier, signupQuoteQuery]
   );
 
   const signupTierButtonLabel = (tierName: string) => {
@@ -418,6 +441,7 @@ export default function SignupOverlays() {
     if (selectedSignupTier === tierName) {
       if (signupQuoteQuery.isLoading) return "Checking...";
       if (signupQuoteQuery.data?.insufficientBalance) return "Insufficient balance";
+      if (signupQuoteQuery.data?.needsApproval) return `Approve ${paymentToken}`;
       return `Purchase with ${paymentToken}`;
     }
     return "Select";

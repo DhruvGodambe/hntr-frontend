@@ -6691,6 +6691,188 @@ body.dark .btp:hover { background: #ffffff; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Network switcher (beside wallet pill) */
+.net-switch {
+  position: relative;
+  flex-shrink: 0;
+}
+.net-switch-btn {
+  height: 28px;
+  padding: 0 10px;
+  background: rgba(255,255,255,.15);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--fm);
+  font-size: 9px;
+  letter-spacing: .08em;
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  cursor: default;
+  pointer-events: none;
+}
+.net-badge .net-switch-btn {
+  user-select: none;
+}
+.net-switch.ok .net-switch-btn {
+  /* connected on the configured app network */
+}
+.net-switch-banner {
+  padding: 8px 10px 6px;
+  font-family: var(--fm);
+  font-size: 9px;
+  line-height: 1.4;
+  color: var(--t1, #9aa694);
+  border-bottom: 0.5px solid var(--bd1, #333d29);
+  margin-bottom: 2px;
+}
+.net-switch-banner strong {
+  color: var(--t4, #f2efea);
+  font-weight: 600;
+}
+.net-switch-option.is-required .net-switch-option-name {
+  color: var(--olive, #a8b5a2);
+}
+.net-switch-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #9aa694;
+}
+.net-switch-dot.main {
+  background: #60a5fa;
+  box-shadow: 0 0 6px rgba(96,165,250,.65);
+}
+.net-switch-dot.test {
+  background: #eda06a;
+  box-shadow: 0 0 6px rgba(237,160,106,.65);
+}
+.net-switch-dot.unknown {
+  background: #e87878;
+  box-shadow: 0 0 6px rgba(232,120,120,.55);
+}
+.net-switch-label {
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.net-switch-chevron {
+  opacity: .7;
+  transition: transform .15s;
+  flex-shrink: 0;
+}
+.net-switch.open .net-switch-chevron {
+  transform: rotate(180deg);
+}
+.net-switch-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 80;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  min-width: 168px;
+  background: var(--e2, #181d16);
+  border: 0.5px solid var(--bd1, #333d29);
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.35);
+}
+.net-switch-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--t4, #f2efea);
+  font-family: var(--fm);
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.net-switch-option:hover,
+.net-switch-option.is-active {
+  background: var(--e4, rgba(255,255,255,.08));
+}
+.net-switch-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.net-switch-option-name {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.net-switch-option-hint {
+  font-size: 8px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--t1, #9aa694);
+}
+.net-switch-check {
+  font-size: 11px;
+  color: var(--olive, #5E6B55);
+}
+.net-switch-error {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 81;
+  width: 200px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(80,20,20,.95);
+  border: 0.5px solid rgba(232,120,120,.4);
+  color: #f0c0c0;
+  font-family: var(--fm);
+  font-size: 9px;
+  line-height: 1.35;
+}
+body.dark .net-switch-btn {
+  background: rgba(168,181,162,.08);
+  color: rgba(242,239,234,.7);
+}
+body.dark .net-switch-btn:hover:not(:disabled) {
+  background: rgba(168,181,162,.14);
+}
+body.dark .net-switch-menu {
+  background: var(--e2);
+  border-color: var(--bd1);
+}
+body:not(.dark) .net-switch-btn {
+  background: #eceded;
+  color: #212730;
+}
+body:not(.dark) .net-switch-btn:hover:not(:disabled) {
+  background: #E6E6E6;
+}
+body:not(.dark) .net-switch-menu {
+  background: #fff;
+  border-color: #e2e4e6;
+  box-shadow: 0 10px 24px rgba(20,25,32,.12);
+}
+body:not(.dark) .net-switch-option {
+  color: #212730;
+}
+@media (max-width: 640px) {
+  .net-switch-label {
+    max-width: 56px;
+  }
+  .net-switch-menu {
+    right: -4px;
+  }
+}
+
 .wallet-panel-balance {
   padding: 12px 16px;
   border-bottom: 0.5px solid var(--bd0);
