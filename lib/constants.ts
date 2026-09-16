@@ -52,7 +52,7 @@ export const SEPOLIA_USDC_ADDRESS: Address0x =
   "0x1A1Bf3C12dc85219D2422dd9B936c5845Be899A1" as const satisfies `0x${string}`;
 
 export const MAINNET_CONTRACT_ADDRESS: Address0x =
-  "0x6AF160Ed0B4be74B3E94d7849624934F65C889a7" as const satisfies `0x${string}`;
+  "0x3D651d1aEa4aeFf06dE41436B2Ea03daf2d457A6" as const satisfies `0x${string}`;
 /** Tether USD (Ethereum mainnet). */
 export const MAINNET_USDT_ADDRESS: Address0x =
   "0xdAC17F958D2ee523a2206206994597C13D831ec7" as const satisfies `0x${string}`;
