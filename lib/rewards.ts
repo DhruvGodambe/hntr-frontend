@@ -6,6 +6,7 @@ import { writeContract, waitForTransactionReceipt, getPublicClient } from "wagmi
 import { getAddress } from "viem";
 import { api } from "./api";
 import { ensureAuth } from "./auth";
+import { useEffectiveAccount } from "./session";
 import { config } from "./wagmi";
 import { hntrMembershipAbi, getAddressesForChain } from "./contracts";
 
@@ -161,7 +162,7 @@ export interface TransactionEntry {
  * network page - both render the same rewards summary so they can never disagree.
  */
 export function useDashboardData() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useEffectiveAccount();
 
   const summaryQuery = useQuery({
     queryKey: ["rewards-summary", address],
@@ -187,7 +188,7 @@ export function useDashboardData() {
 }
 
 export function useTransactionHistory(limit = 10) {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useEffectiveAccount();
 
   return useQuery({
     queryKey: ["transactions", address, limit],
@@ -240,7 +241,7 @@ export interface LeadershipStatus {
  * - there's no "claim" action for it, unlike referral commissions.
  */
 export function useLeadershipPayouts() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useEffectiveAccount();
 
   return useQuery({
     queryKey: ["leadership-payouts", address],
@@ -258,7 +259,7 @@ export function useLeadershipPayouts() {
 
 /** Live share entitlement + pool estimate for the Leadership Bonus card. */
 export function useLeadershipStatus() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useEffectiveAccount();
 
   return useQuery({
     queryKey: ["leadership-status", address],
@@ -311,7 +312,7 @@ export function formatPoolWalletBalances(balances?: PoolWalletBalances | null): 
 
 /** One-time rank achievement bonus status for the Network Rank Bonus card. */
 export function useAchievementStatus() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useEffectiveAccount();
 
   return useQuery({
     queryKey: ["achievement-status", address],
@@ -326,7 +327,7 @@ export function useAchievementStatus() {
 }
 
 export function usePointsSummary() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useEffectiveAccount();
 
   return useQuery({
     queryKey: ["points-summary", address],

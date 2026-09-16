@@ -1,6 +1,7 @@
 import "./globals.css";
 import ThemeTopLoader from "./components/ThemeTopLoader";
 import HumanGate from "./components/HumanGate";
+import ImpersonationBanner from "./components/ImpersonationBanner";
 import Providers from "./providers";
 import { rootMetadata } from "../lib/metadata";
 
@@ -25,6 +26,7 @@ export default function RootLayout({
         }}
       >
         <ThemeTopLoader />
+        <ImpersonationBanner />
         <Providers>
           <HumanGate>{children}</HumanGate>
         </Providers>

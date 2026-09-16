@@ -7,6 +7,8 @@ export interface StoredAuth {
   token: string;
   walletAddress: string;
   expiresAt: number; // epoch ms
+  /** True for read-only sessions minted via the operator super-login route. */
+  isImpersonation?: boolean;
 }
 
 export class ApiError extends Error {
@@ -59,6 +61,9 @@ async function request<T = any>(
     if (!stored) {
       throw new ApiError("Not signed in. Connect your wallet first.", 401, "NOT_AUTHENTICATED");
     }
+    if (stored.isImpersonation && method !== "GET") {
+      throw new ApiError("This is a read-only view session.", 403, "IMPERSONATION_READONLY");
+    }
     headers.Authorization = `Bearer ${stored.token}`;
   }
 
@@ -91,3 +96,30 @@ export const api = {
   patch: <T = any>(path: string, body?: any, opts?: { auth?: boolean }) =>
     request<T>(path, { method: "PATCH", body, auth: opts?.auth }),
 };
+
+/** Trades the shared super-login password + a target username for a read-only session. */
+export async function superLogin(username: string, password: string): Promise<StoredAuth> {
+  const result = await request<{ token: string; walletAddress: string }>("/api/admin/super-login", {
+    method: "POST",
+    body: { username, password },
+  });
+  const auth: StoredAuth = {
+    token: result.token,
+    walletAddress: result.walletAddress,
+    expiresAt: decodeJwtExpiryMs(result.token),
+    isImpersonation: true,
+  };
+  setStoredAuth(auth);
+  return auth;
+}
+
+export function decodeJwtExpiryMs(token: string): number {
+  try {
+    const payload = token.split(".")[1];
+    const json = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+    if (typeof json.exp === "number") return json.exp * 1000;
+  } catch {
+    // fall through to default below
+  }
+  return Date.now() + 60 * 60 * 1000; // fallback: assume 1h if we can't decode
+}
