@@ -3399,6 +3399,23 @@ body.dark .mkt-filter-tab.active {
     height: 480px !important;
   }
 
+  #feed-network .topo-tree-inner,
+  #feed-network .topo-tree-inner .rd3t-tree-container,
+  #feed-network .topo-tree-inner svg {
+    touch-action: none;
+  }
+
+  #feed-network .topo-zoom-btn {
+    min-width: 36px !important;
+    height: 36px !important;
+    font-size: 16px !important;
+  }
+
+  #feed-network .topo-zoom-btn--reset {
+    font-size: 9px !important;
+    min-width: 48px !important;
+  }
+
   #feed-network .ref-card {
     background: var(--card) !important;
     border-radius: 12px !important;
