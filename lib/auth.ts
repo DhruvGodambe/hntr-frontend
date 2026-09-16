@@ -2,19 +2,16 @@
 
 import { disconnect, getAccount, signMessage } from "wagmi/actions";
 import { config } from "./wagmi";
-import { ApiError, api, getStoredAuth, setStoredAuth, clearStoredAuth, type StoredAuth } from "./api";
+import {
+  ApiError,
+  api,
+  getStoredAuth,
+  setStoredAuth,
+  clearStoredAuth,
+  decodeJwtExpiryMs,
+  type StoredAuth,
+} from "./api";
 import { isUserRejectedError } from "./errors";
-
-function decodeJwtExpiryMs(token: string): number {
-  try {
-    const payload = token.split(".")[1];
-    const json = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-    if (typeof json.exp === "number") return json.exp * 1000;
-  } catch {
-    // fall through to default below
-  }
-  return Date.now() + 60 * 60 * 1000; // fallback: assume 1h if we can't decode
-}
 
 let inFlightSignIn: Promise<StoredAuth> | null = null;
 let signatureDeclined = false;
@@ -33,13 +30,17 @@ export async function ensureAuth(options?: { interactive?: boolean }): Promise<S
     signatureDeclined = false;
   }
 
+  const existing = getStoredAuth();
+  if (existing?.isImpersonation) {
+    return existing;
+  }
+
   const account = getAccount(config);
   if (!account.address) {
     throw new Error("Connect your wallet first.");
   }
   const address = account.address.toLowerCase();
 
-  const existing = getStoredAuth();
   if (existing && existing.walletAddress.toLowerCase() === address) {
     return existing;
   }

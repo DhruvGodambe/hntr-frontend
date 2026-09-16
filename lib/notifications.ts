@@ -8,6 +8,7 @@ import { ensureAuth } from "./auth";
 export type BackendNotificationType =
   | "COMMISSION_EARNED"
   | "COMMISSION_CLAIMED"
+  | "COMMISSION_SWEPT"
   | "MEMBERSHIP_PURCHASED"
   | "MEMBERSHIP_UPGRADED"
   | "LEADERSHIP_PAYOUT"
