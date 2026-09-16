@@ -47,14 +47,12 @@ export default function GiftCodeDialog({
   onClose: () => void;
 }) {
   const [mounted, setMounted] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const open = Boolean(state);
     document.body.classList.toggle("modal-open", open);
-    if (!open) setCopied(false);
     return () => {
       document.body.classList.remove("modal-open");
     };
@@ -131,22 +129,6 @@ export default function GiftCodeDialog({
                   onClick={() => void state.onConfirm()}
                 >
                   {busy ? "WORKING…" : state.confirmLabel.toUpperCase()}
-                </button>
-              </>
-            ) : state.kind === "issued" ? (
-              <>
-                <button
-                  className="dm-cancel-btn"
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard?.writeText(state.redeemUrl);
-                    setCopied(true);
-                  }}
-                >
-                  {copied ? "LINK COPIED" : "COPY REDEEM LINK"}
-                </button>
-                <button className="dm-proceed-btn" type="button" onClick={onClose}>
-                  DONE
                 </button>
               </>
             ) : (
