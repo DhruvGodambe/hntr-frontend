@@ -94,6 +94,8 @@ export default function SignupOverlays() {
   const [country, setCountry] = useState<Country | "">("");
   const [phone, setPhone] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
+  const [serverTurnstileEnforced, setServerTurnstileEnforced] = useState(false);
+  const [signupCaptchaVisible, setSignupCaptchaVisible] = useState(false);
   const turnstileRef = useRef<TurnstileHandle>(null);
 
   // Cloudflare invalidates a Turnstile token the moment it's verified server-side,
@@ -106,6 +108,32 @@ export default function SignupOverlays() {
     setCaptchaToken("");
     turnstileRef.current?.reset();
   }, []);
+
+  useEffect(() => {
+    api
+      .get<{ enforced: boolean }>("/api/turnstile/config")
+      .then((data) => setServerTurnstileEnforced(Boolean(data?.enforced)))
+      .catch(() => setServerTurnstileEnforced(false));
+  }, []);
+
+  useEffect(() => {
+    const overlay = document.getElementById("signupOverlay");
+    const step2 = document.getElementById("suStep2");
+    if (!overlay || !step2) return;
+
+    const sync = () => {
+      setSignupCaptchaVisible(overlay.classList.contains("open") && step2.classList.contains("on"));
+    };
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(overlay, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(step2, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!signupCaptchaVisible) setCaptchaToken("");
+  }, [signupCaptchaVisible]);
   const purchaseBusyRef = useRef(false);
   const paymentTokenRef = useRef<PaymentToken>("USDT");
   const skipStep2Ref = useRef(false);
@@ -115,6 +143,7 @@ export default function SignupOverlays() {
   const sponsorUsernameRef = useRef(sponsorUsername);
   const [isProfileRegistered, setIsProfileRegistered] = useState(false);
   const [isEditProfileMode, setIsEditProfileMode] = useState(false);
+  const captchaRequired = (isTurnstileEnabled() || serverTurnstileEnforced) && !isEditProfileMode;
 
   const closeSignupOverlay = useCallback(() => {
     closeSignupFlow();
@@ -576,8 +605,8 @@ export default function SignupOverlays() {
       setStep2Errors({ sponsor: "Wallet not connected. Go back and connect your wallet." });
       return;
     }
-    if (isTurnstileEnabled() && !captchaToken) {
-      setRegisterFormError("Please complete the “verify you are human” check.");
+    if (captchaRequired && !captchaToken) {
+      setRegisterFormError("Please complete the “verify you are human” check below, then continue.");
       return;
     }
 
@@ -975,8 +1004,9 @@ export default function SignupOverlays() {
                 {isEditProfileMode && <p className="su-field-hint">Locked. Contact support to change your email.</p>}
                 {!isEditProfileMode && step2Errors.email && <p className="su-field-error">{step2Errors.email}</p>}
               </div>
-              {isTurnstileEnabled() && !isEditProfileMode && (
+              {captchaRequired && signupCaptchaVisible && isTurnstileEnabled() && (
                 <div className="su-field su-turnstile">
+                  <label className="su-lbl">Verify you are human</label>
                   <Turnstile
                     ref={turnstileRef}
                     className="su-turnstile-widget"
@@ -985,6 +1015,11 @@ export default function SignupOverlays() {
                     onExpire={resetCaptcha}
                   />
                 </div>
+              )}
+              {captchaRequired && !isTurnstileEnabled() && (
+                <p className="su-field-error">
+                  Human verification is required, but this app is missing the Turnstile site key. Add NEXT_PUBLIC_TURNSTILE_SITE_KEY and reload.
+                </p>
               )}
               <button
                 className="su-primary"
@@ -996,7 +1031,7 @@ export default function SignupOverlays() {
                     (sponsorChecking ||
                       usernameChecking ||
                       usernameAvailable === false ||
-                      (isTurnstileEnabled() && !captchaToken)))
+                      (captchaRequired && !captchaToken)))
                 }
               >
                 {registerBusy
