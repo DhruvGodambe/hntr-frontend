@@ -10,7 +10,6 @@ import { approveMembershipSpend, purchaseOrUpgradeTier, useMembershipQuote } fro
 import { useConnectWallet } from "../../lib/useConnectWallet";
 import PaymentTokenToggle from "./PaymentTokenToggle";
 import MembershipPaySummary from "./MembershipPaySummary";
-import SignupPhoneInput from "./SignupPhoneInput";
 import CountrySelect from "./CountrySelect";
 import Turnstile, { isTurnstileEnabled, type TurnstileHandle } from "@/components/Turnstile";
 import type { PaymentToken } from "../../lib/tokens";
@@ -18,12 +17,10 @@ import { resolveReferralSponsor } from "../../lib/referral";
 import {
   type Country,
   type SignupStep2Errors,
-  formatPhoneE164,
   mapRegistrationApiError,
   validateSignupStep2,
   validateUsername,
   validateNewUsername,
-  validatePhone,
   validateFullName,
 } from "../../lib/signup-validation";
 
@@ -92,7 +89,6 @@ export default function SignupOverlays() {
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [usernameChecking, setUsernameChecking] = useState(false);
   const [country, setCountry] = useState<Country | "">("");
-  const [phone, setPhone] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
   const turnstileRef = useRef<TurnstileHandle>(null);
 
@@ -548,7 +544,6 @@ export default function SignupOverlays() {
       username: trimmedUsername,
       fullName,
       country,
-      phone,
       email,
     });
     if (Object.keys(errors).length > 0) {
@@ -589,7 +584,6 @@ export default function SignupOverlays() {
         username: trimmedUsername,
         walletAddress: address,
         email,
-        phone: formatPhoneE164(phone),
         sponsorUsername: sponsor,
         country: country || undefined,
         turnstileToken: captchaToken || undefined,
@@ -917,47 +911,17 @@ export default function SignupOverlays() {
                 </div>
               </div>
               <div className="su-field">
-                <div className="su-row">
-                  <div>
-                    <label className="su-lbl">Country</label>
-                    <CountrySelect
-                      value={country}
-                      disabled={profileFieldsDisabled || isEditProfileMode}
-                      hasError={!!step2Errors.country}
-                      onChange={(nextCountry) => {
-                        setCountry(nextCountry);
-                        setPhone("");
-                        clearStep2Error("country");
-                        clearStep2Error("phone");
-                      }}
-                    />
-                    {step2Errors.country && <p className="su-field-error">{step2Errors.country}</p>}
-                  </div>
-                  <div>
-                    <label className="su-lbl">Phone Number</label>
-                    <SignupPhoneInput
-                      country={country}
-                      value={phone}
-                      disabled={profileFieldsDisabled || !country || isEditProfileMode}
-                      hasError={!!step2Errors.phone}
-                      onChange={(next) => {
-                        setPhone(next);
-                        clearStep2Error("phone");
-                      }}
-                      onBlur={() => {
-                        if (!phone.trim()) return;
-                        const phoneError = validatePhone(phone, country);
-                        if (phoneError) {
-                          setStep2Errors((prev) => ({ ...prev, phone: phoneError }));
-                        }
-                      }}
-                    />
-                    {step2Errors.phone && <p className="su-field-error">{step2Errors.phone}</p>}
-                  </div>
-                </div>
-                {!isEditProfileMode && country && !step2Errors.phone && !step2Errors.country && (
-                  <p className="su-field-hint">Enter a valid mobile number.</p>
-                )}
+                <label className="su-lbl">Country</label>
+                <CountrySelect
+                  value={country}
+                  disabled={profileFieldsDisabled || isEditProfileMode}
+                  hasError={!!step2Errors.country}
+                  onChange={(nextCountry) => {
+                    setCountry(nextCountry);
+                    clearStep2Error("country");
+                  }}
+                />
+                {step2Errors.country && <p className="su-field-error">{step2Errors.country}</p>}
               </div>
               <div className="su-field">
                 <label className="su-lbl">Email Address</label>

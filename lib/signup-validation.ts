@@ -1,5 +1,4 @@
 import { getCountryOption, type Country } from "./signup-countries";
-import { isValidPhoneNumber, isPossiblePhoneNumber, parsePhoneNumber } from "react-phone-number-input";
 
 export type { Country } from "./signup-countries";
 
@@ -8,7 +7,6 @@ export type SignupStep2Values = {
   username: string;
   fullName: string;
   country: Country | "";
-  phone: string;
   email: string;
 };
 
@@ -99,77 +97,6 @@ export function validateCountry(value: Country | ""): string | undefined {
   return undefined;
 }
 
-/**
- * Reject numbers that pass a length check but are obviously not real:
- * all-identical digits, only two distinct digits, or a full ascending/descending
- * run (e.g. 1111111111, 1212121212, 1234567890).
- */
-export function hasFakePhonePattern(nationalDigits: string): boolean {
-  if (nationalDigits.length < 5) return false;
-  if (/^(\d)\1+$/.test(nationalDigits)) return true;
-  if (/(\d)\1{5,}/.test(nationalDigits)) return true;
-  if (new Set(nationalDigits).size <= 2) return true;
-  const ascending = "01234567890";
-  const descending = "09876543210";
-  if (ascending.includes(nationalDigits) || descending.includes(nationalDigits)) return true;
-  return false;
-}
-
-export function validatePhone(value: string, country: Country | ""): string | undefined {
-  const trimmed = value.trim();
-  if (!trimmed) return "Phone number is required.";
-
-  const countryError = validateCountry(country);
-  if (countryError) return countryError;
-
-  const option = getCountryOption(country as Country);
-  if (!option) return "Select a valid country.";
-
-  let parsed: ReturnType<typeof parsePhoneNumber> | undefined;
-  try {
-    parsed = parsePhoneNumber(trimmed);
-  } catch {
-    parsed = undefined;
-  }
-
-  if (!parsed || !parsed.nationalNumber) {
-    return `Enter a valid ${option.label} mobile number, including +${option.dialCode}.`;
-  }
-
-  // The dialled country code must match the country picked in the form.
-  if (parsed.countryCallingCode && String(parsed.countryCallingCode) !== option.dialCode) {
-    return `Use a +${option.dialCode} ${option.label} number, or change the selected country.`;
-  }
-
-  if (hasFakePhonePattern(String(parsed.nationalNumber))) {
-    return "Enter a real phone number.";
-  }
-
-  if (!isPossiblePhoneNumber(trimmed, option.code)) {
-    return `Enter a valid ${option.label} number for +${option.dialCode}.`;
-  }
-
-  if (!isValidPhoneNumber(trimmed, option.code)) {
-    return `Enter a complete, valid ${option.label} mobile number.`;
-  }
-
-  if (parsed.country && parsed.country !== option.code) {
-    return `This number does not match ${option.label}.`;
-  }
-
-  return undefined;
-}
-
-export function formatPhoneE164(value: string): string {
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  try {
-    return parsePhoneNumber(trimmed)?.number ?? trimmed;
-  } catch {
-    return trimmed;
-  }
-}
-
 export function validateEmail(value: string): string | undefined {
   const trimmed = value.trim();
   if (!trimmed) return "Email address is required.";
@@ -193,9 +120,6 @@ export function validateSignupStep2(values: SignupStep2Values): SignupStep2Error
 
   const countryError = validateCountry(values.country);
   if (countryError) errors.country = countryError;
-
-  const phoneError = validatePhone(values.phone, values.country);
-  if (phoneError) errors.phone = phoneError;
 
   const emailError = validateEmail(values.email);
   if (emailError) errors.email = emailError;
