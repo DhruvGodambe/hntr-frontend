@@ -7240,7 +7240,8 @@ body.dark #signupOverlay{background:rgba(0,0,0,.6);}
 .su1-sub{font-family:var(--fn);font-size:13px;line-height:1.55;color:var(--t2);max-width:240px;margin:0 auto 26px;}
 .su-primary{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;font-family:var(--fd);font-size:13px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
   background:var(--t4);color:var(--e2);border:none;border-radius:6px;padding:16px;cursor:pointer;transition:opacity .15s,transform .1s;}
-.su-primary:hover{opacity:.88;}.su-primary:active{transform:translateY(1px);}
+.su-primary:hover:not(:disabled){opacity:.88;}.su-primary:active:not(:disabled){transform:translateY(1px);}
+.su-primary:disabled{opacity:.45;cursor:not-allowed;transform:none;}
 .su-foot{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-top:1px solid var(--bd2);font-family:var(--fm);font-size:9.5px;letter-spacing:.13em;color:var(--t1);text-transform:uppercase;}
 .su-foot .lock{display:flex;align-items:center;gap:6px;}
 /* step 2 */
@@ -7263,8 +7264,9 @@ body.dark #signupOverlay{background:rgba(0,0,0,.6);}
 .su-field-hint.is-success{color:#15803d;}
 .su-input.is-valid{border-color:#15803d;}
 /* Cloudflare Turnstile — centre the fixed-width widget in every signup step */
-.su-turnstile{display:flex;justify-content:center;}
-.su-turnstile-widget{display:flex;justify-content:center;width:100%;}
+.su-turnstile{display:flex;flex-direction:column;align-items:center;min-height:72px;}
+.su-turnstile .su-lbl{align-self:flex-start;width:100%;}
+.su-turnstile-widget{display:flex;justify-content:center;width:100%;min-height:65px;}
 .su-turnstile-widget iframe{margin:0 auto;}
 body.dark .su-field-error{color:#fca5a5;}
 body.dark .su-field-hint{color:var(--t3);}

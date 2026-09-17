@@ -27,6 +27,8 @@ type TurnstileApi = {
     opts: {
       sitekey: string;
       theme?: "auto" | "light" | "dark";
+      appearance?: "always" | "execute" | "interaction-only";
+      size?: "normal" | "compact" | "flexible";
       callback: (token: string) => void;
       "expired-callback"?: () => void;
       "error-callback"?: () => void;
@@ -122,6 +124,7 @@ const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Turnstile
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: SITE_KEY,
           theme,
+          appearance: "always",
           callback: (token: string) => onVerifyRef.current(token),
           "expired-callback": () => onExpireRef.current?.(),
           "error-callback": () => onExpireRef.current?.(),
