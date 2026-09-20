@@ -100,7 +100,6 @@ export function usePresentationRuntime(ready: boolean) {
     const rail = document.createElement("div");
     rail.id = "au-rail";
     rail.className = "au-rail";
-    rail.setAttribute("data-no-i18n", "");
     document.body.appendChild(rail);
     const goTo = (section: HTMLElement) => {
       showSection(section);

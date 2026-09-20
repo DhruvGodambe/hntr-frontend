@@ -32,13 +32,25 @@ export type PresentationLangCode = (typeof PRESENTATION_LANGS)[number][0];
 
 export const PRESENTATION_LANG_KEY = "hntr-about-lang";
 
-const KEYS = langKeys as string[];
+const KEYS = asStringArray(langKeys);
+const revAll: Record<string, string> = {};
+
+function asStringArray(rows: unknown): string[] {
+  if (Array.isArray(rows)) return rows.map((row) => String(row));
+  if (rows && typeof rows === "object" && Array.isArray((rows as { default?: unknown }).default)) {
+    return (rows as { default: unknown[] }).default.map((row) => String(row));
+  }
+  return [];
+}
 
 function toDict(rows: unknown): Record<string, string> {
   const dict: Record<string, string> = {};
-  if (!Array.isArray(rows)) return dict;
+  const list = asStringArray(rows);
   KEYS.forEach((key, i) => {
-    if (rows[i]) dict[key] = String(rows[i]);
+    if (list[i]) dict[key] = list[i];
+  });
+  Object.keys(dict).forEach((key) => {
+    if (!revAll[dict[key]]) revAll[dict[key]] = key;
   });
   return dict;
 }
@@ -58,7 +70,9 @@ const DICTS: Record<Exclude<PresentationLangCode, "en">, Record<string, string>>
   ja: toDict(langJa),
 };
 
-const sources = new WeakMap<Text, string>();
+function toEnglish(value: string) {
+  return revAll[value] || value;
+}
 
 export function presentationLangLabel(code: string) {
   return PRESENTATION_LANGS.find(([c]) => c === code)?.[1] ?? "English";
@@ -90,7 +104,8 @@ function textNodes(root: ParentNode) {
     acceptNode(n) {
       if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
       const p = n.parentElement;
-      if (!p || p.closest("[data-no-i18n],[data-count],#au-count")) return NodeFilter.FILTER_REJECT;
+      if (!p || p.closest("[data-no-i18n]")) return NodeFilter.FILTER_REJECT;
+      if (p.closest("[data-count],#au-count")) return NodeFilter.FILTER_REJECT;
       if (p.tagName === "SCRIPT" || p.tagName === "STYLE") return NodeFilter.FILTER_REJECT;
       return NodeFilter.FILTER_ACCEPT;
     },
@@ -105,12 +120,11 @@ export function getPresentationDict(lang: PresentationLangCode): Record<string, 
   return DICTS[lang] ?? null;
 }
 
-export function applyPresentationLang(root: ParentNode, dict: Record<string, string> | null) {
+export function applyPresentationLang(dict: Record<string, string> | null, root: ParentNode = document.body) {
   textNodes(root).forEach((n) => {
     const raw = n.nodeValue ?? "";
     const shown = raw.trim();
-    if (!sources.has(n)) sources.set(n, shown);
-    const en = sources.get(n) || shown;
+    const en = toEnglish(shown);
     const next = dict ? dict[en] || en : en;
     if (next !== shown) n.nodeValue = raw.replace(shown, next);
   });
@@ -120,8 +134,6 @@ export function setPresentationBidi(on: boolean) {
   let el = document.getElementById("au-bidi");
   if (!on) {
     el?.remove();
-    document.documentElement.lang = "en";
-    document.documentElement.removeAttribute("dir");
     return;
   }
   if (!el) {
@@ -131,6 +143,4 @@ export function setPresentationBidi(on: boolean) {
       "#au-scroll h1,#au-scroll h2,#au-scroll h3,#au-scroll h4,#au-scroll p,#au-scroll span,#au-scroll li,#au-scroll div{unicode-bidi:plaintext}";
     document.head.appendChild(el);
   }
-  document.documentElement.lang = "ar";
-  document.documentElement.dir = "rtl";
 }

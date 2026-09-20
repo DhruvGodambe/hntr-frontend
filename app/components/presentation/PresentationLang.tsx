@@ -28,32 +28,49 @@ export default function PresentationLang({ scrollRoot }: { scrollRoot: HTMLEleme
 
   useEffect(() => {
     if (!scrollRoot) return;
-    const dict = getPresentationDict(lang);
-    applyPresentationLang(scrollRoot, dict);
-    setPresentationBidi(lang === "ar");
     storePresentationLang(lang);
 
+    let busy = false;
     let pending: number | null = null;
+    let unlock: number | null = null;
+
+    const run = () => {
+      busy = true;
+      applyPresentationLang(getPresentationDict(langRef.current));
+      setPresentationBidi(langRef.current === "ar");
+      if (pending != null) {
+        window.clearTimeout(pending);
+        pending = null;
+      }
+      if (unlock != null) window.clearTimeout(unlock);
+      unlock = window.setTimeout(() => {
+        busy = false;
+        unlock = null;
+      }, 200);
+    };
+
+    run();
+    const later = window.setTimeout(run, 250);
+
     const mo = new MutationObserver(() => {
-      if (pending != null) return;
+      if (busy || langRef.current === "en" || pending) return;
       pending = window.setTimeout(() => {
         pending = null;
-        applyPresentationLang(scrollRoot, getPresentationDict(langRef.current));
-      }, 80);
+        applyPresentationLang(getPresentationDict(langRef.current));
+      }, 120);
     });
-    mo.observe(scrollRoot, { childList: true, subtree: true, characterData: true });
+    mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+
     return () => {
       mo.disconnect();
+      window.clearTimeout(later);
       if (pending != null) window.clearTimeout(pending);
+      if (unlock != null) window.clearTimeout(unlock);
     };
   }, [lang, scrollRoot]);
 
   useEffect(() => {
-    const onDoc = (event: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
+    const onDoc = () => setOpen(false);
     document.addEventListener("click", onDoc);
     return () => document.removeEventListener("click", onDoc);
   }, []);
@@ -85,7 +102,8 @@ export default function PresentationLang({ scrollRoot }: { scrollRoot: HTMLEleme
             type="button"
             className="au-lang-opt"
             aria-current={code === lang}
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setLang(code);
               setOpen(false);
             }}

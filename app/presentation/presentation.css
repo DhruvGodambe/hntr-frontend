@@ -812,6 +812,16 @@ body[data-page="presentation"] #au-rail button > span:first-child {
   }
 }
 
+#au-lang,
+.au-header,
+.au-header-actions {
+  overflow: visible !important;
+}
+
+#au-lang {
+  position: relative;
+}
+
 .au-lang {
   position: relative;
   display: flex;
@@ -902,7 +912,7 @@ body[data-page="presentation"] #au-rail button > span:first-child {
   flex-direction: column;
   gap: 2px;
   min-width: 180px;
-  z-index: 80;
+  z-index: 200;
 }
 
 .au-lang.open .au-lang-menu {
