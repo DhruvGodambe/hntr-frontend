@@ -19,13 +19,18 @@ export default function WebinarPlayer() {
         </div>
         <div className="wv-soon-rule" />
         <div className="wv-soon-sub">24/7 Live Webinars in All Languages</div>
-        <button type="button" className="wv-soon-cta">
+        <a
+          href="/presentation"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="wv-soon-cta"
+        >
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
             <rect x="1.6" y="2.6" width="12.8" height="9" rx="1.4" stroke="currentColor" strokeWidth="1.4" />
             <path d="M8 11.6v2M5.4 13.6h5.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
           </svg>
           View Presentation Deck
-        </button>
+        </a>
       </div>
       <div className="wv-controls">
         <span className="wv-livemark">
