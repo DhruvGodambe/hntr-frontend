@@ -45,7 +45,7 @@ export const SEPOLIA_RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
 export const MAINNET_RPC_URL = "https://ethereum-rpc.publicnode.com";
 
 export const SEPOLIA_CONTRACT_ADDRESS: Address0x =
-  "0xba7470F39C90C6ff9AEFa905382eCec69cD112c9" as const satisfies `0x${string}`;
+  "0x25D9a3670891C2349E8606a2Ea736A160f3A495c" as const satisfies `0x${string}`;
 export const SEPOLIA_USDT_ADDRESS: Address0x =
   "0xff26Bf42e258979e307B581F32A7C984BCEDA66a" as const satisfies `0x${string}`;
 export const SEPOLIA_USDC_ADDRESS: Address0x =
