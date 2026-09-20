@@ -296,23 +296,60 @@ export function usePresentationRuntime(ready: boolean) {
       });
     }
 
-    const onHashClick = (ev: Event) => {
-      const a = ev.currentTarget as HTMLAnchorElement;
-      const id = a.getAttribute("href")?.slice(1);
-      const target = id ? document.getElementById(id) : null;
-      if (!target) return;
-      ev.preventDefault();
-      goTo(target);
+    const scrollToTop = () => {
+      const from = root.scrollTop;
+      if (from <= 0) return;
+      const snap = root.style.scrollSnapType;
+      root.style.scrollSnapType = "none";
+      const t0 = performance.now();
+      const dur = 650;
+      const step = (now: number) => {
+        const p = Math.min(1, (now - t0) / dur);
+        const e = 1 - Math.pow(1 - p, 3);
+        root.scrollTop = from * (1 - e);
+        if (p < 1) requestAnimationFrame(step);
+        else {
+          root.scrollTop = 0;
+          root.style.scrollSnapType = snap || "y proximity";
+        }
+      };
+      requestAnimationFrame(step);
     };
-    const hashLinks = Array.from(root.querySelectorAll<HTMLAnchorElement>('a[href^="#au-"]'));
-    hashLinks.forEach((a) => a.addEventListener("click", onHashClick));
+
+    const onDeckClick = (ev: Event) => {
+      const a = (ev.target as HTMLElement | null)?.closest?.("a");
+      if (!a || !root.contains(a)) return;
+
+      if (a.classList.contains("au-top") || a.getAttribute("href") === "#au-s0") {
+        ev.preventDefault();
+        ev.stopPropagation();
+        scrollToTop();
+        return;
+      }
+
+      if (a.classList.contains("au-enter") || a.getAttribute("href") === "/") {
+        ev.preventDefault();
+        ev.stopPropagation();
+        window.location.assign("/");
+        return;
+      }
+
+      const href = a.getAttribute("href") || "";
+      if (href.startsWith("#au-")) {
+        const target = document.getElementById(href.slice(1));
+        if (!target) return;
+        ev.preventDefault();
+        goTo(target);
+      }
+    };
+    document.addEventListener("click", onDeckClick, true);
 
     return () => {
       io?.disconnect();
       root.removeEventListener("scroll", onScroll);
       window.removeEventListener("keydown", onKey);
       hoverCleanups.forEach((fn) => fn());
-      hashLinks.forEach((a) => a.removeEventListener("click", onHashClick));
+      document.removeEventListener("click", onDeckClick, true);
       rail.removeEventListener("wheel", onRailWheel);
       rail.remove();
     };

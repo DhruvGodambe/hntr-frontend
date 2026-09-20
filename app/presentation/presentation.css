@@ -118,6 +118,14 @@ body[data-page="presentation"] #au-rail button > span:first-child {
   color: #fff !important;
 }
 
+.au-scroll a.au-enter,
+.au-scroll a.au-top {
+  cursor: pointer;
+  pointer-events: auto;
+  position: relative;
+  z-index: 2;
+}
+
 #au-scroll::-webkit-scrollbar {
   width: 0;
   height: 0;
