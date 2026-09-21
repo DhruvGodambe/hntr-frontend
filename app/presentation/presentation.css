@@ -189,6 +189,45 @@ body[data-page="presentation"] #au-rail button > span:first-child {
   will-change: auto !important;
 }
 
+/* iPhone Safari: 1fr grid rows do not give children a definite height, so
+   height:100% ape images collapse to 0 and only the BAYC logo is visible. */
+#au-s5 [style*="grid-template-rows:repeat(4"],
+#au-s5 [style*="grid-template-rows: repeat(4"] {
+  display: flex !important;
+  flex-direction: column !important;
+  aspect-ratio: 1 / 1 !important;
+  width: 100%;
+  min-height: 220px;
+  padding: 7px !important;
+  gap: 7px !important;
+  overflow: hidden;
+}
+
+#au-s5 [style*="grid-template-rows:repeat(4"] > div:not([style*="position:absolute"]),
+#au-s5 [style*="grid-template-rows: repeat(4"] > div:not([style*="position:absolute"]) {
+  position: relative !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+#au-s5 [style*="auMarquee"] {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  height: 100% !important;
+  width: max-content !important;
+}
+
+#au-s5 [style*="auMarquee"] img {
+  height: 100% !important;
+  width: auto !important;
+  aspect-ratio: 1 / 1 !important;
+  flex: 0 0 auto !important;
+  max-width: none !important;
+  object-fit: cover !important;
+}
+
 @media (hover: none), (pointer: coarse) {
   .au-scroll [data-anim] {
     -webkit-animation-play-state: running !important;

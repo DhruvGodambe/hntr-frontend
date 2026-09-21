@@ -86,12 +86,47 @@ export function usePresentationRuntime(ready: boolean) {
       });
     };
 
+    const layoutCollectionMosaic = (section: HTMLElement) => {
+      const mosaic = section.querySelector<HTMLElement>("[style*='grid-template-rows:repeat(4']");
+      if (!mosaic) return;
+      const rows = Array.from(mosaic.children).filter((el) => {
+        const pos = (el as HTMLElement).style.position || getComputedStyle(el).position;
+        return pos !== "absolute";
+      }) as HTMLElement[];
+      if (!rows.length) return;
+      const gap = parseFloat(getComputedStyle(mosaic).gap) || 7;
+      const padTop = parseFloat(getComputedStyle(mosaic).paddingTop) || 7;
+      const padBot = parseFloat(getComputedStyle(mosaic).paddingBottom) || 7;
+      const inner = mosaic.clientHeight - padTop - padBot - gap * Math.max(0, rows.length - 1);
+      const rowH = Math.max(36, Math.floor(inner / rows.length));
+      rows.forEach((row) => {
+        row.style.height = `${rowH}px`;
+        row.style.minHeight = `${rowH}px`;
+        row.style.flex = `0 0 ${rowH}px`;
+        row.style.position = "relative";
+        row.style.overflow = "hidden";
+        const track = row.querySelector<HTMLElement>("[style*='auMarquee']");
+        if (!track) return;
+        track.style.position = "absolute";
+        track.style.top = "0";
+        track.style.left = "0";
+        track.style.height = `${rowH}px`;
+        Array.from(track.querySelectorAll("img")).forEach((img) => {
+          img.style.height = `${rowH}px`;
+          img.style.width = `${rowH}px`;
+          img.style.flex = "0 0 auto";
+        });
+      });
+    };
+
     const kickMarquees = (section: HTMLElement) => {
       const tracks = Array.from(
         section.querySelectorAll<HTMLElement>("[style*='auMarquee']"),
       );
       if (!tracks.length) return;
+      layoutCollectionMosaic(section);
       const restart = () => {
+        layoutCollectionMosaic(section);
         tracks.forEach((el) => {
           const prev = el.style.animation;
           el.style.animation = "none";
@@ -211,6 +246,7 @@ export function usePresentationRuntime(ready: boolean) {
       });
       if (counter) counter.textContent = `${pad(i + 1)} / ${pad(secs.length)}`;
       scrollHint?.classList.toggle("is-active", section?.id === "au-s1");
+      if (section?.id === "au-s5") layoutCollectionMosaic(section);
     };
 
     const io =
@@ -246,6 +282,17 @@ export function usePresentationRuntime(ready: boolean) {
     root.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     if (secs[0]) showSection(secs[0]);
+    const s5 = document.getElementById("au-s5");
+    if (s5) {
+      layoutCollectionMosaic(s5);
+      requestAnimationFrame(() => layoutCollectionMosaic(s5));
+    }
+    const onMosaicResize = () => {
+      const mosaicSection = document.getElementById("au-s5");
+      if (mosaicSection) layoutCollectionMosaic(mosaicSection);
+    };
+    window.addEventListener("resize", onMosaicResize);
+    window.addEventListener("orientationchange", onMosaicResize);
 
     const onKey = (e: KeyboardEvent) => {
       if (!["ArrowDown", "ArrowUp", "PageDown", "PageUp"].includes(e.key)) return;
@@ -528,6 +575,8 @@ export function usePresentationRuntime(ready: boolean) {
       io?.disconnect();
       root.removeEventListener("scroll", onScroll);
       window.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", onMosaicResize);
+      window.removeEventListener("orientationchange", onMosaicResize);
       root.removeEventListener("touchstart", onTouchStart);
       root.removeEventListener("touchmove", onTouchMove);
       root.removeEventListener("touchend", onTouchEnd);
