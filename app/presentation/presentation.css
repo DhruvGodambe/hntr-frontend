@@ -54,21 +54,6 @@ body[data-page="presentation"] .au-root * {
   min-height: 100% !important;
 }
 
-/* Phone / small tablet: a small swipe lands on the next slide, not mid-section. */
-@media (max-width: 900px) {
-  #au-scroll.au-scroll {
-    scroll-snap-type: y mandatory !important;
-    scroll-snap-stop: always;
-  }
-
-  .au-scroll section[data-au] {
-    scroll-snap-align: start !important;
-    scroll-snap-stop: always;
-    min-height: 100% !important;
-    min-height: 100svh !important;
-  }
-}
-
 body[data-page="presentation"] #nprogress,
 body[data-page="presentation"] .nprogress {
   display: none !important;
@@ -157,6 +142,141 @@ body[data-page="presentation"] #au-rail button > span:first-child {
   z-index: 2;
 }
 
+#au-header {
+  max-width: 100%;
+  gap: 10px;
+  padding-left: max(12px, env(safe-area-inset-left, 0px)) !important;
+  padding-right: max(12px, env(safe-area-inset-right, 0px)) !important;
+  box-sizing: border-box;
+}
+
+#au-header-brand {
+  min-width: 0;
+  overflow: hidden;
+  flex: 1 1 auto;
+}
+
+#au-header-actions {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+#au-cta {
+  flex: 0 0 auto;
+  max-width: min(100%, 46vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.au-scroll [style*="preserve-3d"] {
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.au-scroll [style*="animation:auMarquee"],
+.au-scroll [style*="animation: auMarquee"] {
+  -webkit-animation-play-state: running !important;
+  animation-play-state: running !important;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+#au-s5 [data-r][style*="aspect-ratio"] {
+  -webkit-transform: none !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .au-scroll [data-anim] {
+    -webkit-animation-play-state: running !important;
+    animation-play-state: running !important;
+  }
+
+  [data-pop-child]:active {
+    transform: translate3d(0, -5px, 0) scale(1.02);
+  }
+}
+
+@media (max-width: 1100px) {
+  #au-scroll [data-au] {
+    padding-left: clamp(20px, 4vw, 48px) !important;
+    padding-right: clamp(20px, 4vw, 48px) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  #au-header {
+    height: 56px !important;
+    padding-left: max(12px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(12px, env(safe-area-inset-right, 0px)) !important;
+  }
+
+  #au-kicker {
+    display: none !important;
+  }
+
+  #au-cta {
+    height: 34px !important;
+    padding: 0 12px !important;
+    font-size: 13px !important;
+  }
+
+  #au-scroll [data-au] {
+    padding-top: 80px !important;
+    padding-bottom: 96px !important;
+  }
+
+  body[data-page="presentation"] #au-rail {
+    right: 8px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  #au-count {
+    display: none !important;
+  }
+
+  #au-header-actions {
+    gap: 8px !important;
+  }
+
+  .au-lang-btn {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .au-lang-btn > span {
+    display: none;
+  }
+
+  #au-cta {
+    padding: 0 11px !important;
+    font-size: 12.5px !important;
+    letter-spacing: -0.02em !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #au-wordmark {
+    display: none !important;
+  }
+
+  #au-header-brand {
+    gap: 8px !important;
+  }
+
+  #au-cta {
+    padding: 0 10px !important;
+    font-size: 12px !important;
+    max-width: 52vw;
+  }
+}
+
 #au-scroll::-webkit-scrollbar {
   width: 0;
   height: 0;
@@ -179,18 +299,22 @@ body[data-page="presentation"] #au-rail button > span:first-child {
 }
 @keyframes auMarquee {
   from {
-    transform: translateX(0);
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
   }
   to {
-    transform: translateX(-50%);
+    -webkit-transform: translate3d(-50%, 0, 0);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 @keyframes auMarqueeR {
   from {
-    transform: translateX(-50%);
+    -webkit-transform: translate3d(-50%, 0, 0);
+    transform: translate3d(-50%, 0, 0);
   }
   to {
-    transform: translateX(0);
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
   }
 }
 @keyframes auCoinFall {
@@ -830,12 +954,26 @@ body[data-page="presentation"] #au-rail button > span:first-child {
   0%,
   100% {
     opacity: 0.3;
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
   }
   50% {
     opacity: 0.85;
-    transform: translateY(6px);
+    transform: translateX(-50%) translateY(8px);
   }
+}
+
+#au-scroll-hint {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: clamp(92px, 12vh, 116px) !important;
+  z-index: 50 !important;
+  pointer-events: none !important;
+  transform: translateX(-50%);
+  animation: auScrollHint 2.4s ease-in-out infinite !important;
+}
+
+#au-scroll-hint:not(.is-active) {
+  display: none !important;
 }
 @keyframes auDash {
   to {
@@ -941,7 +1079,13 @@ body[data-page="presentation"] #au-rail button > span:first-child {
 
 @media (prefers-reduced-motion: reduce) {
   .au-scroll [data-anim],
-  .au-scroll [style*="animation:"] {
+  .au-scroll [style*="animation:"]:not([style*="auMarquee"]) {
     animation: none !important;
+  }
+
+  #au-scroll-hint {
+    animation: none !important;
+    opacity: 0.7 !important;
+    transform: translateX(-50%) !important;
   }
 }

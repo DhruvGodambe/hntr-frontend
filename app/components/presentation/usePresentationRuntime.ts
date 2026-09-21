@@ -59,12 +59,18 @@ export function usePresentationRuntime(ready: boolean) {
     const reduce = prefersReducedMotion();
     const secs = Array.from(root.querySelectorAll<HTMLElement>("[data-au]"));
 
+    const hostsMotion = (el: HTMLElement) =>
+      Boolean(el.querySelector("[style*='auMarquee'], [style*='animation:'], [data-anim]"));
+
     secs.forEach((section) => {
       Array.from(section.querySelectorAll<HTMLElement>("[data-r]")).forEach((el) => {
         el.style.opacity = "0";
-        el.style.transform = reduce ? "none" : `translate3d(0,${REVEAL}px,0)`;
-        el.style.transition = `opacity .72s ${EASE}, transform .78s ${EASE}`;
-        el.style.willChange = "opacity,transform";
+        const skipMove = reduce || hostsMotion(el);
+        el.style.transform = skipMove ? "none" : `translate3d(0,${REVEAL}px,0)`;
+        el.style.transition = skipMove
+          ? `opacity .72s ${EASE}`
+          : `opacity .72s ${EASE}, transform .78s ${EASE}`;
+        el.style.willChange = skipMove ? "opacity" : "opacity,transform";
       });
       Array.from(section.querySelectorAll<HTMLElement>("[data-count]")).forEach((el) => {
         el.textContent = formatCount(el, 0);
@@ -80,6 +86,39 @@ export function usePresentationRuntime(ready: boolean) {
       });
     };
 
+    const kickMarquees = (section: HTMLElement) => {
+      const tracks = Array.from(
+        section.querySelectorAll<HTMLElement>("[style*='auMarquee']"),
+      );
+      if (!tracks.length) return;
+      const restart = () => {
+        tracks.forEach((el) => {
+          const prev = el.style.animation;
+          el.style.animation = "none";
+          void el.offsetWidth;
+          el.style.animation = prev;
+          el.style.animationPlayState = "running";
+          (el.style as CSSStyleDeclaration & { webkitAnimationPlayState?: string }).webkitAnimationPlayState =
+            "running";
+        });
+      };
+      const imgs = Array.from(section.querySelectorAll("img"));
+      const pending = imgs.filter((img) => !img.complete);
+      if (!pending.length) {
+        requestAnimationFrame(restart);
+        return;
+      }
+      let left = pending.length;
+      const done = () => {
+        left -= 1;
+        if (left <= 0) requestAnimationFrame(restart);
+      };
+      pending.forEach((img) => {
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", done, { once: true });
+      });
+    };
+
     const showSection = (section: HTMLElement) => {
       if (section.dataset.shown === "1") return;
       section.dataset.shown = "1";
@@ -87,7 +126,8 @@ export function usePresentationRuntime(ready: boolean) {
         const delay = reduce ? 0 : Math.min(i * 85, 620);
         window.setTimeout(() => {
           el.style.opacity = "1";
-          el.style.transform = "translate3d(0,0,0)";
+          el.style.transform = "none";
+          el.style.willChange = "auto";
         }, delay);
       });
       Array.from(section.querySelectorAll<HTMLElement>("[data-bar]")).forEach((el, i) => {
@@ -95,6 +135,7 @@ export function usePresentationRuntime(ready: boolean) {
           el.style.width = `${el.getAttribute("data-bar")}%`;
         }, 260 + i * 55);
       });
+      kickMarquees(section);
     };
 
     const rail = document.getElementById("au-rail") || document.createElement("div");
@@ -150,6 +191,10 @@ export function usePresentationRuntime(ready: boolean) {
 
     const counter = document.getElementById("au-count");
     const prog = document.getElementById("au-prog");
+    const scrollHint = document.getElementById("au-scroll-hint");
+    if (scrollHint && scrollHint.parentElement !== root) {
+      root.appendChild(scrollHint);
+    }
     let active = -1;
 
     const setActive = (i: number) => {
@@ -165,6 +210,7 @@ export function usePresentationRuntime(ready: boolean) {
         d.style.transform = j === i ? "scale(1.55)" : "scale(1)";
       });
       if (counter) counter.textContent = `${pad(i + 1)} / ${pad(secs.length)}`;
+      scrollHint?.classList.toggle("is-active", section?.id === "au-s1");
     };
 
     const io =
@@ -214,20 +260,39 @@ export function usePresentationRuntime(ready: boolean) {
     const isPager = () => pagerMq.matches;
     const pagerExcluded = (target: EventTarget | null) => {
       const el = target as HTMLElement | null;
-      return Boolean(el?.closest?.("#au-vo, #au-lang, a, input, textarea, select, button"));
+      return Boolean(el?.closest?.("#au-vo, #au-lang, #au-header, a, input, textarea, select, button"));
     };
+
+    const EDGE = 32;
+    const SWIPE = 36;
+    const TALL = 56;
+    const sectionMetrics = (i: number) => {
+      const section = secs[i];
+      const top = section ? sectionTop(root, section) : 0;
+      const overflow = section ? section.offsetHeight - root.clientHeight : 0;
+      return { top, end: top + Math.max(0, overflow), tall: overflow > TALL };
+    };
+    const atSectionStart = (i: number) => root.scrollTop <= sectionMetrics(i).top + EDGE;
+    const atSectionEnd = (i: number) => {
+      const metrics = sectionMetrics(i);
+      return !metrics.tall || root.scrollTop >= metrics.end - EDGE;
+    };
+    const canPage = (dir: number, from: number) => (dir > 0 ? atSectionEnd(from) : atSectionStart(from));
 
     let paging = false;
     let pageTimer = 0;
     const pageBy = (dir: number, from = Math.max(0, active)) => {
-      if (!isPager() || paging) return;
+      if (!isPager() || paging) return false;
+      if (!canPage(dir, from)) return false;
       const i = Math.max(0, Math.min(secs.length - 1, from + dir));
+      if (i === from) return false;
       paging = true;
       goTo(secs[i]);
       window.clearTimeout(pageTimer);
       pageTimer = window.setTimeout(() => {
         paging = false;
       }, 680);
+      return true;
     };
 
     let touchY = 0;
@@ -243,22 +308,27 @@ export function usePresentationRuntime(ready: boolean) {
       touchFrom = Math.max(0, active);
     };
     const onTouchMove = (e: TouchEvent) => {
-      if (!touching || !isPager()) return;
-      if (Math.abs(touchY - e.touches[0].clientY) > 10) e.preventDefault();
+      if (!touching || !isPager() || paging) return;
+      const dy = touchY - e.touches[0].clientY;
+      const dir = dy > 0 ? 1 : -1;
+      if (Math.abs(dy) > 12 && canPage(dir, touchFrom)) e.preventDefault();
     };
     const onTouchEnd = (e: TouchEvent) => {
       if (!touching) return;
       touching = false;
       if (!isPager()) return;
       const dy = touchY - (e.changedTouches[0]?.clientY ?? touchY);
-      if (Math.abs(dy) < 28) return;
+      if (Math.abs(dy) < SWIPE) return;
       pageBy(dy > 0 ? 1 : -1, touchFrom);
     };
     const onPagerWheel = (e: WheelEvent) => {
-      if (!isPager() || pagerExcluded(e.target)) return;
-      if (Math.abs(e.deltaY) < 8) return;
+      if (!isPager() || pagerExcluded(e.target) || paging) return;
+      if (Math.abs(e.deltaY) < 10) return;
+      const dir = e.deltaY > 0 ? 1 : -1;
+      const from = Math.max(0, active);
+      if (!canPage(dir, from)) return;
       e.preventDefault();
-      pageBy(e.deltaY > 0 ? 1 : -1);
+      pageBy(dir, from);
     };
 
     root.addEventListener("touchstart", onTouchStart, { passive: true });
@@ -268,15 +338,16 @@ export function usePresentationRuntime(ready: boolean) {
     root.addEventListener("wheel", onPagerWheel, { passive: false });
 
     const hoverCleanups: Array<() => void> = [];
-    const canHover = window.matchMedia("(hover: hover)").matches;
+    const canFineHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
     if (!reduce) {
       Array.from(root.querySelectorAll<HTMLElement>("[data-anim-hover]")).forEach((panel) => {
         const parts = Array.from(panel.querySelectorAll<HTMLElement>("[data-anim]"));
         const set = (state: string) => parts.forEach((p) => {
           p.style.animationPlayState = state;
+          (p.style as CSSStyleDeclaration & { webkitAnimationPlayState?: string }).webkitAnimationPlayState = state;
         });
-        if (!canHover) {
+        if (!canFineHover) {
           set("running");
           return;
         }
@@ -291,50 +362,78 @@ export function usePresentationRuntime(ready: boolean) {
         });
       });
 
-      if (canHover) {
       const radiusSel = (r: number) =>
         `[style*="border-radius:${r}px"],[style*="border-radius: ${r}px"]`;
       Array.from(root.querySelectorAll<HTMLElement>(`${radiusSel(26)},${radiusSel(22)}`))
         .filter((el) => el.tagName !== "A" && el.tagName !== "BUTTON")
         .forEach((card) => {
-          if (card.closest("[data-pop-child]") || card.closest("#au-rail") || card.closest("#au-vo")) return;
+          if (
+            card.closest("[data-pop-child]") ||
+            card.closest("#au-rail") ||
+            card.closest("#au-vo") ||
+            card.closest("#au-scroll-hint") ||
+            card.querySelector("[style*='auMarquee']")
+          ) {
+            return;
+          }
           const dark = getComputedStyle(card).backgroundColor === "rgb(29, 29, 31)";
           const rest = card.style.boxShadow || getComputedStyle(card).boxShadow;
           const hot = dark
             ? "0 2px 6px rgba(0,0,0,.1),0 26px 60px rgba(0,0,0,.22)"
             : "0 2px 6px rgba(0,0,0,.06),0 26px 60px rgba(0,0,0,.13)";
           card.setAttribute("data-pop-child", "");
-          card.style.transformStyle = "preserve-3d";
           card.style.transition = `box-shadow .4s ${EASE}, transform .4s ${EASE}`;
-          let hovering = false;
-          const apply = (x: number, y: number) => {
-            card.style.transform = `perspective(900px) translate3d(0,-7px,0) rotateX(${-y * 3.2}deg) rotateY(${x * 3.2}deg) scale(1.014)`;
-          };
-          const enter = () => {
-            hovering = true;
-            card.style.boxShadow = hot;
-            card.style.zIndex = "2";
-            apply(0, 0);
-          };
-          const move = (e: MouseEvent) => {
-            if (!hovering) return;
-            const r = card.getBoundingClientRect();
-            apply((e.clientX - r.left) / r.width - 0.5, (e.clientY - r.top) / r.height - 0.5);
-          };
-          const leave = () => {
-            hovering = false;
+          const reset = () => {
             card.style.boxShadow = rest;
             card.style.transform = "translate3d(0,0,0)";
             card.style.zIndex = "";
           };
-          card.addEventListener("mouseenter", enter);
-          card.addEventListener("mousemove", move);
-          card.addEventListener("mouseleave", leave);
-          hoverCleanups.push(() => {
-            card.removeEventListener("mouseenter", enter);
-            card.removeEventListener("mousemove", move);
-            card.removeEventListener("mouseleave", leave);
-          });
+          if (canFineHover) {
+            card.style.transformStyle = "preserve-3d";
+            let hovering = false;
+            const apply = (x: number, y: number) => {
+              card.style.transform = `perspective(900px) translate3d(0,-7px,0) rotateX(${-y * 3.2}deg) rotateY(${x * 3.2}deg) scale(1.014)`;
+            };
+            const enter = () => {
+              hovering = true;
+              card.style.boxShadow = hot;
+              card.style.zIndex = "2";
+              apply(0, 0);
+            };
+            const move = (e: MouseEvent) => {
+              if (!hovering) return;
+              const r = card.getBoundingClientRect();
+              apply((e.clientX - r.left) / r.width - 0.5, (e.clientY - r.top) / r.height - 0.5);
+            };
+            const leave = () => {
+              hovering = false;
+              reset();
+            };
+            card.addEventListener("mouseenter", enter);
+            card.addEventListener("mousemove", move);
+            card.addEventListener("mouseleave", leave);
+            hoverCleanups.push(() => {
+              card.removeEventListener("mouseenter", enter);
+              card.removeEventListener("mousemove", move);
+              card.removeEventListener("mouseleave", leave);
+            });
+          } else {
+            const down = () => {
+              card.style.boxShadow = hot;
+              card.style.zIndex = "2";
+              card.style.transform = "translate3d(0,-6px,0) scale(1.012)";
+            };
+            card.addEventListener("pointerdown", down);
+            card.addEventListener("pointerup", reset);
+            card.addEventListener("pointercancel", reset);
+            card.addEventListener("pointerleave", reset);
+            hoverCleanups.push(() => {
+              card.removeEventListener("pointerdown", down);
+              card.removeEventListener("pointerup", reset);
+              card.removeEventListener("pointercancel", reset);
+              card.removeEventListener("pointerleave", reset);
+            });
+          }
         });
 
       const pillSel = [19, 20, 21, 16, 11].map(radiusSel).join(",") + ',a[href],button[type="button"]';
@@ -349,20 +448,32 @@ export function usePresentationRuntime(ready: boolean) {
         const leave = () => {
           p.style.transform = "translate3d(0,0,0)";
         };
-        p.addEventListener("mouseenter", enter);
-        p.addEventListener("mouseleave", leave);
-        hoverCleanups.push(() => {
-          p.removeEventListener("mouseenter", enter);
-          p.removeEventListener("mouseleave", leave);
-        });
+        if (canFineHover) {
+          p.addEventListener("mouseenter", enter);
+          p.addEventListener("mouseleave", leave);
+          hoverCleanups.push(() => {
+            p.removeEventListener("mouseenter", enter);
+            p.removeEventListener("mouseleave", leave);
+          });
+        } else {
+          p.addEventListener("pointerdown", enter);
+          p.addEventListener("pointerup", leave);
+          p.addEventListener("pointercancel", leave);
+          p.addEventListener("pointerleave", leave);
+          hoverCleanups.push(() => {
+            p.removeEventListener("pointerdown", enter);
+            p.removeEventListener("pointerup", leave);
+            p.removeEventListener("pointercancel", leave);
+            p.removeEventListener("pointerleave", leave);
+          });
+        }
       });
-      }
     }
 
     const scrollToTop = () => {
       const from = root.scrollTop;
       if (from <= 0) return;
-      const snap = isPager() ? "y mandatory" : root.style.scrollSnapType || "y proximity";
+      const snap = root.style.scrollSnapType || "y proximity";
       root.style.setProperty("scroll-snap-type", "none", "important");
       const t0 = performance.now();
       const dur = 650;
