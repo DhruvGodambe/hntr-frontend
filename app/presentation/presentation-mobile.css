@@ -1,0 +1,208 @@
+/* Mobile presentation — exact rules from About Us (Mobile).html.
+   Attribute selectors are expanded so they match both React's spaced
+   inline styles and the compact HTML serialization we inject. */
+@media (max-width: 520px) {
+#au-scroll [data-au]{padding:80px 18px 100px!important;min-height:100svh!important}
+#au-scroll [data-au] div[style*="display: grid"],
+#au-scroll [data-au] div[style*="display:grid"]{gap:12px!important}
+#au-scroll [data-au] div[style*="border-radius: 26px"],
+#au-scroll [data-au] div[style*="border-radius:26px"]{padding:15px!important;border-radius:20px!important}
+#au-scroll [data-au] div[style*="border-radius: 22px"],
+#au-scroll [data-au] div[style*="border-radius:22px"]{padding:14px!important;border-radius:18px!important}
+#au-scroll [style*="min-height: clamp(190px"],
+#au-scroll [style*="min-height:clamp(190px"]{min-height:118px!important}
+#au-scroll [style*="min-height: clamp(230px"],
+#au-scroll [style*="min-height:clamp(230px"]{min-height:118px!important}
+#au-scroll [style*="height: 150px"],
+#au-scroll [style*="height:150px"]{height:92px!important}
+#au-scroll img[style*="width: 44px"],
+#au-scroll img[style*="width:44px"]{width:30px!important;height:30px!important}
+#au-scroll [style*="min-width: 520px"],
+#au-scroll [style*="min-width:520px"]{min-width:320px!important}
+#au-scroll [style*="height: 38px"],
+#au-scroll [style*="height:38px"]{height:32px!important}
+#au-scroll img[style*="width: 38px"][style*="border-radius: 50%"],
+#au-scroll img[style*="width: 38px"][style*="border-radius:50%"],
+#au-scroll img[style*="width:38px"][style*="border-radius: 50%"],
+#au-scroll img[style*="width:38px"][style*="border-radius:50%"]{width:30px!important;height:30px!important}
+#au-scroll [data-au] h1{font-size:28px!important;line-height:1.03!important}
+#au-scroll [data-au] h2{font-size:22px!important;line-height:1.08!important}
+#au-scroll [data-au] p{font-size:13px!important;line-height:1.42!important}
+#au-scroll [data-au] [style*="letter-spacing: 0.14em"],
+#au-scroll [data-au] [style*="letter-spacing:0.14em"],
+#au-scroll [data-au] [style*="letter-spacing:.14em"]{font-size:11px!important;margin-bottom:10px!important}
+/* slide 05: the ring's 3x3 desktop arrangement collapses to ring + 2x2 cycle,
+     reordered so the steps still read in cycle order */
+#au-s4 div[style*="minmax(0px, 1fr)"],
+#au-s4 div[style*="minmax(0px,1fr)"],
+#au-s4 div[style*="minmax(0, 1fr)"],
+#au-s4 div[style*="minmax(0,1fr)"]{grid-template-columns:1fr 1fr!important;gap:14px 12px!important;justify-items:stretch!important;align-items:start!important}
+#au-s4 div[style*="minmax(0px, 1fr)"] > div,
+#au-s4 div[style*="minmax(0px,1fr)"] > div,
+#au-s4 div[style*="minmax(0, 1fr)"] > div,
+#au-s4 div[style*="minmax(0,1fr)"] > div{max-width:none!important;width:auto!important;text-align:center!important}
+#au-s4 div[style*="minmax(0px, 1fr)"] > div:empty,
+#au-s4 div[style*="minmax(0px,1fr)"] > div:empty,
+#au-s4 div[style*="minmax(0, 1fr)"] > div:empty,
+#au-s4 div[style*="minmax(0,1fr)"] > div:empty{display:none!important}
+#au-s4 div[style*="minmax(0px, 1fr)"] > div:nth-child(5),
+#au-s4 div[style*="minmax(0px,1fr)"] > div:nth-child(5),
+#au-s4 div[style*="minmax(0, 1fr)"] > div:nth-child(5),
+#au-s4 div[style*="minmax(0,1fr)"] > div:nth-child(5){grid-column:1/-1!important;order:0!important;justify-self:center!important;margin-bottom:6px!important}
+#au-s4 div[style*="minmax(0px, 1fr)"] > div:nth-child(2),
+#au-s4 div[style*="minmax(0px,1fr)"] > div:nth-child(2),
+#au-s4 div[style*="minmax(0, 1fr)"] > div:nth-child(2),
+#au-s4 div[style*="minmax(0,1fr)"] > div:nth-child(2){order:1!important}
+#au-s4 div[style*="minmax(0px, 1fr)"] > div:nth-child(6),
+#au-s4 div[style*="minmax(0px,1fr)"] > div:nth-child(6),
+#au-s4 div[style*="minmax(0, 1fr)"] > div:nth-child(6),
+#au-s4 div[style*="minmax(0,1fr)"] > div:nth-child(6){order:2!important}
+#au-s4 div[style*="minmax(0px, 1fr)"] > div:nth-child(8),
+#au-s4 div[style*="minmax(0px,1fr)"] > div:nth-child(8),
+#au-s4 div[style*="minmax(0, 1fr)"] > div:nth-child(8),
+#au-s4 div[style*="minmax(0,1fr)"] > div:nth-child(8){order:3!important}
+#au-s4 div[style*="minmax(0px, 1fr)"] > div:nth-child(4),
+#au-s4 div[style*="minmax(0px,1fr)"] > div:nth-child(4),
+#au-s4 div[style*="minmax(0, 1fr)"] > div:nth-child(4),
+#au-s4 div[style*="minmax(0,1fr)"] > div:nth-child(4){order:4!important}
+/* two-up card grids and a smaller card scale, so a whole slide reads at once */
+/* 2-up only for leaf card grids — a grid that wraps another grid must stack */
+#au-scroll [data-au] div[style*="repeat(auto-fit"]:not(:has(div[style*="display: grid"])),
+#au-scroll [data-au] div[style*="repeat(auto-fit"]:not(:has(div[style*="display:grid"])){grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+#au-scroll [data-au] div[style*="repeat(auto-fit"]:has(div[style*="display: grid"]),
+#au-scroll [data-au] div[style*="repeat(auto-fit"]:has(div[style*="display:grid"]){grid-template-columns:1fr!important;gap:14px!important}
+#au-scroll [data-au] div[style*="border-radius: 24px"],
+#au-scroll [data-au] div[style*="border-radius:24px"]{padding:12px!important;border-radius:16px!important}
+#au-scroll [data-au] div[style*="border-radius: 26px"],
+#au-scroll [data-au] div[style*="border-radius:26px"]{padding:12px!important;border-radius:16px!important}
+#au-scroll [data-au] div[style*="border-radius: 22px"],
+#au-scroll [data-au] div[style*="border-radius:22px"]{padding:11px!important;border-radius:14px!important}
+#au-scroll [style*="min-height: clamp(190px"],
+#au-scroll [style*="min-height:clamp(190px"],
+#au-scroll [style*="min-height: clamp(230px"],
+#au-scroll [style*="min-height:clamp(230px"]{min-height:96px!important}
+#au-scroll [data-au] [style*="font-size: clamp(22px"],
+#au-scroll [data-au] [style*="font-size:clamp(22px"]{font-size:15px!important}
+#au-scroll [data-au] [style*="font-size: clamp(34px"],
+#au-scroll [data-au] [style*="font-size:clamp(34px"]{font-size:19px!important}
+#au-scroll [data-au] [style*="font-size: clamp(36px"],
+#au-scroll [data-au] [style*="font-size:clamp(36px"]{font-size:20px!important}
+#au-scroll [data-au] [style*="font-size: clamp(38px"],
+#au-scroll [data-au] [style*="font-size:clamp(38px"]{font-size:20px!important}
+#au-scroll [data-au] [style*="font-size: clamp(64px"],
+#au-scroll [data-au] [style*="font-size:clamp(64px"],
+#au-scroll [data-au] [style*="font-size: clamp(96px"],
+#au-scroll [data-au] [style*="font-size:clamp(96px"]{font-size:44px!important}
+#au-scroll [data-au] [style*="font-size: 24px"],
+#au-scroll [data-au] [style*="font-size:24px"]{font-size:15px!important}
+#au-scroll [data-au] [style*="font-size: 21px"],
+#au-scroll [data-au] [style*="font-size:21px"]{font-size:14px!important}
+#au-scroll [data-au] [style*="font-size: 19px"],
+#au-scroll [data-au] [style*="font-size:19px"]{font-size:13px!important}
+#au-scroll [data-au] [style*="font-size: 18px"],
+#au-scroll [data-au] [style*="font-size:18px"]{font-size:13px!important}
+#au-scroll [data-au] [style*="font-size: 17px"],
+#au-scroll [data-au] [style*="font-size:17px"]{font-size:12px!important}
+#au-scroll [data-au] [style*="font-size: 16px"],
+#au-scroll [data-au] [style*="font-size:16px"]{font-size:12px!important}
+#au-scroll [data-au] [style*="font-size: 15px"],
+#au-scroll [data-au] [style*="font-size:15px"]{font-size:12px!important}
+#au-scroll [data-au] svg[width="28"]{width:20px!important;height:20px!important}
+#au-scroll [style*="height: 150px"],
+#au-scroll [style*="height:150px"]{height:74px!important}
+#au-scroll img[style*="width: 88px"],
+#au-scroll img[style*="width:88px"]{width:44px!important;height:44px!important}
+/* media inside cards must scale with the narrower column, or the slide grows taller */
+#au-scroll [data-anim-hover][style*="height: 168px"],
+#au-scroll [data-anim-hover][style*="height:168px"]{height:104px!important}
+#au-scroll [data-anim-hover][style*="min-height: 240px"],
+#au-scroll [data-anim-hover][style*="min-height:240px"]{min-height:150px!important}
+#au-s1b [data-anim-hover],
+#au-s1b div[style*="aspect-ratio: 1"],
+#au-s1b div[style*="aspect-ratio:1"]{aspect-ratio:auto!important;height:78px!important}
+#au-s3 [style*="height: 150px"],
+#au-s3 [style*="height:150px"]{height:56px!important}
+#au-s3 [style*="padding: 10px 0"],
+#au-s3 [style*="padding:10px 0"]{padding:4px 0!important}
+#au-s10 img[style*="width: 88px"],
+#au-s10 img[style*="width:88px"]{width:34px!important;height:34px!important}
+#au-s21 [style*="min-height: 150px"],
+#au-s21 [style*="min-height:150px"]{min-height:74px!important}
+/* legibility floor: the blanket shrink must not cascade into illustration labels */
+#au-scroll [data-au] [style*="font-size: 12px"],
+#au-scroll [data-au] [style*="font-size:12px"],
+#au-scroll [data-au] [style*="font-size: 11px"],
+#au-scroll [data-au] [style*="font-size:11px"],
+#au-scroll [data-au] [style*="font-size: 10px"],
+#au-scroll [data-au] [style*="font-size:10px"],
+#au-scroll [data-au] [style*="font-size: 9.5px"],
+#au-scroll [data-au] [style*="font-size:9.5px"],
+#au-scroll [data-au] [style*="font-size: 9px"],
+#au-scroll [data-au] [style*="font-size:9px"]{font-size:11px!important}
+#au-s4 div[style*="minmax(0px, 1fr)"] > div[style*="aspect-ratio: 1"],
+#au-s4 div[style*="minmax(0px, 1fr)"] > div[style*="aspect-ratio:1"],
+#au-s4 div[style*="minmax(0px,1fr)"] > div[style*="aspect-ratio: 1"],
+#au-s4 div[style*="minmax(0px,1fr)"] > div[style*="aspect-ratio:1"],
+#au-s4 div[style*="minmax(0, 1fr)"] > div[style*="aspect-ratio: 1"],
+#au-s4 div[style*="minmax(0, 1fr)"] > div[style*="aspect-ratio:1"],
+#au-s4 div[style*="minmax(0,1fr)"] > div[style*="aspect-ratio: 1"],
+#au-s4 div[style*="minmax(0,1fr)"] > div[style*="aspect-ratio:1"]{width:150px!important;max-width:150px!important}
+/* diagram illustrations need the full width, or the motion reads as noise.
+     Scoped to the diagram slides — s1b's small bar chart stays happy two-up. */
+#au-scroll #au-s7 div[style*="repeat(auto-fit"]{grid-template-columns:1fr!important;gap:10px!important}
+#au-s7 [data-anim-hover]{min-height:154px!important}
+#au-s8 div[style*="minmax(200px"]{grid-template-columns:1fr!important;gap:14px!important}
+#au-s8 [data-anim-hover]{min-height:150px!important}
+/* the mini NFT card's caption row is only 104px wide — the 12px floor overflows it */
+#au-s8 [data-anim-hover] div[style*="justify-content: space-between"] > *,
+#au-s8 [data-anim-hover] div[style*="justify-content:space-between"] > *{font-size:10px!important}
+#au-scroll [data-anim-hover]{width:auto!important}
+#au-vo-bar{margin:0!important}
+}
+
+@media (max-width: 620px) {
+  #au-kicker {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  #au-vo-vol {
+    display: none;
+  }
+  #au-vo-mute {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 22px !important;
+  }
+  #au-vo-play {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 22px !important;
+  }
+  #au-vo-rate {
+    height: 44px !important;
+    min-width: 48px !important;
+    border-radius: 22px !important;
+  }
+  #au-vo-bar {
+    height: 26px !important;
+    margin: -11px 0 !important;
+  }
+  #au-vo-kicker {
+    display: none !important;
+  }
+  #au-count {
+    display: none;
+  }
+  #au-cta {
+    padding: 0 14px !important;
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 440px) {
+  #au-rail {
+    display: none !important;
+  }
+}

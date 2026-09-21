@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   PRESENTATION_LANGS,
+  PRESENTATION_VOICED_LANGS,
   type PresentationLangCode,
   applyPresentationLang,
   getPresentationDict,
+  isPresentationVoicedLang,
   presentationLangLabel,
   readStoredPresentationLang,
   setPresentationBidi,
@@ -24,6 +26,13 @@ export default function PresentationLang({ scrollRoot }: { scrollRoot: HTMLEleme
   useEffect(() => {
     setHost(document.getElementById("au-lang"));
     setLang(readStoredPresentationLang());
+    window.AU_VOICED = [...PRESENTATION_VOICED_LANGS];
+    window.AU_I18N = {
+      current: () => langRef.current,
+    };
+    return () => {
+      delete window.AU_I18N;
+    };
   }, [scrollRoot]);
 
   useEffect(() => {
@@ -108,7 +117,16 @@ export default function PresentationLang({ scrollRoot }: { scrollRoot: HTMLEleme
               setOpen(false);
             }}
           >
-            {name}
+            <span>{name}</span>
+            {isPresentationVoicedLang(code) ? (
+              <span className="au-lang-voiced" aria-label="narrated" title="Narrated presentation available">
+                <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                  <path d="M3 6.6h2.4L9 3.6v10.8L5.4 11.4H3V6.6Z" />
+                  <path d="M12 6.4a3.6 3.6 0 0 1 0 5.2" />
+                  <path d="M14.2 4.4a6.6 6.6 0 0 1 0 9.2" />
+                </svg>
+              </span>
+            ) : null}
           </button>
         ))}
       </div>

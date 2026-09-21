@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { initPresentationVoiceOver } from "./presentationVoiceOver";
 
 const EASE = "cubic-bezier(.22,1,.36,1)";
 const REVEAL = 26;
@@ -96,11 +97,10 @@ export function usePresentationRuntime(ready: boolean) {
       });
     };
 
-    document.getElementById("au-rail")?.remove();
-    const rail = document.createElement("div");
+    const rail = document.getElementById("au-rail") || document.createElement("div");
     rail.id = "au-rail";
-    rail.className = "au-rail";
-    document.body.appendChild(rail);
+    rail.replaceChildren();
+    if (!rail.isConnected) document.body.appendChild(rail);
     const goTo = (section: HTMLElement) => {
       showSection(section);
       playCounts(section, true);
@@ -117,14 +117,14 @@ export function usePresentationRuntime(ready: boolean) {
       wrap.type = "button";
       wrap.setAttribute("aria-label", section.getAttribute("data-label") || `Section ${i + 1}`);
       wrap.style.cssText =
-        "all:unset;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;gap:10px;height:16px;min-width:16px;position:relative";
+        "all:unset;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;gap:9px;height:12px;min-width:12px;position:relative";
       const lab = document.createElement("span");
       lab.textContent = section.getAttribute("data-label") || "";
       lab.style.cssText =
-        "font:500 16px/1 -apple-system,BlinkMacSystemFont,'SF Pro Display','Inter Tight',Inter,sans-serif;letter-spacing:-.01em;color:#6e6e73;opacity:0;transform:translateX(6px);transition:opacity .25s,transform .25s;white-space:nowrap;background:rgba(251,251,253,.86);padding:6px 10px;border-radius:10px";
+        "font:500 15px/1 inherit;letter-spacing:-.01em;color:#6e6e73;opacity:0;transform:translateX(6px);transition:opacity .25s,transform .25s;white-space:nowrap;background:rgba(251,251,253,.86);padding:5px 9px;border-radius:9px";
       const dot = document.createElement("span");
       dot.style.cssText =
-        "width:10px;height:10px;border-radius:50%;background:rgba(29,29,31,.2);transition:background .3s,transform .3s;flex:0 0 10px;display:block";
+        "width:7px;height:7px;border-radius:50%;background:rgba(29,29,31,.2);transition:background .3s,transform .3s;flex:0 0 auto;display:block";
       wrap.appendChild(lab);
       wrap.appendChild(dot);
       wrap.addEventListener("mouseenter", () => {
@@ -162,7 +162,7 @@ export function usePresentationRuntime(ready: boolean) {
       }
       dots.forEach((d, j) => {
         d.style.background = j === i ? ACCENT : "rgba(29,29,31,.2)";
-        d.style.transform = j === i ? "scale(1.45)" : "scale(1)";
+        d.style.transform = j === i ? "scale(1.55)" : "scale(1)";
       });
       if (counter) counter.textContent = `${pad(i + 1)} / ${pad(secs.length)}`;
     };
@@ -211,6 +211,7 @@ export function usePresentationRuntime(ready: boolean) {
     window.addEventListener("keydown", onKey);
 
     const hoverCleanups: Array<() => void> = [];
+    const canHover = window.matchMedia("(hover: hover)").matches;
 
     if (!reduce) {
       Array.from(root.querySelectorAll<HTMLElement>("[data-anim-hover]")).forEach((panel) => {
@@ -218,6 +219,10 @@ export function usePresentationRuntime(ready: boolean) {
         const set = (state: string) => parts.forEach((p) => {
           p.style.animationPlayState = state;
         });
+        if (!canHover) {
+          set("running");
+          return;
+        }
         set("paused");
         const enter = () => set("running");
         const leave = () => set("paused");
@@ -229,12 +234,13 @@ export function usePresentationRuntime(ready: boolean) {
         });
       });
 
+      if (canHover) {
       const radiusSel = (r: number) =>
         `[style*="border-radius:${r}px"],[style*="border-radius: ${r}px"]`;
       Array.from(root.querySelectorAll<HTMLElement>(`${radiusSel(26)},${radiusSel(22)}`))
         .filter((el) => el.tagName !== "A" && el.tagName !== "BUTTON")
         .forEach((card) => {
-          if (card.closest("[data-pop-child]") || card.closest("#au-rail")) return;
+          if (card.closest("[data-pop-child]") || card.closest("#au-rail") || card.closest("#au-vo")) return;
           const dark = getComputedStyle(card).backgroundColor === "rgb(29, 29, 31)";
           const rest = card.style.boxShadow || getComputedStyle(card).boxShadow;
           const hot = dark
@@ -277,7 +283,7 @@ export function usePresentationRuntime(ready: boolean) {
       const pillSel = [19, 20, 21, 16, 11].map(radiusSel).join(",") + ',a[href],button[type="button"]';
       Array.from(root.querySelectorAll<HTMLElement>(pillSel)).forEach((p) => {
         if (p.hasAttribute("data-pop-child") || p.closest("[data-pop-child]")) return;
-        if (p.closest("#au-rail") || p.id === "au-rail") return;
+        if (p.closest("#au-rail") || p.id === "au-rail" || p.closest("#au-vo") || p.id === "au-vo" || p.closest("#au-lang")) return;
         p.setAttribute("data-pop-child", "");
         p.style.transition = `transform .32s ${EASE}, box-shadow .32s ${EASE}`;
         const enter = () => {
@@ -293,6 +299,7 @@ export function usePresentationRuntime(ready: boolean) {
           p.removeEventListener("mouseleave", leave);
         });
       });
+      }
     }
 
     const scrollToTop = () => {
@@ -343,6 +350,8 @@ export function usePresentationRuntime(ready: boolean) {
     };
     document.addEventListener("click", onDeckClick, true);
 
+    const stopVO = initPresentationVoiceOver(root, secs);
+
     return () => {
       io?.disconnect();
       root.removeEventListener("scroll", onScroll);
@@ -350,7 +359,8 @@ export function usePresentationRuntime(ready: boolean) {
       hoverCleanups.forEach((fn) => fn());
       document.removeEventListener("click", onDeckClick, true);
       rail.removeEventListener("wheel", onRailWheel);
-      rail.remove();
+      rail.replaceChildren();
+      stopVO();
     };
   }, [ready]);
 }

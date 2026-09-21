@@ -31,6 +31,20 @@ export const PRESENTATION_LANGS = [
 export type PresentationLangCode = (typeof PRESENTATION_LANGS)[number][0];
 
 export const PRESENTATION_LANG_KEY = "hntr-about-lang";
+export const PRESENTATION_VOICED_LANGS = ["en", "it", "es", "ru", "pt"] as const;
+
+export function isPresentationVoicedLang(
+  code: string,
+): code is (typeof PRESENTATION_VOICED_LANGS)[number] {
+  return (PRESENTATION_VOICED_LANGS as readonly string[]).includes(code);
+}
+
+declare global {
+  interface Window {
+    AU_I18N?: { current: () => string };
+    AU_VOICED?: string[];
+  }
+}
 
 const KEYS = asStringArray(langKeys);
 const revAll: Record<string, string> = {};

@@ -18,6 +18,10 @@ body[data-page="presentation"] {
   text-rendering: optimizeLegibility;
 }
 
+html:has(body[data-page="presentation"]) {
+  background: #fbfbfd !important;
+}
+
 body[data-page="presentation"] .au-root,
 body[data-page="presentation"] .au-root * {
   box-sizing: border-box;
@@ -50,8 +54,13 @@ body[data-page="presentation"] .au-root * {
   min-height: 100% !important;
 }
 
-#au-s10 > div:last-child {
-  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+body[data-page="presentation"] #nprogress,
+body[data-page="presentation"] .nprogress {
+  display: none !important;
+}
+
+body[data-page="presentation"] #au-scroll img {
+  max-width: none;
 }
 
 /* HTML always shows the right-side section dots; never hide them. */
@@ -59,12 +68,12 @@ body[data-page="presentation"] #au-rail {
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-end !important;
-  gap: 11px !important;
+  gap: 9px !important;
   position: fixed !important;
-  right: clamp(16px, 2vw, 28px) !important;
+  right: clamp(12px, 2vw, 26px) !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
-  z-index: 80 !important;
+  z-index: 55 !important;
   width: auto !important;
   height: auto !important;
   margin: 0 !important;
@@ -77,25 +86,28 @@ body[data-page="presentation"] #au-rail {
 }
 
 body[data-page="presentation"] #au-rail button {
+  all: unset;
+  cursor: pointer;
   position: relative !important;
   display: flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
-  height: 16px !important;
-  min-width: 16px !important;
+  gap: 9px;
+  height: 12px !important;
+  min-width: 12px !important;
   visibility: visible !important;
   opacity: 1 !important;
 }
 
 body[data-page="presentation"] #au-rail button > span:last-child {
-  width: 10px !important;
-  height: 10px !important;
-  flex: 0 0 10px !important;
+  width: 7px !important;
+  height: 7px !important;
+  flex: 0 0 auto !important;
   display: block !important;
 }
 
 body[data-page="presentation"] #au-rail button > span:first-child {
-  font-size: 16px !important;
+  font-size: 15px !important;
   font-weight: 500 !important;
 }
 
@@ -108,18 +120,22 @@ body[data-page="presentation"] #au-rail button > span:first-child {
   color: #8f3a07;
 }
 
-.au-scroll .au-join,
-.au-scroll .au-enter {
+#au-cta,
+#au-s22 a[href="/"] {
   color: #f5f5f7 !important;
 }
 
-.au-scroll .au-join:hover,
-.au-scroll .au-enter:hover {
+#au-cta:hover,
+#au-s22 a[href="/"]:hover {
   color: #fff !important;
 }
 
-.au-scroll a.au-enter,
-.au-scroll a.au-top {
+#au-s22 a[href="#au-s1"] {
+  color: #1d1d1f !important;
+}
+
+#au-cta,
+#au-s22 a {
   cursor: pointer;
   pointer-events: auto;
   position: relative;
@@ -812,13 +828,8 @@ body[data-page="presentation"] #au-rail button > span:first-child {
   }
 }
 
-#au-lang,
-.au-header,
-.au-header-actions {
-  overflow: visible !important;
-}
-
 #au-lang {
+  overflow: visible !important;
   position: relative;
 }
 
@@ -828,70 +839,23 @@ body[data-page="presentation"] #au-rail button > span:first-child {
   align-items: center;
 }
 
-.au-header,
-.au-header span,
-.au-header a,
 .au-lang-btn,
 .au-lang-opt {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter Tight", "Inter", sans-serif;
 }
 
-.au-header {
-  height: 72px !important;
-}
-
-.au-header-brand {
-  gap: 14px !important;
-}
-
-.au-header-brand img {
-  width: 22px !important;
-  height: 22px !important;
-}
-
-.au-header-brand > span:first-of-type {
-  font-size: 17px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.18em !important;
-  color: #1d1d1f !important;
-}
-
-.au-header-kicker {
-  font-size: 16px !important;
-  font-weight: 400 !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase !important;
-  color: #86868b !important;
-}
-
-#au-count {
-  font-size: 16px !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.08em !important;
-  color: #86868b !important;
-}
-
-.au-join {
-  font-size: 16px !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.01em !important;
-  height: 40px !important;
-  padding: 0 22px !important;
-  border-radius: 20px !important;
-}
-
 .au-lang-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 16px;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px;
   border: none;
-  border-radius: 20px;
+  border-radius: 18px;
   background: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 6px 18px rgba(0, 0, 0, 0.06);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter Tight", Inter, sans-serif;
-  font-size: 16px !important;
+  font-family: inherit;
+  font-size: 15px;
   font-weight: 500;
   color: #1d1d1f;
   cursor: pointer;
@@ -899,7 +863,7 @@ body[data-page="presentation"] #au-rail button > span:first-child {
 
 .au-lang-menu {
   position: absolute;
-  top: 48px;
+  top: 44px;
   right: 0;
   max-height: min(60vh, 420px);
   overflow: auto;
@@ -912,7 +876,7 @@ body[data-page="presentation"] #au-rail button > span:first-child {
   flex-direction: column;
   gap: 2px;
   min-width: 180px;
-  z-index: 200;
+  z-index: 80;
 }
 
 .au-lang.open .au-lang-menu {
@@ -942,101 +906,22 @@ body[data-page="presentation"] #au-rail button > span:first-child {
   background: #f5f5f7;
 }
 
-@media (max-width: 900px) {
-  .au-header-kicker {
-    display: none !important;
-  }
-
-  .au-header {
-    height: 72px !important;
-    padding: 0 16px !important;
-  }
-
-  .au-header-brand {
-    min-width: 0;
-  }
-
-  .au-header-actions {
-    gap: 8px !important;
-  }
-
-  .au-join {
-    padding: 0 16px !important;
-  }
-
-  .au-lang-btn {
-    padding: 0 12px;
-  }
-
-  .au-scroll section[data-au] {
-    padding-left: 20px !important;
-    padding-right: 20px !important;
-  }
-
-  #au-s10 > div:last-child {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
-  #au-s0 {
-    padding: 84px 24px 32px !important;
-    justify-content: center;
-  }
-
-  #au-s0 > [data-r]:first-child {
-    gap: 12px !important;
-  }
-
-  #au-s0 > [data-r]:first-child img {
-    width: 44px !important;
-    height: 44px !important;
-  }
-
-  #au-s0 > [data-r]:first-child span {
-    font-size: 44px !important;
-  }
-
-  #au-s0 > h1 {
-    margin-top: 18px !important;
-    font-size: 24px !important;
-    line-height: 1.15 !important;
-    max-width: 16ch !important;
-  }
-
-  #au-s0 > p {
-    margin-top: 8px !important;
-    font-size: 17px !important;
-  }
-
-  #au-s0 > [data-r]:last-of-type {
-    margin-top: 22px !important;
-    gap: 8px 14px !important;
-    font-size: 11px !important;
-    letter-spacing: 0.1em !important;
-  }
+.au-lang-voiced {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: #86868b;
 }
 
-@media (max-width: 560px) {
-  .au-header {
-    padding: 8px 12px !important;
-  }
+#au-vo {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter Tight", "Inter", sans-serif;
+}
 
-  .au-header-brand img {
-    width: 20px !important;
-    height: 20px !important;
-  }
+#au-vo button {
+  font-family: inherit;
+}
 
-  .au-join {
-    padding: 0 12px !important;
-  }
-
-  .au-scroll section[data-au]:not(#au-s0) {
-    padding-top: 80px !important;
-    padding-bottom: 36px !important;
-  }
-
-  #au-s0 {
-    padding: 80px 20px 28px !important;
-  }
+#au-vo-vol {
+  accent-color: #1d1d1f;
 }
 
 @media (prefers-reduced-motion: reduce) {
