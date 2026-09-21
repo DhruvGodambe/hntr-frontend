@@ -210,6 +210,63 @@ export function usePresentationRuntime(ready: boolean) {
     };
     window.addEventListener("keydown", onKey);
 
+    const pagerMq = window.matchMedia("(max-width: 900px)");
+    const isPager = () => pagerMq.matches;
+    const pagerExcluded = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null;
+      return Boolean(el?.closest?.("#au-vo, #au-lang, a, input, textarea, select, button"));
+    };
+
+    let paging = false;
+    let pageTimer = 0;
+    const pageBy = (dir: number, from = Math.max(0, active)) => {
+      if (!isPager() || paging) return;
+      const i = Math.max(0, Math.min(secs.length - 1, from + dir));
+      paging = true;
+      goTo(secs[i]);
+      window.clearTimeout(pageTimer);
+      pageTimer = window.setTimeout(() => {
+        paging = false;
+      }, 680);
+    };
+
+    let touchY = 0;
+    let touchFrom = 0;
+    let touching = false;
+    const onTouchStart = (e: TouchEvent) => {
+      if (!isPager() || e.touches.length !== 1 || pagerExcluded(e.target)) {
+        touching = false;
+        return;
+      }
+      touching = true;
+      touchY = e.touches[0].clientY;
+      touchFrom = Math.max(0, active);
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!touching || !isPager()) return;
+      if (Math.abs(touchY - e.touches[0].clientY) > 10) e.preventDefault();
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!touching) return;
+      touching = false;
+      if (!isPager()) return;
+      const dy = touchY - (e.changedTouches[0]?.clientY ?? touchY);
+      if (Math.abs(dy) < 28) return;
+      pageBy(dy > 0 ? 1 : -1, touchFrom);
+    };
+    const onPagerWheel = (e: WheelEvent) => {
+      if (!isPager() || pagerExcluded(e.target)) return;
+      if (Math.abs(e.deltaY) < 8) return;
+      e.preventDefault();
+      pageBy(e.deltaY > 0 ? 1 : -1);
+    };
+
+    root.addEventListener("touchstart", onTouchStart, { passive: true });
+    root.addEventListener("touchmove", onTouchMove, { passive: false });
+    root.addEventListener("touchend", onTouchEnd, { passive: true });
+    root.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    root.addEventListener("wheel", onPagerWheel, { passive: false });
+
     const hoverCleanups: Array<() => void> = [];
     const canHover = window.matchMedia("(hover: hover)").matches;
 
@@ -305,8 +362,8 @@ export function usePresentationRuntime(ready: boolean) {
     const scrollToTop = () => {
       const from = root.scrollTop;
       if (from <= 0) return;
-      const snap = root.style.scrollSnapType;
-      root.style.scrollSnapType = "none";
+      const snap = isPager() ? "y mandatory" : root.style.scrollSnapType || "y proximity";
+      root.style.setProperty("scroll-snap-type", "none", "important");
       const t0 = performance.now();
       const dur = 650;
       const step = (now: number) => {
@@ -316,7 +373,7 @@ export function usePresentationRuntime(ready: boolean) {
         if (p < 1) requestAnimationFrame(step);
         else {
           root.scrollTop = 0;
-          root.style.scrollSnapType = snap || "y proximity";
+          root.style.setProperty("scroll-snap-type", snap, "important");
         }
       };
       requestAnimationFrame(step);
@@ -333,7 +390,11 @@ export function usePresentationRuntime(ready: boolean) {
         return;
       }
 
-      if (a.classList.contains("au-enter") || a.getAttribute("href") === "/") {
+      if (
+        a.id === "au-cta" ||
+        a.classList.contains("au-enter") ||
+        a.getAttribute("href") === "/"
+      ) {
         ev.preventDefault();
         ev.stopPropagation();
         window.location.assign("/");
@@ -356,6 +417,12 @@ export function usePresentationRuntime(ready: boolean) {
       io?.disconnect();
       root.removeEventListener("scroll", onScroll);
       window.removeEventListener("keydown", onKey);
+      root.removeEventListener("touchstart", onTouchStart);
+      root.removeEventListener("touchmove", onTouchMove);
+      root.removeEventListener("touchend", onTouchEnd);
+      root.removeEventListener("touchcancel", onTouchEnd);
+      root.removeEventListener("wheel", onPagerWheel);
+      window.clearTimeout(pageTimer);
       hoverCleanups.forEach((fn) => fn());
       document.removeEventListener("click", onDeckClick, true);
       rail.removeEventListener("wheel", onRailWheel);
