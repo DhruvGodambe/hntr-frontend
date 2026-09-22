@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import WebinarShareSheet from "./WebinarShareSheet";
 
 export default function WebinarActionBar() {
@@ -19,20 +18,24 @@ export default function WebinarActionBar() {
           </svg>
           Share Access
         </button>
-        {/* Reference (HNTR.art Desktop.html:5689): PRESENTATION DECK was
-            replaced with LEARN MORE, opening the Docs page. */}
-        <Link href="/learn" className="web-deck">
+        <a
+          href="/presentation"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="web-deck"
+        >
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
             <path
-              d="M2.5 3.5h4A2 2 0 0 1 8 4.6 2 2 0 0 1 9.5 3.5h4v9h-4A2 2 0 0 0 8 13.6a2 2 0 0 0-1.5-1.1h-4v-9z"
+              d="M8 2v8M5 7l3 3 3-3"
               stroke="currentColor"
-              strokeWidth="1.3"
+              strokeWidth="1.4"
+              strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <path d="M8 4.6v9" stroke="currentColor" strokeWidth="1.3" />
+            <path d="M3 13h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
           </svg>
-          LEARN MORE
-        </Link>
+          PRESENTATION DECK
+        </a>
       </div>
 
       <WebinarShareSheet open={shareOpen} onClose={() => setShareOpen(false)} />

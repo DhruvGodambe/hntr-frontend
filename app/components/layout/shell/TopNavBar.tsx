@@ -66,9 +66,12 @@ export default function TopNavBar({
         )}
         {/* Order: Webinar → Dark Mode → Notification → Network → Wallet */}
         <Link
-          href="/webinar"
+          href="/presentation"
+          target="_blank"
+          rel="noopener noreferrer"
           className="nav-btn nav-live"
           title="Live Webinar"
+          aria-label="Open business presentation"
           style={{ color: "#eda06a" }}
         >
           <span className="rec-dot" />
