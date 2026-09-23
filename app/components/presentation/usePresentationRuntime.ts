@@ -486,7 +486,7 @@ export function usePresentationRuntime(ready: boolean) {
       const pillSel = [19, 20, 21, 16, 11].map(radiusSel).join(",") + ',a[href],button[type="button"]';
       Array.from(root.querySelectorAll<HTMLElement>(pillSel)).forEach((p) => {
         if (p.hasAttribute("data-pop-child") || p.closest("[data-pop-child]")) return;
-        if (p.closest("#au-rail") || p.id === "au-rail" || p.closest("#au-vo") || p.id === "au-vo" || p.closest("#au-lang")) return;
+        if (p.closest("#au-rail") || p.id === "au-rail" || p.id === "au-vo" || p.closest("#au-lang")) return;
         p.setAttribute("data-pop-child", "");
         p.style.transition = `transform .32s ${EASE}, box-shadow .32s ${EASE}`;
         const enter = () => {

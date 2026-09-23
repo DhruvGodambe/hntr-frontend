@@ -102,6 +102,7 @@ export function initPresentationVoiceOver(root: HTMLElement, secs: HTMLElement[]
   loadCues();
 
   const playBtn = document.getElementById("au-vo-play");
+  const tip = document.getElementById("au-vo-tip");
   const icon = document.getElementById("au-vo-icon");
   const timeEl = document.getElementById("au-vo-time");
   const bar = document.getElementById("au-vo-bar");
@@ -126,6 +127,27 @@ export function initPresentationVoiceOver(root: HTMLElement, secs: HTMLElement[]
   let cap: number[] | null = null;
   let autoScrollUntil = 0;
   let rate = 1;
+  let tipTimer = 0;
+
+  const hideTip = () => {
+    if (tipTimer) {
+      window.clearTimeout(tipTimer);
+      tipTimer = 0;
+    }
+    if (!tip) return;
+    tip.removeAttribute("data-on");
+    tip.setAttribute("aria-hidden", "true");
+  };
+
+  const showTip = () => {
+    if (!tip) return;
+    if (tipTimer) {
+      window.clearTimeout(tipTimer);
+      tipTimer = 0;
+    }
+    tip.setAttribute("data-on", "1");
+    tip.setAttribute("aria-hidden", "false");
+  };
 
   let saved: SavedVo | null = null;
   try {
@@ -266,7 +288,9 @@ export function initPresentationVoiceOver(root: HTMLElement, secs: HTMLElement[]
     if (on) {
       cueAt = -1;
       raf = requestAnimationFrame(tick);
+      showTip();
     } else {
+      hideTip();
       showFollow(false);
       if (raf) {
         cancelAnimationFrame(raf);
@@ -463,6 +487,7 @@ export function initPresentationVoiceOver(root: HTMLElement, secs: HTMLElement[]
     audio.pause();
     audio.src = "";
     audio.removeEventListener("ended", onEnded);
+    hideTip();
     if (raf) cancelAnimationFrame(raf);
     window.clearInterval(langTimer);
     window.removeEventListener("keydown", onCapKey);
