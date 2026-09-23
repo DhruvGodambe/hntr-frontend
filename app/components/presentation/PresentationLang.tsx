@@ -60,6 +60,7 @@ export default function PresentationLang({ scrollRoot }: { scrollRoot: HTMLEleme
 
     run();
     const later = window.setTimeout(run, 250);
+    const later2 = window.setTimeout(run, 800);
 
     const mo = new MutationObserver(() => {
       if (busy || langRef.current === "en" || pending) return;
@@ -73,6 +74,7 @@ export default function PresentationLang({ scrollRoot }: { scrollRoot: HTMLEleme
     return () => {
       mo.disconnect();
       window.clearTimeout(later);
+      window.clearTimeout(later2);
       if (pending != null) window.clearTimeout(pending);
       if (unlock != null) window.clearTimeout(unlock);
     };

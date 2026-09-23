@@ -2,6 +2,7 @@ import langKeys from "../../../public/assets/about/lang-keys.json";
 import langAr from "../../../public/assets/about/lang-ar.json";
 import langDe from "../../../public/assets/about/lang-de.json";
 import langEs from "../../../public/assets/about/lang-es.json";
+import langFr from "../../../public/assets/about/lang-fr.json";
 import langHi from "../../../public/assets/about/lang-hi.json";
 import langIt from "../../../public/assets/about/lang-it.json";
 import langJa from "../../../public/assets/about/lang-ja.json";
@@ -16,6 +17,7 @@ export const PRESENTATION_LANGS = [
   ["en", "English"],
   ["es", "Español"],
   ["pt", "Português"],
+  ["fr", "Français"],
   ["it", "Italiano"],
   ["ru", "Русский"],
   ["tr", "Türkçe"],
@@ -31,7 +33,7 @@ export const PRESENTATION_LANGS = [
 export type PresentationLangCode = (typeof PRESENTATION_LANGS)[number][0];
 
 export const PRESENTATION_LANG_KEY = "hntr-about-lang";
-export const PRESENTATION_VOICED_LANGS = ["en", "it", "es", "ru", "pt"] as const;
+export const PRESENTATION_VOICED_LANGS = ["en", "it", "es", "ru", "pt", "fr", "hi", "zh"] as const;
 
 export function isPresentationVoicedLang(
   code: string,
@@ -72,6 +74,7 @@ function toDict(rows: unknown): Record<string, string> {
 const DICTS: Record<Exclude<PresentationLangCode, "en">, Record<string, string>> = {
   es: toDict(langEs),
   pt: toDict(langPt),
+  fr: toDict(langFr),
   it: toDict(langIt),
   ru: toDict(langRu),
   tr: toDict(langTr),
@@ -118,7 +121,7 @@ function textNodes(root: ParentNode) {
     acceptNode(n) {
       if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
       const p = n.parentElement;
-      if (!p || p.closest("[data-no-i18n]")) return NodeFilter.FILTER_REJECT;
+      if (!p || (p.closest("[data-no-i18n]") && !p.closest("#au-vo-tip"))) return NodeFilter.FILTER_REJECT;
       if (p.closest("[data-count],#au-count")) return NodeFilter.FILTER_REJECT;
       if (p.tagName === "SCRIPT" || p.tagName === "STYLE") return NodeFilter.FILTER_REJECT;
       return NodeFilter.FILTER_ACCEPT;
@@ -134,14 +137,41 @@ export function getPresentationDict(lang: PresentationLangCode): Record<string, 
   return DICTS[lang] ?? null;
 }
 
+const VO_TIP_EN = "Slides scroll automatically";
+const CTA_EN = "Back to platform";
+
+function englishSource(shown: string, parent: HTMLElement | null) {
+  const stamped = parent?.getAttribute("data-i18n-en");
+  if (stamped) return stamped;
+  const en = toEnglish(shown);
+  if (parent && shown) parent.setAttribute("data-i18n-en", en);
+  return en;
+}
+
 export function applyPresentationLang(dict: Record<string, string> | null, root: ParentNode = document.body) {
   textNodes(root).forEach((n) => {
     const raw = n.nodeValue ?? "";
     const shown = raw.trim();
-    const en = toEnglish(shown);
+    if (!shown) return;
+    const en = englishSource(shown, n.parentElement);
     const next = dict ? dict[en] || en : en;
     if (next !== shown) n.nodeValue = raw.replace(shown, next);
   });
+  applyPresentationVoTip(dict);
+  applyPresentationCta(dict);
+}
+
+export function applyPresentationVoTip(dict: Record<string, string> | null = getPresentationDict(readStoredPresentationLang())) {
+  const el = document.querySelector("#au-vo-tip span");
+  if (!el) return;
+  el.textContent = dict?.[VO_TIP_EN] || VO_TIP_EN;
+}
+
+export function applyPresentationCta(dict: Record<string, string> | null = getPresentationDict(readStoredPresentationLang())) {
+  const el = document.getElementById("au-cta");
+  if (!el) return;
+  el.setAttribute("data-i18n-en", CTA_EN);
+  el.textContent = dict?.[CTA_EN] || CTA_EN;
 }
 
 export function setPresentationBidi(on: boolean) {

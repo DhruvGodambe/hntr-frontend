@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { initPresentationVoiceOver } from "./presentationVoiceOver";
+import { applyPresentationLang, getPresentationDict, readStoredPresentationLang } from "./presentationI18n";
 
 const EASE = "cubic-bezier(.22,1,.36,1)";
 const REVEAL = 26;
@@ -195,7 +196,10 @@ export function usePresentationRuntime(ready: boolean) {
       wrap.style.cssText =
         "all:unset;cursor:pointer;display:flex;align-items:center;justify-content:flex-end;gap:9px;height:12px;min-width:12px;position:relative";
       const lab = document.createElement("span");
-      lab.textContent = section.getAttribute("data-label") || "";
+      const labelEn = section.getAttribute("data-label") || "";
+      lab.setAttribute("data-i18n-en", labelEn);
+      const langDict = getPresentationDict(readStoredPresentationLang());
+      lab.textContent = langDict?.[labelEn] || labelEn;
       lab.style.cssText =
         "font:500 15px/1 inherit;letter-spacing:-.01em;color:#6e6e73;opacity:0;transform:translateX(6px);transition:opacity .25s,transform .25s;white-space:nowrap;background:rgba(251,251,253,.86);padding:5px 9px;border-radius:9px";
       const dot = document.createElement("span");
@@ -486,7 +490,7 @@ export function usePresentationRuntime(ready: boolean) {
       const pillSel = [19, 20, 21, 16, 11].map(radiusSel).join(",") + ',a[href],button[type="button"]';
       Array.from(root.querySelectorAll<HTMLElement>(pillSel)).forEach((p) => {
         if (p.hasAttribute("data-pop-child") || p.closest("[data-pop-child]")) return;
-        if (p.closest("#au-rail") || p.id === "au-rail" || p.closest("#au-vo") || p.id === "au-vo" || p.closest("#au-lang")) return;
+        if (p.closest("#au-rail") || p.id === "au-rail" || p.id === "au-vo" || p.closest("#au-lang")) return;
         p.setAttribute("data-pop-child", "");
         p.style.transition = `transform .32s ${EASE}, box-shadow .32s ${EASE}`;
         const enter = () => {
@@ -570,6 +574,7 @@ export function usePresentationRuntime(ready: boolean) {
     document.addEventListener("click", onDeckClick, true);
 
     const stopVO = initPresentationVoiceOver(root, secs);
+    applyPresentationLang(getPresentationDict(readStoredPresentationLang()));
 
     return () => {
       io?.disconnect();

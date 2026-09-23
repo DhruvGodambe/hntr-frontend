@@ -12,6 +12,9 @@ const VO: Record<VoLang, VoSet> = {
   es: { files: ["/assets/about/vo-es-1.mp3", "/assets/about/vo-es-2.mp3", "/assets/about/vo-es-3.mp3"], durs: [298.45, 294.43, 198.79] },
   ru: { files: ["/assets/about/vo-ru-1.mp3", "/assets/about/vo-ru-2.mp3", "/assets/about/vo-ru-3.mp3"], durs: [377.42, 354.85, 192.91] },
   pt: { files: ["/assets/about/vo-pt-1.mp3", "/assets/about/vo-pt-2.mp3", "/assets/about/vo-pt-3.mp3"], durs: [326.37, 320.99, 190.01] },
+  fr: { files: ["/assets/about/vo-fr-1.mp3", "/assets/about/vo-fr-2.mp3", "/assets/about/vo-fr-3.mp3"], durs: [271.6, 248.97, 250.17] },
+  hi: { files: ["/assets/about/vo-hi-1.mp3", "/assets/about/vo-hi-2.mp3", "/assets/about/vo-hi-3.mp3"], durs: [354.06, 367.2, 222.69] },
+  zh: { files: ["/assets/about/vo-zh-1.mp3", "/assets/about/vo-zh-2.mp3", "/assets/about/vo-zh-3.mp3"], durs: [348.29, 330.97, 62.3] },
 };
 
 const CUES: Record<VoLang, number[]> = {
@@ -20,6 +23,9 @@ const CUES: Record<VoLang, number[]> = {
   es: [0, 13.49, 52.68, 90.64, 134.08, 165.56, 198.06, 286.66, 301.66, 337.99, 363.01, 449.69, 498.11, 535.08, 566.15, 598.36, 624.85, 648.36, 692.87, 723.72, 782.13],
   ru: [0, 15.77, 61.57, 105.93, 156.69, 193.48, 231.46, 335.01, 352.54, 394.99, 424.23, 525.52, 582.11, 625.32, 661.63, 699.27, 730.23, 757.71, 809.71, 845.77, 914.04],
   pt: [0, 14.27, 55.72, 95.88, 141.82, 175.11, 209.49, 303.21, 319.08, 357.5, 383.97, 475.65, 526.86, 565.97, 598.83, 632.9, 660.92, 685.79, 732.86, 765.5, 827.28],
+  fr: [0, 10.93, 48.71, 88.49, 128.6, 160.55, 193.02, 276.86, 287.21, 320.78, 345.88, 432.95, 477.77, 520.4, 549.19, 581.6, 604.24, 629.85, 672.8, 705.67, 765.63],
+  hi: [0, 13.4, 59.73, 104.69, 154.41, 192.87, 230.65, 336.4, 350.97, 394.48, 426.14, 532.96, 590.16, 641.34, 679.31, 719.32, 745.74, 778.18, 829.36, 870.82, 938.71],
+  zh: [0, 11.38, 54.29, 91.58, 134.46, 162.97, 194.57, 277.6, 289.72, 328.34, 350.53, 433.52, 478.02, 512.87, 542.08, 568.63, 588.25, 613.06, 651.28, 680.31, 736.34],
 };
 
 const ICON_PLAY = '<path d="M2.5 1.6 13 8 2.5 14.4V1.6Z" fill="#f5f5f7"></path>';
@@ -102,6 +108,7 @@ export function initPresentationVoiceOver(root: HTMLElement, secs: HTMLElement[]
   loadCues();
 
   const playBtn = document.getElementById("au-vo-play");
+  const tip = document.getElementById("au-vo-tip");
   const icon = document.getElementById("au-vo-icon");
   const timeEl = document.getElementById("au-vo-time");
   const bar = document.getElementById("au-vo-bar");
@@ -126,6 +133,27 @@ export function initPresentationVoiceOver(root: HTMLElement, secs: HTMLElement[]
   let cap: number[] | null = null;
   let autoScrollUntil = 0;
   let rate = 1;
+  let tipTimer = 0;
+
+  const hideTip = () => {
+    if (tipTimer) {
+      window.clearTimeout(tipTimer);
+      tipTimer = 0;
+    }
+    if (!tip) return;
+    tip.removeAttribute("data-on");
+    tip.setAttribute("aria-hidden", "true");
+  };
+
+  const showTip = () => {
+    if (!tip) return;
+    if (tipTimer) {
+      window.clearTimeout(tipTimer);
+      tipTimer = 0;
+    }
+    tip.setAttribute("data-on", "1");
+    tip.setAttribute("aria-hidden", "false");
+  };
 
   let saved: SavedVo | null = null;
   try {
@@ -266,7 +294,9 @@ export function initPresentationVoiceOver(root: HTMLElement, secs: HTMLElement[]
     if (on) {
       cueAt = -1;
       raf = requestAnimationFrame(tick);
+      showTip();
     } else {
+      hideTip();
       showFollow(false);
       if (raf) {
         cancelAnimationFrame(raf);
@@ -463,6 +493,7 @@ export function initPresentationVoiceOver(root: HTMLElement, secs: HTMLElement[]
     audio.pause();
     audio.src = "";
     audio.removeEventListener("ended", onEnded);
+    hideTip();
     if (raf) cancelAnimationFrame(raf);
     window.clearInterval(langTimer);
     window.removeEventListener("keydown", onCapKey);
