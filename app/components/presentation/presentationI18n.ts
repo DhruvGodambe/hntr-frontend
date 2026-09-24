@@ -33,7 +33,7 @@ export const PRESENTATION_LANGS = [
 export type PresentationLangCode = (typeof PRESENTATION_LANGS)[number][0];
 
 export const PRESENTATION_LANG_KEY = "hntr-about-lang";
-export const PRESENTATION_VOICED_LANGS = ["en", "it", "es", "ru", "pt", "fr", "hi", "zh"] as const;
+export const PRESENTATION_VOICED_LANGS = ["en", "it", "es", "ru", "pt", "fr", "de", "hi", "zh"] as const;
 
 export function isPresentationVoicedLang(
   code: string,
