@@ -155,6 +155,7 @@ export function initPresentationVoiceOver(root: HTMLElement, secs: HTMLElement[]
     }
     tip.setAttribute("data-on", "1");
     tip.setAttribute("aria-hidden", "false");
+    tipTimer = window.setTimeout(hideTip, 2000);
   };
 
   let saved: SavedVo | null = null;
