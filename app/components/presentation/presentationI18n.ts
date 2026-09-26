@@ -141,14 +141,23 @@ const VO_TIP_EN = "Slides scroll automatically";
 const CTA_EN = "Back to platform";
 
 function englishSource(shown: string, parent: HTMLElement | null) {
-  const stamped = parent?.getAttribute("data-i18n-en");
+  const leaf = Boolean(parent && parent.childElementCount === 0);
+  const stamped = leaf ? parent?.getAttribute("data-i18n-en") : null;
   if (stamped) return stamped;
   const en = toEnglish(shown);
-  if (parent && shown) parent.setAttribute("data-i18n-en", en);
+  if (leaf && parent && shown) parent.setAttribute("data-i18n-en", en);
   return en;
 }
 
+function repairSplitHeadings(root: ParentNode) {
+  const heading = root.querySelector?.("#au-s12 h2") ?? document.querySelector("#au-s12 h2");
+  if (!heading) return;
+  heading.removeAttribute("data-i18n-en");
+  heading.innerHTML = 'Multiply your ETH bags with <span style="color:#b64a09">NFT Strategy</span>.';
+}
+
 export function applyPresentationLang(dict: Record<string, string> | null, root: ParentNode = document.body) {
+  repairSplitHeadings(root);
   textNodes(root).forEach((n) => {
     const raw = n.nodeValue ?? "";
     const shown = raw.trim();
