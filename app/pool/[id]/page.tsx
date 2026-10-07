@@ -433,6 +433,13 @@ function PoolDetailView({
                       <div className="progress-fill" style={{ width: `${pool.progress}%` }}></div>
                     </div>
                   </div>
+                  <button
+                    className="priority-line-btn pool-detail-priority-inline"
+                    type="button"
+                    onClick={() => router.push("/priority-line")}
+                  >
+                    PRIORITY LINE
+                  </button>
                   <button className="deposit-btn pool-detail-deposit-inline" type="button" disabled>
                     {DEPOSIT_CTA_LABEL}
                   </button>
@@ -532,6 +539,13 @@ function PoolDetailView({
         </div>
 
         <div className="pool-detail-deposit-bar">
+          <button
+            className="priority-line-btn pool-detail-priority-fixed"
+            type="button"
+            onClick={() => router.push("/priority-line")}
+          >
+            PRIORITY LINE
+          </button>
           <button className="deposit-btn pool-detail-deposit-fixed" type="button" disabled>
             <span className="pd-deposit-label-desktop">{DEPOSIT_CTA_LABEL}</span>
             <span className="pd-deposit-label-mobile">Make a Deposit Now</span>

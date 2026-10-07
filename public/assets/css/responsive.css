@@ -5233,8 +5233,17 @@ body.dark .mkt-filter-tab.active {
     padding: 0 !important;
   }
 
-  body[data-page="pooldetail"] .pool-detail-deposit-inline {
+  body[data-page="pooldetail"] .pool-detail-deposit-inline,
+  body[data-page="pooldetail"] .pool-detail-priority-inline {
     display: none !important;
+  }
+
+  body[data-page="pooldetail"] .pool-detail-priority-fixed {
+    height: 50px;
+    margin-bottom: 8px;
+    border-radius: 13px;
+    font-size: 13px;
+    box-shadow: none;
   }
 
   body[data-page="pooldetail"] .pool-detail-deposit-bar {
