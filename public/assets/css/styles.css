@@ -4237,6 +4237,15 @@ body.dark .pd-skel{
 .deposit-btn:disabled,.npc-btn-p:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:var(--sh1)}
 .deposit-btn:disabled:hover,.npc-btn-p:disabled:hover{background:var(--olive);transform:none;box-shadow:var(--sh1)}
 .deposit-note{font-size:9px;color:var(--t0);text-align:center;font-family:var(--fm)}
+/* PRIORITY LINE BUTTON — orange CTA shown above the deposit button on pool pages */
+.priority-line-btn{
+  width:100%;height:42px;background:#ff7a1a;border:none;border-radius:6px;
+  font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:.14em;
+  color:#fff;cursor:pointer;box-shadow:var(--sh2);transition:.15s;margin-bottom:8px;
+}
+.priority-line-btn:hover{background:#ff8a35;transform:translateY(-1px);box-shadow:var(--sh3)}
+.priority-line-btn:active{transform:none}
+
 .pool-detail-page{display:contents}
 .pool-detail-deposit-bar{display:none}
 .pd-mobile-only{display:none}
