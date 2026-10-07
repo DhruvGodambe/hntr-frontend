@@ -328,6 +328,13 @@ export default function PoolsPage() {
                       </div>
                     </div>
                     <div className="npc-act">
+                      <button
+                        className="npc-btn-pl"
+                        type="button"
+                        onClick={() => router.push("/priority-line")}
+                      >
+                        PRIORITY LINE
+                      </button>
                       <button className="npc-btn-d" onClick={() => togglePool(pool.id)}>
                         <span className="car">{expandedPool === pool.id ? "▴" : "▾"}</span>
                         Pool Details

@@ -1464,6 +1464,13 @@ export default function HomePage() {
                         </div>
                         <div className="npc-act">
                           <button
+                            className="npc-btn-pl"
+                            type="button"
+                            onClick={() => router.push("/priority-line")}
+                          >
+                            PRIORITY LINE
+                          </button>
+                          <button
                             className="npc-btn-d"
                             type="button"
                             onClick={() =>
