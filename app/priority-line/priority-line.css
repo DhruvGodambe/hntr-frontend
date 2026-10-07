@@ -13,6 +13,14 @@
 #feed-priority .pl-hero .hero-title { color: #fff !important; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); }
 #feed-priority .pl-hero .hero-sub { color: rgba(255, 255, 255, 0.82) !important; }
 
+/* Step rows (.gf-req) — in the reference but not in gift-codes.css */
+#feed-priority .gf-req { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-bottom: 0.5px solid var(--bd0); }
+#feed-priority .gf-req:last-child { border-bottom: none; }
+#feed-priority .gf-req-main { flex: 1; min-width: 0; }
+#feed-priority .gf-req-t { font-size: 10.5px; font-weight: 600; color: var(--t4); }
+#feed-priority .gf-req-m { font-family: var(--fm); font-size: 8.5px; color: var(--t0); margin-top: 3px; }
+#feed-priority .gf-req-val { font-family: var(--fm); font-size: 10px; font-weight: 700; color: var(--t3); width: 78px; text-align: right; flex-shrink: 0; }
+
 /* Layout */
 #feed-priority .pl-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 12px; margin-bottom: 22px; align-items: start; }
 #feed-priority .pl-stack { display: flex; flex-direction: column; gap: 12px; }
