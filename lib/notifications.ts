@@ -17,6 +17,9 @@ export type BackendNotificationType =
   | "VOUCHER_RECEIVED"
   | "VOUCHER_REDEEMED"
   | "VOUCHER_CLAIMED_BY_OTHER"
+  | "PRIORITY_LINE_DEPOSIT"
+  | "PRIORITY_LINE_WITHDRAWAL_REQUESTED"
+  | "PRIORITY_LINE_WITHDRAWN"
   | "GENERAL";
 
 export interface BackendNotification {
@@ -53,6 +56,7 @@ export function notificationActionHref(n: BackendNotification): string | null {
     return "/membership";
   }
   if (n.type === "VOUCHER_REDEEMED") return "/gift-codes";
+  if (n.type.startsWith("PRIORITY_LINE_")) return "/priority-line";
   return null;
 }
 

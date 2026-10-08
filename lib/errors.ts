@@ -224,6 +224,49 @@ export function resolveAppError(
         sub: message || "You have no withdrawable commissions right now.",
         code,
       };
+    case "OVER_CAP":
+      return {
+        title: "Above your membership cap",
+        sub: message || "That deposit is more than your tier allows in the Priority Line.",
+        code,
+      };
+    case "NO_MEMBERSHIP":
+      return {
+        title: "Membership required",
+        sub: message || "Purchase a membership tier to join the Priority Line.",
+        code,
+      };
+    case "DEPOSITS_NOT_CONFIGURED":
+      return {
+        title: "Deposits not open yet",
+        sub: message || "Priority Line deposits are not open yet. Please check back soon.",
+        code,
+      };
+    case "BELOW_MINIMUM":
+      return {
+        title: "Amount too small",
+        sub: message || "Enter a larger amount.",
+        code,
+      };
+    case "TX_NOT_MINED":
+      return {
+        title: "Still confirming",
+        sub: message || "Your transfer was sent but isn't confirmed yet. It will be recorded automatically.",
+        code,
+      };
+    case "TRANSFER_NOT_FOUND":
+    case "TX_FAILED":
+      return {
+        title: "Deposit not recorded",
+        sub: message || "We couldn't verify that transfer. Contact support with your transaction hash.",
+        code,
+      };
+    case "NOT_WITHDRAWABLE":
+      return {
+        title: "Cannot withdraw",
+        sub: message || "This deposit can no longer be withdrawn.",
+        code,
+      };
     default:
       break;
   }
