@@ -35,6 +35,36 @@
 #feed-priority .pl-disclaimer p { font-size: 11px; line-height: 1.65; color: var(--t1); max-width: 110ch; text-wrap: pretty; margin: 0; }
 #feed-priority .pl-section-gap { margin-top: 22px; }
 
+/* Status pills + activity cells (.gf-pill is in the reference but not in gift-codes.css) */
+#feed-priority .gf-pill { display: inline-flex; align-items: center; height: 16px; padding: 0 7px; border-radius: 2px; font-family: var(--fm); font-size: 7px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
+#feed-priority .gf-pill.active { background: rgba(94, 107, 85, 0.15); color: var(--olive); }
+#feed-priority .gf-pill.pending { background: rgba(200, 185, 154, 0.3); color: var(--beige-dim); }
+#feed-priority .gf-pill.expired { background: rgba(0, 0, 0, 0.06); color: var(--t1); }
+body.dark #feed-priority .gf-pill.active { background: rgba(61, 122, 90, 0.18); color: var(--green); }
+body.dark #feed-priority .gf-pill.pending { background: rgba(255, 122, 26, 0.14); color: #ff7a1a; }
+body.dark #feed-priority .gf-pill.expired { background: rgba(255, 255, 255, 0.07); color: var(--t1); }
+#feed-priority .pl-mono { font-family: var(--fm); font-size: 10px; font-weight: 700; }
+#feed-priority .pl-line { color: var(--t4); }
+#feed-priority .pl-pos { color: var(--green); }
+#feed-priority .pl-neg { color: var(--t3); }
+#feed-priority .pl-date { font-size: 9px; font-weight: 400; color: var(--t1); text-align: right; }
+
+/* Withdraw modal (rendered outside #feed-priority, so scoped by its own classes) */
+.pl-modal-back { position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, 0.72); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.pl-modal-back .gf-card { animation: none; }
+.pl-modal { width: 100%; max-width: 440px; background: #101014; border: 1px solid rgba(255, 255, 255, 0.1); }
+.pl-modal .gf-card-hd { align-items: center; }
+.pl-modal-x { padding: 4px 10px; height: auto; }
+.pl-modal-hint { margin: 0 0 10px; }
+.pl-modal .pl-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pl-wd-list { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow: auto; margin-bottom: 12px; }
+.pl-wd-item { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; text-align: left; width: 100%; padding: 10px 12px; border-radius: 8px; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: inherit; font: inherit; }
+.pl-wd-item.on { background: rgba(255, 122, 26, 0.12); border-color: #ff7a1a; }
+.pl-wd-n { font-family: var(--fm); font-size: 13px; font-weight: 700; color: var(--t4); }
+.pl-wd-item.on .pl-wd-n { color: #ff7a1a; }
+.pl-wd-date { font-family: var(--fm); font-size: 9px; color: var(--t1); }
+.pl-wd-amt { font-family: var(--fm); font-size: 11px; font-weight: 700; color: var(--t4); }
+
 @media (max-width: 900px) {
   #feed-priority .pl-grid { grid-template-columns: 1fr; }
 }
