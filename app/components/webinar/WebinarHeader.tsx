@@ -66,18 +66,24 @@ export default function WebinarHeader() {
         </div>
       </div>
       <WebinarLanguageSelector />
-      <Link href="/learn" className="wv-learn-btn">
+      <a
+        href="/presentation"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="wv-learn-btn"
+      >
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
           <path
-            d="M8 14.5c0-1.4 1.1-2.5 2.5-2.5h3V2.5h-3C9.1 2.5 8 3.6 8 5M8 14.5c0-1.4-1.1-2.5-2.5-2.5h-3V2.5h3C6.9 2.5 8 3.6 8 5"
+            d="M8 2v8M5 7l3 3 3-3"
             stroke="currentColor"
             strokeWidth="1.4"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
+          <path d="M3 13h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
-        LEARN MORE
-      </Link>
+        PRESENTATION
+      </a>
     </div>
   );
 }
