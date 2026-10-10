@@ -2516,9 +2516,24 @@ body.dark .mkt-filter-tab.active {
 
   #panel-pools .npc-act,
   #feed-pools .npc-act {
+    /* nowrap: the base `.npc-act{flex-wrap:wrap}` + Priority Line's
+       `flex:1 1 100%` made the column wrap, pushing Coming Soon into a
+       second column outside the card where it got clipped. */
     flex-direction: column !important;
-    gap: 0 !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
     margin-top: auto !important;
+  }
+
+  #panel-pools .npc-btn-pl,
+  #feed-pools .npc-btn-pl {
+    width: 100% !important;
+    flex: none !important;
+    height: 36px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    letter-spacing: 0.04em !important;
+    white-space: nowrap !important;
   }
 
   #panel-pools .npc-btn-d,
