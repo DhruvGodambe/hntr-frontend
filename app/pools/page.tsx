@@ -282,8 +282,14 @@ export default function PoolsPage() {
                   <div className="npc-body">
                     <div className="npc-head">
                       <div>
-                        <div className="npc-name">{pool.name}</div>
-                        <div className="npc-id">{pool.number}</div>
+                        <div className="npc-name">
+                          {pool.name}
+                          <svg className="npc-verified" width="14" height="14" viewBox="0 0 22 22" fill="none" aria-label="Verified" role="img">
+                            <path d="M11 1.5l2.36 1.36 2.72-.2 1.36 2.36 2.36 1.36-.2 2.72 1.36 2.36-1.36 2.36.2 2.72-2.36 1.36-1.36 2.36-2.72-.2L11 20.5l-2.36-1.36-2.72.2-1.36-2.36L2.2 15.62l.2-2.72L1.04 10.54 2.4 8.18l-.2-2.72 2.36-1.36L5.92 1.74l2.72.2L11 1.5z" fill="#1a9eff"></path>
+                            <path d="M7.2 11.1l2.4 2.4 5.2-5.2" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
+                          </svg>
+                          {pool.number && <>{" "}<span>{pool.number}</span></>}
+                        </div>
                         <div className="npc-tags">
                           {pool.tags.map((tag, i) => (
                             <span key={i} className="npc-tag">
