@@ -254,23 +254,25 @@ export default function PriorityLinePage() {
                       disabled={busy}
                       onChange={(e) => setAmount(e.target.value)}
                     />
-                    <select
-                      className="gf-select"
-                      value={token}
-                      disabled={busy}
-                      onChange={(e) => setToken(e.target.value as PaymentToken)}
-                    >
-                      <option>USDT</option>
-                      <option>USDC</option>
-                    </select>
-                    <button
-                      type="button"
-                      className="gf-btn ghost"
-                      disabled={busy || !loaded || remaining <= 0}
-                      onClick={() => setAmount(remaining ? String(remaining) : "")}
-                    >
-                      Max
-                    </button>
+                    <div className="pl-amount-token">
+                      <select
+                        className="gf-select"
+                        value={token}
+                        disabled={busy}
+                        onChange={(e) => setToken(e.target.value as PaymentToken)}
+                      >
+                        <option>USDT</option>
+                        <option>USDC</option>
+                      </select>
+                      <button
+                        type="button"
+                        className="gf-btn ghost"
+                        disabled={busy || !loaded || remaining <= 0}
+                        onClick={() => setAmount(remaining ? String(remaining) : "")}
+                      >
+                        Max
+                      </button>
+                    </div>
                   </div>
                   <div className="gf-hint">Stablecoins only · 1:1 USD · whole or partial amounts</div>
                 </div>

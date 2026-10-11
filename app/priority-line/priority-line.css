@@ -24,9 +24,30 @@
 /* Layout */
 #feed-priority .pl-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 12px; margin-bottom: 22px; align-items: start; }
 #feed-priority .pl-stack { display: flex; flex-direction: column; gap: 12px; }
-#feed-priority .pl-amount-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; }
-#feed-priority .pl-amount-row .gf-select { width: auto; }
+#feed-priority .gf-card { container-type: inline-size; min-width: 0; }
+#feed-priority .gf-row,
+#feed-priority .gf-field,
+#feed-priority .pl-amount-row { min-width: 0; }
+#feed-priority .pl-amount-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+#feed-priority .pl-amount-row .gf-input { flex: 1 1 8rem; min-width: 0; width: auto; }
+#feed-priority .pl-amount-token { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+#feed-priority .pl-amount-token .gf-select { width: auto; min-width: 4.75rem; }
+#feed-priority .pl-amount-token .gf-btn { flex: 0 0 auto; }
+#feed-priority .gf-static { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 #feed-priority .pl-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+@container (max-width: 520px) {
+  .gf-row { grid-template-columns: 1fr; }
+}
+
+@container (max-width: 360px) {
+  .pl-actions { grid-template-columns: 1fr; }
+}
 #feed-priority .pl-step { padding: 8px 0; }
 #feed-priority .pl-step .gf-req-val { width: 22px; text-align: left; }
 #feed-priority .pl-position-lbl { margin-bottom: 0; }
@@ -65,6 +86,10 @@ body.dark #feed-priority .gf-pill.expired { background: rgba(255, 255, 255, 0.07
 .pl-wd-date { font-family: var(--fm); font-size: 9px; color: var(--t1); }
 .pl-wd-amt { font-family: var(--fm); font-size: 11px; font-weight: 700; color: var(--t4); }
 
+@media (max-width: 1100px) {
+  #feed-priority .gf-row { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 900px) {
   #feed-priority .pl-grid { grid-template-columns: 1fr; }
 }
@@ -73,4 +98,9 @@ body.dark #feed-priority .gf-pill.expired { background: rgba(255, 255, 255, 0.07
   .pl-banner-shade { background: linear-gradient(to right, rgba(7, 8, 13, 0.92) 0%, rgba(7, 8, 13, 0.6) 45%, rgba(7, 8, 13, 0.1) 80%); }
   #feed-priority .gf-panel { overflow-x: auto; }
   #feed-priority .net-table { min-width: 520px; }
+  #feed-priority .gf-card { padding: 16px 14px 18px; }
+}
+
+@media (max-width: 480px) {
+  #feed-priority .pl-actions { grid-template-columns: 1fr; }
 }
