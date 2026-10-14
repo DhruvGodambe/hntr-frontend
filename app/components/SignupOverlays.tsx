@@ -6,7 +6,14 @@ import { api, ApiError } from "../../lib/api";
 import { ensureAuth } from "../../lib/auth";
 import { TIERS, TIERS_WITH_OTC } from "../../lib/contracts";
 import { handleAppError, isUserRejectedError, resolveAppError } from "../../lib/errors";
-import { approveMembershipSpend, purchaseOrUpgradeTier, useMembershipQuote } from "../../lib/membership";
+import {
+  approveMembershipSpend,
+  purchaseOrUpgradeTier,
+  showMembershipSuccessModal,
+  useMembershipQuote,
+} from "../../lib/membership";
+import SignupHolo from "./SignupHolo";
+import WelcomeModal from "./WelcomeModal";
 import { useConnectWallet } from "../../lib/useConnectWallet";
 import PaymentTokenToggle from "./PaymentTokenToggle";
 import MembershipPaySummary from "./MembershipPaySummary";
@@ -86,6 +93,8 @@ export default function SignupOverlays() {
   const [sponsorChecking, setSponsorChecking] = useState(false);
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
+  // V2 "Welcome to HNTR" pop-up, shown after the membership-success modal on a first purchase.
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [usernameChecking, setUsernameChecking] = useState(false);
   const [country, setCountry] = useState<Country | "">("");
@@ -307,6 +316,19 @@ export default function SignupOverlays() {
       const nativeSuGoto = window.suGoto;
       const nativeOpenSignup = window.openSignup;
       const nativeClose = window.closeSignup;
+      const nativeCloseMembership = window.closeMembership;
+
+      // Success modal -> Welcome pop-up (first purchase) or straight to the dashboard (upgrade).
+      window.closeMembership = () => {
+        const wasOpen = document.getElementById("msOverlay")?.classList.contains("open");
+        nativeCloseMembership?.();
+        if (!wasOpen) return;
+        if (window.__hntrWelcomeNext) {
+          window.setTimeout(() => setWelcomeOpen(true), 250);
+        } else {
+          window.location.assign("/network");
+        }
+      };
 
       window.suGoto = (step: number) => {
         if (skipStep2Ref.current && step === 2) return;
@@ -439,10 +461,7 @@ export default function SignupOverlays() {
           tier: result.tier,
           message: `${result.tier} membership activated (${result.amountLabel}). Redirecting to your network...`,
         });
-        closeSignupOverlay();
-        window.setTimeout(() => {
-          window.location.assign("/network");
-        }, 700);
+        showMembershipSuccessModal(result, username || currentUsername);
       } catch (error) {
         const resolved = resolveAppError(error, "Purchase failed");
         setPurchaseStatus({ state: "error", message: resolved.sub });
@@ -746,6 +765,11 @@ export default function SignupOverlays() {
 
   const profileFieldsDisabled = registerBusy;
 
+  const finishWelcome = useCallback(() => {
+    setWelcomeOpen(false);
+    window.location.assign("/network");
+  }, []);
+
   return (
     <>
       <div
@@ -755,6 +779,8 @@ export default function SignupOverlays() {
         }}
       >
         <div className="su-modal" id="suModal" role="dialog" aria-modal="true" aria-label="Sign up">
+          <SignupHolo />
+          <div className="su-right">
           <div className="su-step on" id="suStep1">
             <div className="su-head">
               <div className="su-eyebrow">
@@ -1187,6 +1213,7 @@ export default function SignupOverlays() {
               </span>
             </div>
           </div>
+          </div>
         </div>
       </div>
 
@@ -1196,95 +1223,76 @@ export default function SignupOverlays() {
           if (e.target === e.currentTarget) closeMembershipFlow();
         }}
       >
-        <div className="ms-modal" role="dialog" aria-modal="true" aria-label="Membership acquired">
+        <div className="ms-modal ms2" id="msModal" data-tier="gold" role="dialog" aria-modal="true" aria-label="Membership acquired">
           <canvas id="msConfetti" />
-          <div className="ms-head">
-            <div className="ms-check">
-              <div className="dot">
-                <svg width="17" height="17" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M3.5 8.5l2.8 2.8L12.5 5"
-                    stroke="currentColor"
-                    strokeWidth="1.9"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
+          <button className="ms2-x" type="button" onClick={() => closeMembershipFlow()} aria-label="Close">
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+              <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </button>
+          <div className="ms2-top">
+            <div className="ms2-pill">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <path d="M3.5 8.5l2.8 2.8L12.5 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Payment confirmed
             </div>
-            <div className="ms-title">MEMBERSHIP ACQUIRED</div>
-            <div className="ms-status" id="msStatus">
-              RANGER STATUS ACTIVATED
+            <div className="ms2-title">Membership Acquired</div>
+            <div className="ms2-sub" id="msStatus">
+              STATUS ACTIVATED
             </div>
           </div>
-          <div className="ms-body">
-            <div className="ms-pkg-row">
-              <span className="ms-pkg-lbl">Package</span>
-              <span className="ms-pkg-val" id="msPkg">
-                RANGER
-              </span>
+          <div className="ms2-card">
+            <div className="ms2-card-sheen" />
+            <div className="ms2-card-top">
+              <img src="/assets/v2/hntr-logos/hntr-wordmark-white.png" alt="HNTR" />
+              <span className="ms2-chip">Active</span>
             </div>
-            <div className="ms-grid">
-              <div className="ms-cell">
-                <div className="ms-cell-lbl">Unilevel</div>
-                <div className="ms-cell-val" id="msUni">
-                  All Levels Unlocked
-                </div>
-              </div>
-              <div className="ms-cell">
-                <div className="ms-cell-lbl">Pool Deposits</div>
-                <div className="ms-cell-val" id="msPool">
-                  Max Capacity
-                </div>
-              </div>
-            </div>
-            <div className="ms-line">
-              <span className="ms-line-lbl">Payment Amount</span>
-              <span className="ms-line-val" id="msAmt">
+            <div className="ms2-card-mid">
+              <div className="ms2-card-lbl">Membership</div>
+              <div className="ms2-card-tier" id="msPkg">
                 —
-              </span>
-            </div>
-            <div className="ms-line">
-              <span className="ms-line-lbl">Status</span>
-              <span className="ms-line-val ok">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.3" />
-                  <path
-                    d="M5.3 8.2l1.8 1.8L11 6"
-                    stroke="currentColor"
-                    strokeWidth="1.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                Confirmed
-              </span>
-            </div>
-            <div className="ms-ref">
-              <div className="ms-ref-lbl">Your Referral Link</div>
-              <div className="ms-ref-box">
-                <input id="msRef" readOnly defaultValue="https://hntr.art/join/RANGER" />
-                <button
-                  className="ms-ref-copy"
-                  id="msRefCopy"
-                  type="button"
-                  onClick={(e) => window.msCopyRef?.(e.currentTarget)}
-                >
-                  COPY
-                </button>
               </div>
             </div>
-            <button className="ms-explorer" type="button">
-              View Transaction on Explorer
-            </button>
+            <div className="ms2-card-bot">
+              <span>Paid</span>
+              <b id="msAmt">—</b>
+            </div>
           </div>
-          <div className="ms-foot">
-            <button className="ms-done" type="button" onClick={() => closeMembershipFlow()}>
-              Done
+          <div className="ms2-stats">
+            <div>
+              <span>Unilevel</span>
+              <b id="msUni">—</b>
+            </div>
+            <div>
+              <span>Pool Deposits</span>
+              <b id="msPool">All Strategy Pools</b>
+            </div>
+          </div>
+          <div className="ms2-ref">
+            <div className="ms2-ref-lbl">Your referral link</div>
+            <div className="ms2-ref-box">
+              <input id="msRef" readOnly defaultValue="" />
+              <button id="msRefCopy" type="button" onClick={(e) => window.msCopyRef?.(e.currentTarget)}>
+                COPY
+              </button>
+            </div>
+          </div>
+          <div className="ms2-acts">
+            <button className="ms2-ghost ms-explorer" type="button">
+              View on Explorer
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <path d="M5 11l6-6M6 5h5v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <button className="ms2-primary" type="button" onClick={() => closeMembershipFlow()}>
+              Go to Dashboard
             </button>
           </div>
         </div>
       </div>
+
+      <WelcomeModal open={welcomeOpen} onClose={finishWelcome} />
     </>
   );
 }

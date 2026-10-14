@@ -2,8 +2,8 @@ import { BANNER_ASSETS } from "./resources";
 
 type MosaicCanvas = HTMLCanvasElement & { __mosaic?: boolean };
 
-const COLORS = ["#5FD24A", "#9AD23E", "#CFC93B", "#E3B838", "#E7A32B"];
-const DARK = "#0d0b07";
+const COLORS = ["#C7864A", "#C9CDD3", "#E3B838", "#9FD8E6", "#B9A7F5"];
+const DARK = "#0b0b0e";
 const MOTIFS = ["circle", "ring", "quarter", "quarter", "half", "leaf", "bars", "dot", "logo", "logo"] as const;
 
 type Cell = {

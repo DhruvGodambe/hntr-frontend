@@ -413,10 +413,20 @@ const TIER_COPY: Record<string, { uni: string; pool: string }> = {
   Diamond: { uni: "12 Levels", pool: "All Strategy Pools" },
 };
 
+declare global {
+  interface Window {
+    /** Set by showMembershipSuccessModal: show the V2 Welcome pop-up when the success modal closes. */
+    __hntrWelcomeNext?: boolean;
+    /** Confetti burst on the success modal (defined by public/assets/js/script-8.js). */
+    fireConfetti?: () => void;
+  }
+}
+
 /**
- * Drives the existing #msOverlay markup (see SignupOverlays.tsx) with real purchase
+ * Drives the V2 #msOverlay markup (see SignupOverlays.tsx) with real purchase
  * data. Kept as an imperative DOM helper (matching the rest of this codebase's
  * legacy overlay pattern) instead of introducing a parallel React modal.
+ * Closing it continues to the Welcome pop-up (first purchase) or the dashboard.
  */
 export function showMembershipSuccessModal(result: PurchaseResult, username: string) {
   if (typeof document === "undefined") return;
@@ -433,16 +443,21 @@ export function showMembershipSuccessModal(result: PurchaseResult, username: str
   setText("msUni", copy.uni);
   setText("msPool", copy.pool);
   setText("msAmt", result.amountLabel);
+  const modal = document.getElementById("msModal");
+  if (modal) modal.dataset.tier = result.tier.toLowerCase();
 
   const refInput = document.getElementById("msRef") as HTMLInputElement | null;
-  if (refInput) refInput.value = `${window.location.origin}/?ref=${handle}`;
+  if (refInput) refInput.value = `${window.location.origin}/?ref=${username || handle}`;
 
-  const explorerBtn = document.querySelector<HTMLButtonElement>(".ms-explorer");
+  const explorerBtn = document.querySelector<HTMLButtonElement>("#msOverlay .ms-explorer");
   if (explorerBtn) {
     const chainId = getAccount(config).chainId;
     explorerBtn.onclick = () => window.open(explorerTxUrl(chainId, result.txHash), "_blank");
   }
 
+  window.__hntrWelcomeNext = !result.isUpgrade;
   document.getElementById("signupOverlay")?.classList.remove("open");
   document.getElementById("msOverlay")?.classList.add("open");
+  document.body.classList.add("modal-open");
+  window.fireConfetti?.();
 }

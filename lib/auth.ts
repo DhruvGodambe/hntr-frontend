@@ -13,6 +13,9 @@ import {
 } from "./api";
 import { isUserRejectedError } from "./errors";
 
+/** Pause between the wallet's connect approval and the SIWE signature prompt. */
+const WALLET_SETTLE_MS = 800;
+
 let inFlightSignIn: Promise<StoredAuth> | null = null;
 let signatureDeclined = false;
 let signingOut = false;
@@ -71,6 +74,12 @@ async function authenticate(address: string): Promise<StoredAuth> {
     `/api/auth/nonce?walletAddress=${address}`,
   );
   void nonce;
+
+  // Sign-in usually follows the wallet "Connect" approval within milliseconds. MetaMask
+  // reuses its popup window for the next approval and, if the connect popup is still
+  // closing, renders the signature request against a stale approval and crashes with
+  // "Cannot read properties of undefined (reading 'origin')". Let it settle first.
+  await new Promise((resolve) => setTimeout(resolve, WALLET_SETTLE_MS));
 
   let signature: `0x${string}`;
   try {

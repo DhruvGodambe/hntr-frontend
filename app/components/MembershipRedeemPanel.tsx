@@ -71,41 +71,36 @@ export default function MembershipRedeemPanel() {
   }
 
   return (
-    <div className="comparison mr-panel" ref={panelRef} id="membership-redeem">
-      <div className="mr-head">
-        <div className="cmp-title">Redeem a membership code</div>
-        <div className="mr-eyebrow">Gift &amp; Promo Codes</div>
+    <div className="gf-card" style={{ margin: "22px 0 24px" }} ref={panelRef} id="membership-redeem">
+      <div className="gf-card-hd">
+        <div className="gf-card-t">Redeem a membership code</div>
+        <div className="gf-card-n">Gift &amp; promo codes</div>
       </div>
-
-      <div className="mr-row">
+      <div className="mr-redeem">
         <input
-          className="mr-input"
+          className="gf-input code"
+          id="mrCodeIn"
           value={code}
           onChange={(e) => setCode(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !busy && redeem()}
-          placeholder="HNTR-XXXX-XXXX-XXXX"
+          placeholder="HNTR-XXXX-XXXX"
           maxLength={19}
           autoComplete="off"
           spellCheck={false}
           disabled={busy}
         />
-        <button type="button" className="mr-redeem-btn" onClick={redeem} disabled={busy}>
+        <button type="button" className="gf-btn" onClick={redeem} disabled={busy}>
           {busy ? "Redeeming…" : "Redeem"}
         </button>
         {access?.enabled && (
-          <button
-            type="button"
-            className="mr-giftcodes-btn"
-            onClick={() => router.push("/gift-codes")}
-          >
+          <button type="button" className="gf-btn ghost" onClick={() => router.push("/gift-codes")}>
             Gift Codes
           </button>
         )}
       </div>
-
-      <div className="mr-hint">
-        Codes are single-use and expire 7 days after issue. Redeeming is free — no payment and no
-        gas; the tier credit applies to your membership immediately.
+      <div className="gf-hint">
+        Codes are single-use, issued to one username, and expire 7 days after issue. Redeeming applies the tier credit to your
+        membership immediately.
       </div>
       <GiftCodeDialog state={dialog} onClose={() => setDialog(null)} />
     </div>

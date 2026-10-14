@@ -1,9 +1,8 @@
 import { pageMetadata } from "../../lib/metadata";
-import "./webinar.css";
 
 export const metadata = pageMetadata(
   "Live Webinar",
-  "Join the HNTR live webinar — strategy sessions, platform updates, and live community chat."
+  "Watch the HNTR business presentation — how NFT Strategies, membership and network rewards work."
 );
 
 export default function WebinarLayout({

@@ -1,0 +1,53 @@
+/* App-specific glue on top of v2.css (V2 redesign).
+   Only for React-only UI that the V2 prototype doesn't contain. */
+
+/* ── Network: "connect your wallet" notice (V2 warning orange, both themes) ── */
+.net-wallet-banner {
+  margin: 0 0 18px !important;
+  padding: 16px 18px !important;
+  border-radius: 14px !important;
+  background: rgba(255, 138, 31, 0.08) !important;
+  border: 1px solid rgba(255, 138, 31, 0.32) !important;
+  box-shadow: none !important;
+  font-family: var(--fn);
+}
+.net-wallet-banner-icon {
+  background: rgba(255, 138, 31, 0.16) !important;
+  color: #ff8a1f !important;
+  border-radius: 10px !important;
+}
+.net-wallet-banner-title {
+  font-family: var(--fn) !important;
+  font-size: 15px !important;
+  color: #ff8a1f !important;
+}
+.net-wallet-banner-msg {
+  font-size: 13px !important;
+}
+.net-wallet-banner-btn {
+  height: 40px !important;
+  padding: 0 20px !important;
+  border-radius: 999px !important;
+  font-family: var(--fn) !important;
+  font-size: 12px !important;
+  background: #fff !important;
+  color: #0a0a0a !important;
+}
+body:not(.dark) .net-wallet-banner-btn {
+  background: #0a0a0a !important;
+  color: #fff !important;
+}
+
+/* ── Home strategies: loading placeholder card has no LIVE / COMING SOON badge ── */
+html body #feed-home .np-grid > .nfx.nfx-loading::before {
+  display: none !important;
+}
+
+/* ── Network: the React topology tree is absolutely positioned, so it needs an explicit
+      height where V2 (inline SVG) lets the canvas auto-size on mobile ── */
+@media (max-width: 600px) {
+  html body #panel-network #topoCanvas.topo-canvas.topo-canvas {
+    min-height: 320px !important;
+    height: 320px !important;
+  }
+}

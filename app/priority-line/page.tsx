@@ -5,6 +5,7 @@ import { useRouter } from "nextjs-toploader/app";
 import { useAccount } from "wagmi";
 import MainLayout from "../components/MainLayout";
 import PriorityLineBanner from "../components/PriorityLineBanner";
+import HntrFooter from "../components/layout/shell/HntrFooter";
 import { handleAppError } from "../../lib/errors";
 import {
   depositPriorityLine,
@@ -388,6 +389,7 @@ export default function PriorityLinePage() {
             </p>
           </div>
         </div>
+        <HntrFooter />
       </div>
 
       {wdOpen && (
