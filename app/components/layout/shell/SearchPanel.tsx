@@ -8,7 +8,7 @@ import { TIERS } from "../../../../lib/contracts";
 type SearchItem = { name: string; sub: string; icon: string; href: string };
 
 const QUICK_NAV: SearchItem[] = [
-  { href: "/", name: "Home", sub: "Dashboard overview", icon: "🏠" },
+  { href: "/home", name: "Home", sub: "Dashboard overview", icon: "🏠" },
   { href: "/marketplace", name: "Marketplace", sub: "Browse NFT listings", icon: "🛍" },
   { href: "/pools", name: "NFT Strategies", sub: "Active investment pools", icon: "📈" },
   { href: "/membership", name: "Membership", sub: "Tiers and rewards", icon: "💳" },

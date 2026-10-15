@@ -9,7 +9,7 @@ export default function HntrFooter() {
   const external = (url: string) => (url === "#" ? {} : { target: "_blank", rel: "noopener noreferrer" });
   return (
     <footer className="hf">
-      <Link className="hf-brand" href="/">
+      <Link className="hf-brand" href="/home">
         <img src="/assets/v2/hntr-dark/8b857621.png" alt="" />
         <span>HNTR</span>
       </Link>

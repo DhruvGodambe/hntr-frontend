@@ -2,14 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "nextjs-toploader/app";
-import MainLayout from "./components/MainLayout";
-import HomeMarketOverview from "./components/HomeMarketOverview";
-import HntrFooter from "./components/layout/shell/HntrFooter";
-import StrategyCarousel, { type StrategyCardData } from "./components/home/StrategyCarousel";
-import JoinBanner from "./components/home/JoinBanner";
-import { ListingPlaceholderGrid, SalesPlaceholderTrack } from "./components/home/NftPlaceholders";
-import { SHELL_MOBILE_MQ } from "./components/layout/constants";
-import { DEPOSITS_ENABLED } from "../lib/deposit-modal";
+import MainLayout from "../components/MainLayout";
+import HomeMarketOverview from "../components/HomeMarketOverview";
+import HntrFooter from "../components/layout/shell/HntrFooter";
+import StrategyCarousel, { type StrategyCardData } from "../components/home/StrategyCarousel";
+import JoinBanner from "../components/home/JoinBanner";
+import { ListingPlaceholderGrid, SalesPlaceholderTrack } from "../components/home/NftPlaceholders";
+import { SHELL_MOBILE_MQ } from "../components/layout/constants";
+import { DEPOSITS_ENABLED } from "../../lib/deposit-modal";
 import { toPoolRouteId, useOpenSeaListingsForSlugs } from "@/lib/opensea";
 import { usePools, poolCollectionSlug, poolProgress } from "@/lib/pools";
 import { collectionArt } from "@/lib/collection-art";

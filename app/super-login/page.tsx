@@ -17,7 +17,7 @@ export default function SuperLoginPage() {
     setLoading(true);
     try {
       await superLogin(username.trim(), password);
-      router.push("/");
+      router.push("/home");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Login failed. Please try again.");
     } finally {

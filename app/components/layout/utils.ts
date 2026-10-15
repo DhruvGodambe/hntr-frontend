@@ -11,7 +11,6 @@ const PANEL_KEYS: Record<string, string> = {
 };
 
 export function resolveCurrentPage(pathname: string) {
-  if (pathname === "/") return "home";
   if (pathname.startsWith("/pool/")) return "pooldetail";
   const key = pathname.slice(1).split("/")[0];
   return PANEL_KEYS[key] ?? key;

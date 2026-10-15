@@ -33,7 +33,7 @@ export default function LearnPage() {
   }, []);
 
   const goBack = () => {
-    router.push("/");
+    router.push("/home");
   };
 
   return (

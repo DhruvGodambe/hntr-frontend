@@ -10,7 +10,7 @@ export type SocialLink = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Home", href: "/", short: "HM" },
+  { label: "Home", href: "/home", short: "HM" },
   { label: "Marketplace", href: "/marketplace", short: "MP" },
   { label: "NFT Strategies", href: "/pools", short: "NS" },
   { label: "My NFTs", href: "/collection", short: "MY" },
