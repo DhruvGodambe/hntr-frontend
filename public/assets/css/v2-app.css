@@ -116,3 +116,28 @@ html body .main-col > .nav #connPill #connLabel{display:inline-block!important;m
   html body .main-col > .nav .nav-lang{padding:0;width:40px;justify-content:center}
   html body .main-col > .nav .nav-lang .nav-lang-code{display:none}
 }
+
+/* ── Home: Platform Activity (GET /api/activity/feed), on the V2 .net-act table ── */
+#homeActivity .pa-msg{padding:22px 10px!important;text-align:center!important;color:#a1a1aa;font-size:13px;white-space:normal!important}
+#homeActivity .pa-ev{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em;white-space:nowrap}
+#homeActivity .pa-ev-join{background:rgba(10,132,255,.12);color:#0a84ff}
+#homeActivity .pa-ev-purchase{background:rgba(48,209,88,.12);color:#30d158}
+body:not(.dark) #homeActivity .pa-ev-purchase{color:#1a9e45}
+#homeActivity .pa-country{display:inline-flex;align-items:center;gap:6px}
+#homeActivity .pa-flag{width:18px;height:12px;border-radius:2px;flex:none;display:inline-block}
+#homeActivity .pa-user{font-weight:600}
+html body #homeActivity .net-act.net-act{margin-top:12px!important}
+#homeActivity .net-table th{font-size:12px!important}
+#homeActivity .net-table td{font-size:13px!important}
+@media (max-width:900px){#homeActivity .net-table th:nth-child(4),#homeActivity .net-table td:nth-child(4){display:none!important}}
+html body #homeActivity .net-act .nempty{overflow-x:auto!important}
+#homeActivity .pa-ev-short{display:none}
+@media (max-width:360px){#homeActivity .pa-ev-full{display:none}#homeActivity .pa-ev-short{display:inline}}
+@media (min-width:601px) and (max-width:760px){#homeActivity .pa-ev-full{display:none}#homeActivity .pa-ev-short{display:inline}html body #homeActivity .net-act .net-table td,html body #homeActivity .net-act .net-table th{padding-left:8px!important;padding-right:8px!important}}
+
+/* ── Network: lifetime HNTR Points (GET /api/network/:wallet/points) under Total Rewarded ── */
+#panel-network .net-stat:has(.net-stat-pts){grid-template-areas:"val chg" "lbl lbl" "pts pts"}
+#panel-network .net-stat-pts{grid-area:pts;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#a1a1aa}
+#panel-network .net-stat-pts b{margin-left:4px;color:#fff;font-weight:700;letter-spacing:0}
+body:not(.dark) #panel-network .net-stat-pts{color:#55555c}
+body:not(.dark) #panel-network .net-stat-pts b{color:#0a0a0a}

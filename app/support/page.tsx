@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type DragEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import MainLayout from "../components/MainLayout";
 import HntrFooter, { DISCORD_URL, TELEGRAM_URL } from "../components/layout/shell/HntrFooter";
@@ -43,7 +43,19 @@ const QUICK_ANSWERS = [
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
-export default function SupportPage() {
+// Support page is switched off for now: /support sends visitors to Home and the nav/search
+// links are commented out. To restore it, make SupportPage the default export again and
+// remove SupportDisabled (plus re-enable the Sidebar and SearchPanel entries).
+export default function SupportDisabled() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/home");
+  }, [router]);
+  return null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function SupportPage() {
   const router = useRouter();
   const { isConnected } = useEffectiveAccount();
   const { data: pools } = usePools();
@@ -63,7 +75,17 @@ export default function SupportPage() {
   const [busy, setBusy] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [replies, setReplies] = useState<Record<string, string>>({});
+  const [replyBusy, setReplyBusy] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+
+  // `?ticket=HNT-1001` (from a "Support replied" notification) opens that ticket in My Tickets.
+  useEffect(() => {
+    const ticket = new URLSearchParams(window.location.search).get("ticket");
+    if (!ticket) return;
+    setTab("list");
+    setFilter("all");
+    setOpenId(ticket.toUpperCase());
+  }, []);
 
   const strategies = useMemo(() => (pools ?? []).filter((p) => p.status !== "CLOSED").map((p) => p.name), [pools]);
   const visible = tickets.filter((t) => filter === "all" || t.status === filter);
@@ -109,7 +131,8 @@ export default function SupportPage() {
 
   const reply = async (id: string) => {
     const body = (replies[id] || "").trim();
-    if (!body) return;
+    if (!body || replyBusy) return;
+    setReplyBusy(id);
     try {
       await replyToSupportTicket(id, body);
       setReplies((r) => ({ ...r, [id]: "" }));
@@ -117,6 +140,8 @@ export default function SupportPage() {
     } catch (e) {
       if (e instanceof SupportUnavailableError) unavailableNotice();
       else handleAppError(e, "Could not send reply");
+    } finally {
+      setReplyBusy(null);
     }
   };
 
@@ -210,7 +235,8 @@ export default function SupportPage() {
                     </svg>
                     <span id="spDropT">
                       {files.length ? (
-                        `${files.length} file${files.length > 1 ? "s" : ""} attached`
+                        // Files aren't uploaded yet (no file storage on the backend); support asks for them in a reply.
+                        `${files.length} screenshot${files.length > 1 ? "s" : ""} selected · keep ${files.length > 1 ? "them" : "it"} ready, support will ask in a reply`
                       ) : (
                         <>
                           Drop screenshots here or <u>browse</u>
@@ -271,8 +297,8 @@ export default function SupportPage() {
                                 value={replies[t.id] || ""}
                                 onChange={(e) => setReplies((r) => ({ ...r, [t.id]: e.target.value }))}
                               />
-                              <button type="button" className="sp-btn" onClick={() => reply(t.id)}>
-                                Send
+                              <button type="button" className="sp-btn" onClick={() => reply(t.id)} disabled={replyBusy === t.id}>
+                                {replyBusy === t.id ? "Sending…" : "Send"}
                               </button>
                             </div>
                           )}

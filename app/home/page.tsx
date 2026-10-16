@@ -7,6 +7,7 @@ import HomeMarketOverview from "../components/HomeMarketOverview";
 import HntrFooter from "../components/layout/shell/HntrFooter";
 import StrategyCarousel, { type StrategyCardData } from "../components/home/StrategyCarousel";
 import JoinBanner from "../components/home/JoinBanner";
+import PlatformActivity from "../components/home/PlatformActivity";
 import { ListingPlaceholderGrid, SalesPlaceholderTrack } from "../components/home/NftPlaceholders";
 import { SHELL_MOBILE_MQ } from "../components/layout/constants";
 import { DEPOSITS_ENABLED } from "../../lib/deposit-modal";
@@ -131,6 +132,8 @@ export default function HomePage() {
             <div style={{ display: "flex", alignItems: "center", gap: 10 }} />
           </div>
           <SalesPlaceholderTrack />
+
+          <PlatformActivity />
 
           <HntrFooter />
         </div>

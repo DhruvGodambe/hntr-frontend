@@ -22,7 +22,8 @@ const STATIC_INDEX: SearchItem[] = [
   { href: "/priority-line", name: "Priority Line", sub: "Reserve your strategy slot", icon: "⚡" },
   { href: "/webinar", name: "Live Webinar", sub: "Watch the live presentation", icon: "🎥" },
   { href: "/learn", name: "Learn", sub: "Guides and docs", icon: "📖" },
-  { href: "/support", name: "Support", sub: "Create a ticket", icon: "❓" },
+  // Support page is switched off for now.
+  // { href: "/support", name: "Support", sub: "Create a ticket", icon: "❓" },
   ...TIERS.map((t, i) => ({
     href: "/membership",
     name: `${t.name} Membership`,

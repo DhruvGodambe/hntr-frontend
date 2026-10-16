@@ -135,18 +135,19 @@ const GENERAL_ITEMS: NavItem[] = [
       </svg>
     ),
   },
-  {
-    page: "support",
-    href: "/support",
-    label: "Support",
-    icon: (
-      <svg viewBox="0 0 16 16" fill="none" preserveAspectRatio="xMidYMid meet">
-        <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.4" />
-        <path d="M8 10.5v.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M8 5.5a2 2 0 0 1 2 2c0 1.2-2 2-2 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
+  // Support page is switched off for now.
+  // {
+  //   page: "support",
+  //   href: "/support",
+  //   label: "Support",
+  //   icon: (
+  //     <svg viewBox="0 0 16 16" fill="none" preserveAspectRatio="xMidYMid meet">
+  //       <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.4" />
+  //       <path d="M8 10.5v.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  //       <path d="M8 5.5a2 2 0 0 1 2 2c0 1.2-2 2-2 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  //     </svg>
+  //   ),
+  // },
 ];
 
 export type SidebarProfile = {

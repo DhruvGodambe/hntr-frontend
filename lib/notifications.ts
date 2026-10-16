@@ -20,6 +20,7 @@ export type BackendNotificationType =
   | "PRIORITY_LINE_DEPOSIT"
   | "PRIORITY_LINE_WITHDRAWAL_REQUESTED"
   | "PRIORITY_LINE_WITHDRAWN"
+  | "SUPPORT_REPLY"
   | "GENERAL";
 
 export interface BackendNotification {
@@ -57,6 +58,10 @@ export function notificationActionHref(n: BackendNotification): string | null {
   }
   if (n.type === "VOUCHER_REDEEMED") return "/gift-codes";
   if (n.type.startsWith("PRIORITY_LINE_")) return "/priority-line";
+  if (n.type === "SUPPORT_REPLY") {
+    const ticket = typeof n.meta?.ticketId === "string" ? n.meta.ticketId : "";
+    return ticket ? `/support?ticket=${encodeURIComponent(ticket)}` : "/support";
+  }
   return null;
 }
 

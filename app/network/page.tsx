@@ -17,6 +17,7 @@ import {
   useNetworkTree,
   useLeadershipStatus,
   useAchievementStatus,
+  usePointsSummary,
   formatPoolWalletBalances,
   formatTokenAmount,
   formatVolume,
@@ -203,6 +204,7 @@ export default function NetworkPage() {
   } = useNetworkTree(summary?.username, treeDepth);
   const { data: leadershipStatus } = useLeadershipStatus();
   const { data: achievementStatus } = useAchievementStatus();
+  const { data: pointsSummary } = usePointsSummary();
   const claimCommissions = useClaimCommissions();
   const { connectWallet } = useConnectWallet();
   const [connectBusy, setConnectBusy] = useState(false);
@@ -700,6 +702,9 @@ export default function NetworkPage() {
               >
                 <div className="net-stat-lbl">Total Rewarded</div>
                 <div className="net-stat-val">{fmtUsd(summary?.totalRewarded ?? 0)}</div>
+                <div className="net-stat-pts" title="Lifetime HNTR Points">
+                  HNTR Points <b>{pointsSummary ? pointsSummary.hntrPoints.toLocaleString("en-US") : "—"}</b>
+                </div>
               </div>
               <div className="net-stat">
                 <div className="net-stat-lbl">Rank</div>

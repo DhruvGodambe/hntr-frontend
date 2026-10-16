@@ -21,7 +21,8 @@ import { useReveal } from "./layout/hooks/useReveal";
 import { useContrastFix } from "./layout/hooks/useContrastFix";
 import Sidebar, { type SidebarProfile } from "./layout/shell/Sidebar";
 import TopNavBar, { ThemeToggleButton } from "./layout/shell/TopNavBar";
-import LanguageSwitcher from "./layout/shell/LanguageSwitcher";
+// Language selector is switched off for now.
+// import LanguageSwitcher from "./layout/shell/LanguageSwitcher";
 import SearchPanel from "./layout/shell/SearchPanel";
 import WalletPanel from "./layout/shell/WalletPanel";
 import { PlaceholderTip } from "./home/NftPlaceholders";
@@ -247,7 +248,8 @@ export default function MainLayout({ children, panelClassName }: MainLayoutProps
           brandAccessory={
             isMobileView ? (
               <>
-                <LanguageSwitcher />
+                {/* Language selector is switched off for now. */}
+                {/* <LanguageSwitcher /> */}
                 <ThemeToggleButton isDark={isDark} onToggle={toggleTheme} />
               </>
             ) : null

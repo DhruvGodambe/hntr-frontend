@@ -8,10 +8,14 @@ import { useEffectiveAccount } from "./session";
 /**
  * Support desk client for the V2 Support page.
  *
- * Expects backend routes `POST /api/support/tickets`, `GET /api/support/tickets`
- * and `POST /api/support/tickets/:id/messages` (wallet-authenticated). Until the
- * backend ships them, `SupportUnavailableError` is thrown so the page can tell
- * members to use the community channels instead of silently dropping tickets.
+ * Backend routes (wallet-authenticated, tickets are always the session wallet's):
+ * `GET /api/support/tickets`, `POST /api/support/tickets` and
+ * `POST /api/support/tickets/:id/messages`. Ticket ids look like `HNT-1001`.
+ * Status: `open` = waiting on support, `pending` = support replied, `resolved` = closed.
+ *
+ * If the backend a build points at doesn't have these routes yet,
+ * `SupportUnavailableError` is thrown so the page sends members to the community
+ * channels instead of silently dropping tickets.
  */
 
 export type TicketStatus = "open" | "pending" | "resolved";
@@ -50,7 +54,12 @@ export class SupportUnavailableError extends Error {
   }
 }
 
-const unavailable = (err: unknown) => err instanceof ApiError && (err.statusCode === 404 || err.statusCode === 501);
+/**
+ * A missing route (older backend) is a bare 404 with no error code; the support API's own
+ * 404s always carry one (e.g. TICKET_NOT_FOUND) and must surface as real errors.
+ */
+const unavailable = (err: unknown) =>
+  err instanceof ApiError && (err.statusCode === 501 || (err.statusCode === 404 && !err.code));
 
 export async function createSupportTicket(input: NewTicketInput): Promise<SupportTicket> {
   await ensureAuth({ interactive: true });
@@ -87,6 +96,8 @@ export function useSupportTickets() {
     },
     enabled: isConnected && !!address,
     staleTime: 30_000,
+    // Picks up support replies while the page is open.
+    refetchInterval: 60_000,
     retry: false,
   });
 }
