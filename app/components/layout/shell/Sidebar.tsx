@@ -5,7 +5,7 @@ import type { MouseEvent, ReactNode } from "react";
 import SidebarHolo from "./SidebarHolo";
 
 /** Routes that need a connected wallet; clicking them while disconnected opens signup instead. */
-const LOCKED_WHEN_DISCONNECTED = new Set(["collection", "network"]);
+export const LOCKED_WHEN_DISCONNECTED = new Set(["collection", "network"]);
 
 type NavItem = { page: string; href: string; label: string; icon: ReactNode; className?: string };
 

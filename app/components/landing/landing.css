@@ -135,3 +135,35 @@ html[data-landing] .lp-root ::before,
 html[data-landing] .lp-root ::after {
   border-color: currentColor;
 }
+
+/* ── Tablet & in-between widths ───────────────────────────────────────────────────
+   The design defines a desktop layout and a ≤760px phone layout. Between them the
+   desktop grid gets squeezed: the hero headline shrinks to ~24px and the hologram card
+   (which centres itself in containers ≤900px) lands on top of the "We buy assets
+   together" copy. These rules carry the phone layout's structure up to tablet sizes. */
+@media (min-width:761px) and (max-width:900px),(min-width:761px) and (max-width:1100px) and (orientation:portrait){
+html[data-landing] #top{grid-template-columns:1fr!important;grid-template-rows:auto auto!important;min-height:auto!important;padding-bottom:72px!important}
+html[data-landing] #top>div:first-child{padding:56px clamp(24px,6vw,56px) 32px!important;gap:24px!important}
+html[data-landing] #top h1{font-size:clamp(44px,6.4vw,58px)!important;line-height:1.15!important}
+html[data-landing] #top>div:nth-child(2){margin:0 clamp(24px,6vw,56px)!important;border-radius:16px!important;min-height:min(62vh,620px)!important}
+}
+@media (min-width:761px) and (max-width:1100px){
+html[data-landing] #together{min-height:auto!important;gap:40px!important}
+html[data-landing] #together>.sc-host-x{position:relative!important;inset:auto!important;order:2;height:480px!important;width:100%!important;max-width:720px;align-self:center;flex:none}
+html[data-landing] #together-shade{display:none!important}
+html[data-landing] #together-copy{max-width:640px!important;order:1}
+html[data-landing] #together #steps-grid{order:3}
+}
+@media (min-width:721px) and (max-width:860px){
+html[data-landing] #steps-grid{grid-template-columns:1fr!important}
+}
+/* Small laptops / tall viewports: the card grows with viewport height, so keep the copy
+   column clear of it. */
+@media (min-width:1101px) and (max-width:1366px){
+html[data-landing] #together-copy{max-width:min(620px,42vw)!important}
+}
+/* Phones 721–760px wide: keep the card host ≤720px so the widget stays in its centred
+   phone mode. */
+@media (max-width:760px){
+html[data-landing] #together>.sc-host-x{max-width:720px;align-self:center}
+}

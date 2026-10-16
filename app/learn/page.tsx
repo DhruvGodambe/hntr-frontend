@@ -1,56 +1,44 @@
 "use client";
 
-import { useLayoutEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "nextjs-toploader/app";
+import MainLayout from "../components/MainLayout";
 
 export default function LearnPage() {
   const router = useRouter();
+  const [docsNavOpen, setDocsNavOpen] = useState(false);
 
-  useLayoutEffect(() => {
-    document.body.dataset.page = "learn";
-
+  useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (event.data?.type === "learn-sidebar") {
-        document.body.classList.toggle("learn-sidebar-open", Boolean(event.data.open));
-        return;
-      }
-      // The docs iframe has its own independent theme toggle/localStorage;
-      // it broadcasts its choice here (on load and on every toggle) so
-      // "BACK TO PLATFORM" can follow it instead of staying stuck on
-      // whatever the outer app's theme happened to be.
-      if (event.data?.type === "hntr-docs-theme") {
-        document.body.classList.toggle("dark", event.data.theme === "dark");
+        setDocsNavOpen(Boolean(event.data.open));
       }
     };
-
     window.addEventListener("message", onMessage);
-
-    return () => {
-      delete document.body.dataset.page;
-      document.body.classList.remove("learn-sidebar-open", "dark");
-      window.removeEventListener("message", onMessage);
-    };
+    return () => window.removeEventListener("message", onMessage);
   }, []);
 
-  const goBack = () => {
-    router.push("/home");
-  };
-
   return (
-    <>
-      <button className="learn-back" type="button" onClick={goBack}>
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-          <path
-            d="M10 3.5 5.5 8l4.5 4.5"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        BACK TO PLATFORM
-      </button>
-      <iframe className="learn-frame" title="HNTR Learn" src="/learn-content/index.html" />
-    </>
+    <MainLayout>
+      <div className="feed au-host" id="feed-learn">
+        <iframe className="au-frame" title="HNTR Learn" src="/learn-content/index.html" />
+        <button
+          className={`learn-back${docsNavOpen ? " is-hidden" : ""}`}
+          type="button"
+          onClick={() => router.push("/home")}
+        >
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+            <path
+              d="M10 3.5 5.5 8l4.5 4.5"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          BACK TO PLATFORM
+        </button>
+      </div>
+    </MainLayout>
   );
 }

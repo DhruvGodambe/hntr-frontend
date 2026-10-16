@@ -262,7 +262,12 @@ export default function MainLayout({ children, panelClassName }: MainLayoutProps
 
       <div id="mScrim" onClick={() => setDrawerOpen(false)} aria-hidden={!drawerOpen} />
 
-      <SearchPanel open={searchOpen} onClose={closeSearch} />
+      <SearchPanel
+        open={searchOpen}
+        onClose={closeSearch}
+        walletConnected={walletConnected}
+        onOpenSignup={openSignup}
+      />
 
       <PlaceholderTip active={!LISTINGS_LIVE} />
 

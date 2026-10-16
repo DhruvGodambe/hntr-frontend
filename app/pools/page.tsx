@@ -6,7 +6,7 @@ import MainLayout from "../components/MainLayout";
 import HntrFooter from "../components/layout/shell/HntrFooter";
 import { DEPOSITS_ENABLED } from "../../lib/deposit-modal";
 import { toPoolRouteId, useOpenSeaListingsForSlugs } from "@/lib/opensea";
-import { usePools, poolCollectionSlug, poolProgress } from "@/lib/pools";
+import { usePools, poolCollectionSlug, poolProgress, type PublicPool } from "@/lib/pools";
 import { collectionArt } from "@/lib/collection-art";
 
 const LOGO_ROWS = [
@@ -16,6 +16,23 @@ const LOGO_ROWS = [
 ];
 
 const ACTIVITY_COLUMNS = ["Wallet", "Bid Amount", "Collection", "Completion", "Action"];
+
+/** Client V2: only BAYC is the live strategy until deposits open. */
+const PRELAUNCH_LIVE_SLUG = "boredapeyachtclub";
+
+/** Client V2 upcoming table order. CryptoPunks is listed even when it has no pool record. */
+const UPCOMING_CATALOG: { slug: string; name: string }[] = [
+  { slug: "pudgypenguins", name: "Pudgy Penguins" },
+  { slug: "cryptopunks", name: "CryptoPunks" },
+  { slug: "azuki", name: "Azuki" },
+  { slug: "mutant-ape-yacht-club", name: "Mutant Ape Yacht Club" },
+];
+
+function poolIsLive(pool: PublicPool): boolean {
+  if (pool.status !== "OPEN" || pool.depositsPaused) return false;
+  if (!DEPOSITS_ENABLED) return poolCollectionSlug(pool) === PRELAUNCH_LIVE_SLUG;
+  return true;
+}
 
 const OPENSEA_ICON = (
   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -33,32 +50,62 @@ export default function PoolsPage() {
   const router = useRouter();
   const { data: poolRecords, isLoading: poolsLoading, error: poolsError } = usePools();
   const openPoolRecords = useMemo(() => (poolRecords ?? []).filter((p) => p.status !== "CLOSED"), [poolRecords]);
-  const collectionSlugs = useMemo(() => Array.from(new Set(openPoolRecords.map((p) => poolCollectionSlug(p)))), [openPoolRecords]);
+  const collectionSlugs = useMemo(() => {
+    const fromPools = openPoolRecords.map((p) => poolCollectionSlug(p));
+    return Array.from(new Set([...fromPools, ...UPCOMING_CATALOG.map((c) => c.slug)]));
+  }, [openPoolRecords]);
   const { data: liveListings, isLoading: liveLoading } = useOpenSeaListingsForSlugs(collectionSlugs, 1);
   const loading = poolsLoading || (collectionSlugs.length > 0 && liveLoading);
 
-  const pools = useMemo(
-    () =>
-      openPoolRecords.map((p) => {
-        const slug = poolCollectionSlug(p);
-        const live = liveListings?.[slug];
-        const tokenId = live?.listing?.tokenId || "0";
-        const targetEth = live?.floorEth ?? 0;
-        return {
-          id: toPoolRouteId(p.slug, tokenId),
-          name: p.name,
-          art: collectionArt(slug, p.imageUrl, p.name),
-          live: p.status === "OPEN" && !p.depositsPaused,
-          lowest: targetEth > 0 ? `${formatEth(targetEth)} ETH` : "TBA",
-          raised: `${formatEth(p.raisedEth)} ETH`,
-          progress: poolProgress(p.raisedEth, targetEth),
-          participants: p.participants,
-        };
-      }),
-    [openPoolRecords, liveListings],
-  );
+  const pools = useMemo(() => {
+    const toRow = (
+      slug: string,
+      name: string,
+      imageUrl: string,
+      raisedEth: number,
+      participants: number,
+      live: boolean,
+      routeSlug: string | null,
+    ) => {
+      const market = liveListings?.[slug];
+      const tokenId = market?.listing?.tokenId || "0";
+      const targetEth = market?.floorEth ?? 0;
+      return {
+        id: routeSlug ? toPoolRouteId(routeSlug, tokenId) : slug,
+        collectionSlug: slug,
+        name,
+        art: collectionArt(slug, imageUrl, name),
+        live,
+        lowest: targetEth > 0 ? `${formatEth(targetEth)} ETH` : "TBA",
+        raised: `${formatEth(raisedEth)} ETH`,
+        progress: poolProgress(raisedEth, targetEth),
+        participants,
+        href: routeSlug ? `/pool/${toPoolRouteId(routeSlug, tokenId)}` : null,
+      };
+    };
+
+    const rows = openPoolRecords.map((p) =>
+      toRow(poolCollectionSlug(p), p.name, p.imageUrl, p.raisedEth, p.participants, poolIsLive(p), p.slug),
+    );
+    const seen = new Set(rows.map((r) => r.collectionSlug));
+    for (const extra of UPCOMING_CATALOG) {
+      if (seen.has(extra.slug)) continue;
+      rows.push(toRow(extra.slug, extra.name, "", 0, 0, false, null));
+    }
+    return rows;
+  }, [openPoolRecords, liveListings]);
+
   const livePools = pools.filter((p) => p.live);
-  const upcomingPools = pools.filter((p) => !p.live);
+  const upcomingPools = useMemo(() => {
+    const order = UPCOMING_CATALOG.map((c) => c.slug);
+    return pools
+      .filter((p) => !p.live)
+      .sort((a, b) => {
+        const ia = order.indexOf(a.collectionSlug);
+        const ib = order.indexOf(b.collectionSlug);
+        return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+      });
+  }, [pools]);
 
   const collectionCell = (p: (typeof pools)[number]) => (
     <div className="stl-c">
@@ -114,8 +161,7 @@ export default function PoolsPage() {
               {/* Priority Line is the pre-launch way in; keep it reachable from the strategy list. */}
               <button
                 type="button"
-                className="stl-btn"
-                style={{ marginLeft: "auto", width: "auto", padding: "0 16px" }}
+                className="stl-btn stl-h-pl"
                 onClick={() => router.push("/priority-line")}
               >
                 Priority Line
@@ -130,7 +176,7 @@ export default function PoolsPage() {
                   <col />
                   <col />
                   <col />
-                  <col style={{ width: "15%" }} />
+                  <col className="c-act" />
                 </colgroup>
                 <thead>
                   <tr>
@@ -166,7 +212,11 @@ export default function PoolsPage() {
                   )}
                   {!loading &&
                     livePools.map((p) => (
-                      <tr key={p.id} onClick={() => router.push(`/pool/${p.id}`)} style={{ cursor: "pointer" }}>
+                      <tr
+                        key={p.id}
+                        onClick={() => p.href && router.push(p.href)}
+                        style={{ cursor: p.href ? "pointer" : "default" }}
+                      >
                         <td>{collectionCell(p)}</td>
                         <td>{p.lowest}</td>
                         <td>{DEPOSITS_ENABLED ? p.raised : "—"}</td>
@@ -187,7 +237,7 @@ export default function PoolsPage() {
                             data-k="live"
                             onClick={(e) => {
                               e.stopPropagation();
-                              router.push(`/pool/${p.id}`);
+                              if (p.href) router.push(p.href);
                             }}
                           >
                             {DEPOSITS_ENABLED ? "Enter strategy" : "Preview strategy"}
@@ -218,8 +268,8 @@ export default function PoolsPage() {
                     <col />
                     <col />
                     <col />
-                    <col />
-                    <col style={{ width: "15%" }} />
+                  <col />
+                  <col className="c-act" />
                   </colgroup>
                   <thead>
                     <tr>
@@ -234,7 +284,11 @@ export default function PoolsPage() {
                   </thead>
                   <tbody>
                     {upcomingPools.map((p) => (
-                      <tr key={p.id} onClick={() => router.push(`/pool/${p.id}`)} style={{ cursor: "pointer" }}>
+                      <tr
+                        key={p.id}
+                        onClick={() => p.href && router.push(p.href)}
+                        style={{ cursor: p.href ? "pointer" : "default" }}
+                      >
                         <td>{collectionCell(p)}</td>
                         <td>{p.lowest}</td>
                         <td />

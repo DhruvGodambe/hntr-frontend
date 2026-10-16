@@ -15,3 +15,50 @@
 }
 @tailwind components;
 @tailwind utilities;
+
+/* Gift/redeem dialog: icon + copy share one baseline, message fills the row. */
+.gcm-lead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.gcm-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  line-height: 1;
+}
+.gcm-msg {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Gift/redeem dialog CTA — dark mode --olive is white, so the shared
+   .dm-proceed-btn:hover (olive) flashes the CLOSE button. Match V2 gf-btn. */
+.gcm-actions .dm-proceed-btn,
+.gcm-actions .dm-cancel-btn {
+  box-shadow: none;
+  transition: background 0.18s, color 0.18s;
+}
+.gcm-actions .dm-proceed-btn:hover,
+.gcm-actions .dm-cancel-btn:hover {
+  box-shadow: none;
+}
+body.dark .gcm-actions .dm-proceed-btn {
+  background: #f4f4f5;
+  color: #0a0a0b;
+}
+body.dark .gcm-actions .dm-proceed-btn:hover {
+  background: #e6e6e8;
+  color: #0a0a0b;
+}
+body.dark .gcm-actions .dm-proceed-btn.gcm-danger {
+  background: var(--red);
+  color: var(--cream);
+}
+body.dark .gcm-actions .dm-proceed-btn.gcm-danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--red) 82%, #000);
+  color: var(--cream);
+}

@@ -1,4 +1,5 @@
 import { pageMetadata } from "../../lib/metadata";
+import "./pools.css";
 
 export const metadata = pageMetadata(
   "NFT Strategies",

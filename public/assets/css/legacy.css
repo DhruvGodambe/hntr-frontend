@@ -2968,7 +2968,7 @@ body.dark{
   from { width: 100%; }
   to   { width: 0%; }
 }
-.gcm-lead{ display: flex; gap: 12px; align-items: flex-start; }
+.gcm-lead{ display: flex; gap: 12px; align-items: center; }
 .gcm-icon{
   flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
@@ -2993,8 +2993,28 @@ body.dark{
   color: var(--t4); word-break: break-all;
 }
 .gcm-actions{ display: flex; gap: 10px; margin-top: 20px; margin-bottom: 4px; }
+.gcm-actions .dm-proceed-btn,
+.gcm-actions .dm-cancel-btn{
+  padding: 0 24px;
+  min-width: 120px;
+  box-shadow: none;
+  transition: background .18s, color .18s;
+}
+.gcm-actions .dm-proceed-btn:hover,
+.gcm-actions .dm-cancel-btn:hover{ box-shadow: none; }
+.gcm-full{ flex: 1; width: 100%; }
+body.dark .gcm-actions .dm-proceed-btn{
+  background: #f4f4f5;
+  color: #0a0a0b;
+}
+body.dark .gcm-actions .dm-proceed-btn:hover{
+  background: #e6e6e8;
+  color: #0a0a0b;
+}
 .gcm-danger{ background: var(--red); color: var(--cream); }
 .gcm-danger:hover:not(:disabled){ background: color-mix(in srgb, var(--red) 82%, #000); }
+body.dark .gcm-actions .dm-proceed-btn.gcm-danger{ background: var(--red); color: var(--cream); }
+body.dark .gcm-actions .dm-proceed-btn.gcm-danger:hover:not(:disabled){ background: color-mix(in srgb, var(--red) 82%, #000); color: var(--cream); }
 .notif-item-meta{
   display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 3px;
 }

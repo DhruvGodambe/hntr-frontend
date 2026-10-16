@@ -7,7 +7,8 @@ import { useVoucherAccess, redeemVoucher, useVoucherInvalidate } from "../../lib
 import { resolveAppError } from "../../lib/errors";
 import GiftCodeDialog, { type GiftDialogState } from "./gift-codes/GiftCodeDialog";
 
-const CODE_RE = /^HNTR-[A-Z0-9]{4}-[A-Z0-9]{4}(-[A-Z0-9]{4})?$/;
+const CODE_FORMAT = "HNTR-XXXX-XXXX-XXXX";
+const CODE_RE = /^HNTR-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
 
 /**
  * "Redeem a membership code" panel on the membership page.
@@ -43,11 +44,19 @@ export default function MembershipRedeemPanel() {
 
   async function redeem() {
     const value = code.trim().toUpperCase();
+    if (!value) {
+      setDialog({
+        kind: "error",
+        title: "Code required",
+        message: "Please enter a code.",
+      });
+      return;
+    }
     if (!CODE_RE.test(value)) {
       setDialog({
         kind: "error",
         title: "Invalid code",
-        message: "Enter a valid code in the format HNTR-XXXX-XXXX-XXXX.",
+        message: `Enter a valid code in the format ${CODE_FORMAT}.`,
       });
       return;
     }
@@ -83,7 +92,7 @@ export default function MembershipRedeemPanel() {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !busy && redeem()}
-          placeholder="HNTR-XXXX-XXXX"
+          placeholder={CODE_FORMAT}
           maxLength={19}
           autoComplete="off"
           spellCheck={false}

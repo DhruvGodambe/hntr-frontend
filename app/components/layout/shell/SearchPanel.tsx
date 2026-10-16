@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import { usePools } from "../../../../lib/pools";
 import { TIERS } from "../../../../lib/contracts";
+import { LOCKED_WHEN_DISCONNECTED } from "./Sidebar";
 
 type SearchItem = { name: string; sub: string; icon: string; href: string };
 
@@ -33,10 +34,16 @@ const STATIC_INDEX: SearchItem[] = [
 type SearchPanelProps = {
   open: boolean;
   onClose: () => void;
+  walletConnected: boolean;
+  onOpenSignup: () => void;
 };
 
+function isWalletGated(href: string) {
+  return LOCKED_WHEN_DISCONNECTED.has(href.replace(/^\//, "").split("/")[0] ?? "");
+}
+
 /** V2 global search: quick navigation plus pages, live strategies and membership tiers. */
-export default function SearchPanel({ open, onClose }: SearchPanelProps) {
+export default function SearchPanel({ open, onClose, walletConnected, onOpenSignup }: SearchPanelProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [pos, setPos] = useState<React.CSSProperties>({});
@@ -103,6 +110,10 @@ export default function SearchPanel({ open, onClose }: SearchPanelProps) {
 
   const pick = (item: SearchItem) => {
     onClose();
+    if (!walletConnected && isWalletGated(item.href)) {
+      onOpenSignup();
+      return;
+    }
     router.push(item.href);
   };
 
