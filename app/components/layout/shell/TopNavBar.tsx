@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import NetworkSwitcher from "./NetworkSwitcher";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 type TopNavBarProps = {
   isDark: boolean;
@@ -111,6 +112,8 @@ export default function TopNavBar({
         </svg>
         <span>Search everything…</span>
       </div>
+      {/* On mobile V2 moves the language picker into the drawer header (see Sidebar brandAccessory). */}
+      {!isMobile && <LanguageSwitcher />}
       <div className="nav-r">
         <Link href="/webinar" className="nav-btn nav-live" title="Live Webinar" style={{ cursor: "pointer", position: "relative" }}>
           <span className="rec-dot" />

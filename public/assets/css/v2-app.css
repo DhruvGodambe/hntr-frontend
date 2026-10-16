@@ -51,3 +51,68 @@ html body #feed-home .np-grid > .nfx.nfx-loading::before {
     height: 320px !important;
   }
 }
+
+/* ── Language picker (HNTR Desktop Standalone: hntr-lang-css + hntr-i18n.js menu) ── */
+html body .nav-lang{position:relative;display:flex;align-items:center;gap:7px;height:40px;padding:0 12px;margin:0 auto 0 8px;border-radius:10px;cursor:pointer;font-family:var(--fn);font-size:14px;flex:0 0 auto;transition:border-color .2s;user-select:none}
+html body.dark .nav-lang{background:#161618;border:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.72)}
+html body:not(.dark) .nav-lang{background:#fff;border:1px solid rgba(0,0,0,.08);color:rgba(0,0,0,.6)}
+html body .nav-lang:hover{border-color:rgba(127,127,127,.35)}
+@media (max-width:760px){html body .nav-lang{height:36px;padding:0 10px;margin:0 0 0 4px}}
+.nav-lang-code{font-weight:600;letter-spacing:.06em;font-size:12px;min-width:18px;text-align:center}
+.nav-lang-menu{position:absolute;top:calc(100% + 8px);left:0;min-width:168px;padding:6px;border-radius:12px;display:flex;flex-direction:column;gap:2px;z-index:9999;box-shadow:0 18px 48px rgba(0,0,0,.35);cursor:default}
+.nav-lang-menu.right{left:auto;right:0}
+html body.dark .nav-lang-menu{background:#161618;border:1px solid rgba(255,255,255,.08);color:#f4f4f5}
+html body:not(.dark) .nav-lang-menu{background:#fff;border:1px solid rgba(0,0,0,.08);color:#111}
+.nav-lang-opt{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:12px;height:36px;padding:0 10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}
+.nav-lang-opt:hover{background:rgba(127,127,127,.09)}
+.nav-lang-opt.on{background:rgba(127,127,127,.16)}
+.nav-lang-opt:focus-visible{outline:2px solid #0a84ff;outline-offset:-2px}
+.nav-lang-opt > span{display:flex;align-items:center;gap:10px}
+.nav-lang-opt b{font-size:10px;letter-spacing:.08em;opacity:.55;min-width:22px}
+.nav-lang-opt i{width:6px;height:6px;border-radius:3px;background:currentColor;opacity:0}
+.nav-lang-opt.on i{opacity:1}
+/* mobile: icon-only globe in the drawer header, left of the theme toggle */
+html body .sb .sb-brand > .nav-lang{margin:0 0 0 auto!important;width:32px!important;height:32px!important;min-width:0!important;padding:0!important;gap:0!important;justify-content:center!important;background:none!important;border:0!important;box-shadow:none!important;flex:0 0 32px!important;color:inherit!important}
+html body .sb .sb-brand > .nav-lang > .nav-lang-menu{left:auto!important;right:-38px!important;font-size:13px}
+html body.dark .sb .sb-brand > .nav-lang{color:#fff!important}
+html body:not(.dark) .sb .sb-brand > .nav-lang{color:#0a0a0a!important}
+html body .sb .sb-brand > .nav-lang > *:not(svg:first-child):not(.nav-lang-menu){display:none!important}
+html body .sb .sb-brand > .nav-lang > svg:first-child{width:20px!important;height:20px!important;display:block!important}
+html body .sb .sb-brand > .nav-lang + #navThemeToggle{margin-left:4px!important}
+html[data-hntr-lang="hi"] body{font-family:var(--fn),"Noto Sans Devanagari","Nirmala UI",sans-serif}
+html[data-hntr-lang="zh"] body{font-family:var(--fn),"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif}
+/* drawer header: `.sb-brand span` is the 26px wordmark style — keep it off the menu */
+html body .sb .sb-brand .nav-lang-menu span{font-family:var(--fn)!important;font-size:13px!important;font-weight:500!important;letter-spacing:normal!important;line-height:normal!important;color:inherit!important;margin:0!important}
+
+/* ── Top bar fit, tablet (601–900px): the sidebar keeps its full width here, so the
+      search pill and language picker go compact. V2 itself overflows in this range. ── */
+@media (min-width:601px) and (max-width:900px){
+  html body .main-col > .nav .nav-search{flex:0 0 40px!important;width:40px!important;min-width:0!important;padding:0!important;justify-content:center!important}
+  html body .main-col > .nav .nav-search span{display:none!important}
+  html body .main-col > .nav .nav-lang{padding:0 10px;margin-left:6px}
+  html body .main-col > .nav .nav-lang > svg:last-of-type{display:none}
+}
+@media (min-width:601px) and (max-width:760px){
+  html body .main-col > .nav .nav-r{gap:6px!important}
+  html body .main-col > .nav .nav-r > .nav-live{display:none!important}
+  html body .main-col > .nav #connPill.conn-pill{gap:10px!important;padding:0 6px 0 14px!important}
+  html body .main-col > .nav #connPill #connLabel{font-size:13px!important}
+}
+/* long ENS names must not push the pill off-screen */
+html body .main-col > .nav #connPill #connLabel{display:inline-block!important;max-width:160px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+@media (max-width:1000px){html body .main-col > .nav #connPill #connLabel{max-width:110px}}
+@media (max-width:760px){html body .main-col > .nav #connPill #connLabel{max-width:84px}}
+@media (max-width:600px){html body .main-col > .nav #connPill #connLabel{max-width:80px}}
+@media (max-width:400px){html body .main-col > .nav #connPill #connLabel{max-width:64px}}
+/* ── Top bar fit, small phones ── */
+@media (max-width:380px){
+  html body .main-col > .nav.nav{padding-left:12px!important;padding-right:12px!important;gap:10px!important}
+  html body .main-col > .nav .nav-r{gap:5px!important}
+}
+@media (max-width:340px){
+  html body .main-col > .nav .nav-brand > span:last-child{display:none!important}
+}
+@media (min-width:601px) and (max-width:700px){
+  html body .main-col > .nav .nav-lang{padding:0;width:40px;justify-content:center}
+  html body .main-col > .nav .nav-lang .nav-lang-code{display:none}
+}

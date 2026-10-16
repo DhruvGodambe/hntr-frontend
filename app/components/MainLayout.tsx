@@ -7,6 +7,7 @@ import { Avatar } from "connectkit";
 import SignupOverlays from "./SignupOverlays";
 import NotificationSystem from "./NotificationSystem";
 import DepositModal from "./DepositModal";
+import OnboardingTour from "./onboarding/OnboardingTour";
 import { clearStoredAuth } from "../../lib/api";
 import { isCorrectAppChain } from "../../lib/contracts";
 import { useDashboardData } from "../../lib/rewards";
@@ -20,6 +21,7 @@ import { useReveal } from "./layout/hooks/useReveal";
 import { useContrastFix } from "./layout/hooks/useContrastFix";
 import Sidebar, { type SidebarProfile } from "./layout/shell/Sidebar";
 import TopNavBar, { ThemeToggleButton } from "./layout/shell/TopNavBar";
+import LanguageSwitcher from "./layout/shell/LanguageSwitcher";
 import SearchPanel from "./layout/shell/SearchPanel";
 import WalletPanel from "./layout/shell/WalletPanel";
 import { PlaceholderTip } from "./home/NftPlaceholders";
@@ -242,7 +244,14 @@ export default function MainLayout({ children, panelClassName }: MainLayoutProps
           currentPage={currentPage}
           walletConnected={walletConnected}
           profile={profile}
-          brandAccessory={isMobileView ? <ThemeToggleButton isDark={isDark} onToggle={toggleTheme} /> : null}
+          brandAccessory={
+            isMobileView ? (
+              <>
+                <LanguageSwitcher />
+                <ThemeToggleButton isDark={isDark} onToggle={toggleTheme} />
+              </>
+            ) : null
+          }
           onNavigate={() => setDrawerOpen(false)}
           onOpenSignup={openSignup}
           onLogout={disconnectWallet}
@@ -293,6 +302,8 @@ export default function MainLayout({ children, panelClassName }: MainLayoutProps
       <NotificationSystem panelOpen={notifPanelOpen} onClosePanel={() => setNotifPanelOpen(false)} />
 
       <SignupOverlays />
+
+      <OnboardingTour />
 
       <DepositModal open={depositOpen} assetName={depositAssetName} floorEth={depositFloorEth} onClose={closeDepositModal} />
     </>

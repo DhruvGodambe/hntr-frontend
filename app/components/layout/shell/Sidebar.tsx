@@ -92,25 +92,25 @@ const MAIN_ITEMS: NavItem[] = [
       </svg>
     ),
   },
+  {
+    page: "priority",
+    href: "/priority-line",
+    label: "Priority Line",
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" preserveAspectRatio="xMidYMid meet">
+        <rect x="1.5" y="3" width="13" height="10" rx="2" stroke="currentColor" strokeWidth="1.4" />
+        <path d="M5.5 3v10" stroke="currentColor" strokeWidth="1.4" strokeDasharray="1.6 1.6" />
+        <path d="M8.5 6.5h3.5M8.5 9.5h2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+    ),
+  },
 ];
 
 const GENERAL_ITEMS: NavItem[] = [
   {
-    page: "webinar",
-    href: "/webinar",
-    label: "Live Webinar",
-    className: "si-webinar",
-    icon: (
-      <svg viewBox="0 0 16 16" fill="none" preserveAspectRatio="xMidYMid meet">
-        <rect x="1.5" y="3.5" width="9.5" height="9" rx="1.6" stroke="currentColor" strokeWidth="1.4" />
-        <path d="M11 7.2l3.5-2v5.6L11 8.8" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-  {
     page: "learn",
     href: "/learn",
-    label: "Learn",
+    label: "HNTR Doc",
     icon: (
       <svg viewBox="0 0 16 16" fill="none" preserveAspectRatio="xMidYMid meet">
         <path
@@ -120,6 +120,18 @@ const GENERAL_ITEMS: NavItem[] = [
           strokeLinejoin="round"
         />
         <path d="M8 3.4v9.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    page: "webinar",
+    href: "/webinar",
+    label: "Live Webinar",
+    className: "si-webinar",
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" preserveAspectRatio="xMidYMid meet">
+        <rect x="1.5" y="3.5" width="9.5" height="9" rx="1.6" stroke="currentColor" strokeWidth="1.4" />
+        <path d="M11 7.2l3.5-2v5.6L11 8.8" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
       </svg>
     ),
   },
