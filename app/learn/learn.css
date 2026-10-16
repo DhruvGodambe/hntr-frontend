@@ -4,6 +4,14 @@
   min-height: 0;
 }
 
+html body #feed-learn .au-frame {
+  background: #ffffff;
+}
+
+html body.dark #feed-learn .au-frame {
+  background: #0f0f11;
+}
+
 #feed-learn .learn-back {
   position: absolute;
   top: 18px;

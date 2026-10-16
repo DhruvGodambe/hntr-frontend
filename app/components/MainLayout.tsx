@@ -30,6 +30,7 @@ declare global {
     openDepositModal?: (assetName?: string, floorEth?: string) => void;
     closeDepositModal?: () => void;
     reconnectWallet?: () => void;
+    setHntrTheme?: (theme: "dark" | "light") => void;
   }
 }
 
@@ -193,15 +194,23 @@ export default function MainLayout({ children, panelClassName }: MainLayoutProps
   };
   const closeSearch = useCallback(() => setSearchOpen(false), []);
 
-  const toggleTheme = () => {
-    const newIsDark = !isDark;
+  const applyTheme = useCallback((newIsDark: boolean) => {
     setIsDark(newIsDark);
     try {
       localStorage.setItem("hntrTheme", newIsDark ? "dark" : "light");
     } catch (e) {
       console.error("Failed to save theme:", e);
     }
-  };
+  }, []);
+
+  const toggleTheme = () => applyTheme(!isDark);
+
+  useEffect(() => {
+    window.setHntrTheme = (theme) => applyTheme(theme === "dark");
+    return () => {
+      delete window.setHntrTheme;
+    };
+  }, [applyTheme]);
 
   const profile: SidebarProfile | null =
     walletConnected && address

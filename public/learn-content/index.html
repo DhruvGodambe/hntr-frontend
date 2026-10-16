@@ -377,7 +377,35 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script="">
 class Component extends DCLogic {
-  state = { active: 'hntr-art', query: '', theme: (() => { try { return localStorage.getItem('hntr-docs-theme') || 'light'; } catch (e) { return 'light'; } })() };
+  state = { active: 'hntr-art', query: '', theme: (() => {
+    try {
+      if (window.parent && window.parent !== window && window.parent.document?.body) {
+        return window.parent.document.body.classList.contains('dark') ? 'dark' : 'light';
+      }
+    } catch (e) {}
+    try { return localStorage.getItem('hntr-docs-theme') || 'light'; } catch (e) { return 'light'; }
+  })() };
+
+  applyTheme(theme) {
+    if (theme !== 'dark' && theme !== 'light') return;
+    try { localStorage.setItem('hntr-docs-theme', theme); } catch (e) {}
+    document.documentElement.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-theme', theme);
+    if (this.state.theme !== theme) this.setState({ theme });
+  }
+
+  componentDidMount() {
+    this.applyTheme(this.state.theme);
+    this._onTheme = (event) => {
+      if (event.data?.type !== 'hntr-docs-theme') return;
+      this.applyTheme(event.data.theme === 'dark' ? 'dark' : 'light');
+    };
+    window.addEventListener('message', this._onTheme);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('message', this._onTheme);
+  }
 
   groups() {
     return [
@@ -419,18 +447,9 @@ class Component extends DCLogic {
   }
 
   toggleTheme() {
-    this.setState(st => {
-      const theme = st.theme === 'dark' ? 'light' : 'dark';
-      try { localStorage.setItem('hntr-docs-theme', theme); } catch (e) {}
-      // This theme is entirely local to the iframe (its own toggle, its own
-      // localStorage) — the parent /learn page has no way to know it changed
-      // unless told. It matches the parent's own "learn-sidebar" bridge
-      // pattern (see assets/js/mobile-nav.js) so the "BACK TO PLATFORM"
-      // button can follow along instead of staying stuck on whichever theme
-      // the outer app happened to be in.
-      try { window.parent.postMessage({ type: 'hntr-docs-theme', theme }, '*'); } catch (e) {}
-      return { theme };
-    });
+    const theme = this.state.theme === 'dark' ? 'light' : 'dark';
+    this.applyTheme(theme);
+    try { window.parent.postMessage({ type: 'hntr-docs-theme', theme }, '*'); } catch (e) {}
   }
 
   renderVals() {
@@ -483,14 +502,13 @@ class Component extends DCLogic {
 </script>
 
 <script>
-  // Tell the parent /learn page which theme this iframe is already showing
-  // (persisted from a previous visit via localStorage) as soon as this
-  // document loads, so "BACK TO PLATFORM" matches immediately rather than
-  // waiting for the next manual toggle inside the sidebar.
   (function () {
     try {
-      var theme = localStorage.getItem('hntr-docs-theme') || 'light';
-      window.parent.postMessage({ type: 'hntr-docs-theme', theme: theme }, '*');
+      if (window.parent && window.parent !== window && window.parent.document?.body) {
+        var theme = window.parent.document.body.classList.contains('dark') ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        document.body.setAttribute('data-theme', theme);
+      }
     } catch (e) {}
   })();
 </script>
