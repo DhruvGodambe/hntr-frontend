@@ -15,9 +15,7 @@ declare global {
 
 /** Set by "Don't show this again" — the tour never auto-opens while it is "1". */
 const HIDE_KEY = "hntr_onboarding_hide";
-/** Set the first time the tour auto-opens, so it only ever auto-opens once per browser. */
-const SEEN_KEY = "hntr_onboarding_seen";
-/** The tour greets visitors on their first arrival at the app home page. */
+/** The tour opens each time the visitor arrives on the app home page. */
 const HOME_PATH = "/home";
 const OPEN_DELAY_MS = 1800;
 const STEPS = 3;
@@ -86,14 +84,6 @@ const Arrow = () => (
 function readHidden() {
   try {
     return localStorage.getItem(HIDE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function readSeen() {
-  try {
-    return localStorage.getItem(SEEN_KEY) === "1";
   } catch {
     return false;
   }
@@ -613,8 +603,8 @@ function TourDialog({ onClose }: { onClose: () => void }) {
 }
 
 /**
- * First-visit "quick go-through" tour (3 steps: Welcome · NFT Strategies · Share & earn).
- * Auto-opens only on the visitor's first visit to /home (remembered in localStorage);
+ * Home "quick go-through" tour (3 steps: Welcome · NFT Strategies · Share & earn).
+ * Opens each time the visitor arrives on /home, until they tick "Don't show this again".
  * `window.obOpen()` reopens it on demand.
  */
 export default function OnboardingTour() {
@@ -633,17 +623,9 @@ export default function OnboardingTour() {
   }, [close]);
 
   useEffect(() => {
-    if (pathname !== HOME_PATH || readSeen() || readHidden()) return;
+    if (pathname !== HOME_PATH || readHidden()) return;
     let poll: ReturnType<typeof setInterval> | undefined;
-    const show = () => {
-      // Mark on open (not close) so leaving /home mid-tour doesn't bring it back.
-      try {
-        localStorage.setItem(SEEN_KEY, "1");
-      } catch {
-        /* storage blocked */
-      }
-      setOpen(true);
-    };
+    const show = () => setOpen(true);
     const timer = setTimeout(() => {
       // Wait out the Turnstile human gate if it is still up.
       if (!document.documentElement.hasAttribute("data-human-pending")) return show();
