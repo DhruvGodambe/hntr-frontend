@@ -1,7 +1,17 @@
 /* ──────────────────────────────────────────────────────────────
    MEMBERSHIP — "Redeem a membership code" panel.
-   Tokens come from /assets/css/styles.css (+ body.dark).
+   Tokens come from /assets/css/v2.css (+ body.dark).
    ────────────────────────────────────────────────────────────── */
+
+#panel-membership #membership-redeem.gf-card {
+  padding: 22px 24px 24px;
+}
+#panel-membership #membership-redeem .gf-card-hd {
+  margin-bottom: 18px;
+}
+#panel-membership #membership-redeem .gf-hint {
+  margin-top: 16px;
+}
 
 .mr-panel {
   padding: 18px 20px 20px;

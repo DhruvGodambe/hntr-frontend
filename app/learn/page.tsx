@@ -1,56 +1,58 @@
 "use client";
 
-import { useLayoutEffect } from "react";
-import { useRouter } from "nextjs-toploader/app";
+import { useEffect, useRef } from "react";
+import MainLayout from "../components/MainLayout";
+
+function platformTheme(): "dark" | "light" {
+  return document.body.classList.contains("dark") ? "dark" : "light";
+}
 
 export default function LearnPage() {
-  const router = useRouter();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  useLayoutEffect(() => {
-    document.body.dataset.page = "learn";
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    let last = platformTheme();
+
+    const postTheme = () => {
+      const theme = platformTheme();
+      last = theme;
+      iframe?.contentWindow?.postMessage({ type: "hntr-docs-theme", theme }, "*");
+    };
 
     const onMessage = (event: MessageEvent) => {
-      if (event.data?.type === "learn-sidebar") {
-        document.body.classList.toggle("learn-sidebar-open", Boolean(event.data.open));
-        return;
-      }
-      // The docs iframe has its own independent theme toggle/localStorage;
-      // it broadcasts its choice here (on load and on every toggle) so
-      // "BACK TO PLATFORM" can follow it instead of staying stuck on
-      // whatever the outer app's theme happened to be.
-      if (event.data?.type === "hntr-docs-theme") {
-        document.body.classList.toggle("dark", event.data.theme === "dark");
-      }
+      if (event.data?.type !== "hntr-docs-theme") return;
+      const theme = event.data.theme === "dark" ? "dark" : "light";
+      if (theme === platformTheme()) return;
+      window.setHntrTheme?.(theme);
     };
 
     window.addEventListener("message", onMessage);
+    iframe?.addEventListener("load", postTheme);
+    const observer = new MutationObserver(() => {
+      const theme = platformTheme();
+      if (theme !== last) postTheme();
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    postTheme();
 
     return () => {
-      delete document.body.dataset.page;
-      document.body.classList.remove("learn-sidebar-open", "dark");
       window.removeEventListener("message", onMessage);
+      iframe?.removeEventListener("load", postTheme);
+      observer.disconnect();
     };
   }, []);
 
-  const goBack = () => {
-    router.push("/");
-  };
-
   return (
-    <>
-      <button className="learn-back" type="button" onClick={goBack}>
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-          <path
-            d="M10 3.5 5.5 8l4.5 4.5"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        BACK TO PLATFORM
-      </button>
-      <iframe className="learn-frame" title="HNTR Learn" src="/learn-content/index.html" />
-    </>
+    <MainLayout>
+      <div className="feed au-host" id="feed-learn">
+        <iframe
+          ref={iframeRef}
+          className="au-frame"
+          title="HNTR Learn"
+          src="/learn-content/index.html"
+        />
+      </div>
+    </MainLayout>
   );
 }

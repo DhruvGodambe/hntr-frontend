@@ -1,6 +1,4 @@
 import { pageMetadata } from "../../lib/metadata";
-import "./presentation.css";
-import "./presentation-mobile.css";
 
 export const metadata = pageMetadata(
   "Business Presentation",

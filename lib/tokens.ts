@@ -1,4 +1,4 @@
-import { TOKEN_ADDRESSES } from "./contracts";
+import { ADDRESSES_BY_CHAIN, TOKEN_ADDRESSES } from "./contracts";
 
 export type PaymentToken = "USDT" | "USDC";
 
@@ -14,9 +14,17 @@ export function resolveTokenSymbol(addressOrSymbol?: string | null): PaymentToke
   if (upper === "USDT" || upper === "USDC") return upper;
 
   const lower = raw.toLowerCase();
+  const known: Array<[PaymentToken, string]> = [];
   for (const symbol of PAYMENT_TOKENS) {
     const configured = TOKEN_ADDRESSES[symbol];
-    if (configured && configured.toLowerCase() === lower) return symbol;
+    if (configured) known.push([symbol, configured]);
+  }
+  for (const chain of Object.values(ADDRESSES_BY_CHAIN)) {
+    if (chain.usdt) known.push(["USDT", chain.usdt]);
+    if (chain.usdc) known.push(["USDC", chain.usdc]);
+  }
+  for (const [symbol, configured] of known) {
+    if (configured.toLowerCase() === lower) return symbol;
   }
   return null;
 }

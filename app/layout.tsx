@@ -2,6 +2,9 @@ import "./globals.css";
 import ThemeTopLoader from "./components/ThemeTopLoader";
 import HumanGate from "./components/HumanGate";
 import ImpersonationBanner from "./components/ImpersonationBanner";
+// Translation layer is switched off with the language selector, so every visitor sees English
+// (a previously chosen language would otherwise stick with no way to change it).
+// import LanguageLayer from "./components/LanguageLayer";
 import Providers from "./providers";
 import { rootMetadata } from "../lib/metadata";
 
@@ -26,6 +29,7 @@ export default function RootLayout({
         }}
       >
         <ThemeTopLoader />
+        {/* <LanguageLayer /> */}
         <ImpersonationBanner />
         <Providers>
           <HumanGate>{children}</HumanGate>

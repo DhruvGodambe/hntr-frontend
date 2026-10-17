@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAccount } from "wagmi";
+import { useEffectiveAccount } from "./session";
 import { getAccount, switchChain, waitForTransactionReceipt, writeContract } from "wagmi/actions";
 import { api, ApiError } from "./api";
 import { ensureAuth } from "./auth";
@@ -58,7 +58,7 @@ export const priorityLineKeys = {
 };
 
 export function usePriorityLine() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useEffectiveAccount();
   return useQuery({
     queryKey: [...priorityLineKeys.overview, address],
     queryFn: async (): Promise<PriorityLineOverview> => {
@@ -73,7 +73,7 @@ export function usePriorityLine() {
 
 export function usePriorityLineInvalidate() {
   const qc = useQueryClient();
-  const { address } = useAccount();
+  const { address } = useEffectiveAccount();
   return async () => {
     await qc.invalidateQueries({ queryKey: priorityLineKeys.overview });
     await qc.invalidateQueries({ queryKey: ["notifications", address] });

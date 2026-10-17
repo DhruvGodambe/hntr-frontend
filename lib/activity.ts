@@ -1,31 +1,27 @@
-"use client";
-
 import { useQuery } from "@tanstack/react-query";
 import { api } from "./api";
 
-export type PublicActivityKind = "join" | "purchase";
+export type PlatformActivityKind = "join" | "purchase";
 
-export interface PublicActivityEntry {
+/** One row of the public platform feed: a member joining, or buying / upgrading / redeeming a membership. */
+export interface PlatformActivityEntry {
   id: string;
-  kind: PublicActivityKind;
+  kind: PlatformActivityKind;
   username: string;
   country?: string;
+  /** JOINED | PURCHASED | UPGRADED | REDEEMED */
   action: string;
   tier?: string;
+  /** Epoch milliseconds. */
   ts: number;
 }
 
-/** Toggle live platform activity feed (disabled until privacy masking + moderation are ready). */
-export const PLATFORM_ACTIVITY_ENABLED = false;
-
-/** Public "who joined / who bought" feed shown in the Platform Activity rail. No wallet required. */
+/** Public, unauthenticated feed (GET /api/activity/feed), newest first. The backend caps `limit` at 50. */
 export function usePlatformActivity(limit = 20) {
   return useQuery({
-    queryKey: ["platform-activity", limit],
-    queryFn: () => api.get<PublicActivityEntry[]>(`/api/activity/feed?limit=${limit}`),
-    enabled: PLATFORM_ACTIVITY_ENABLED,
-    staleTime: 10_000,
-    refetchInterval: 20_000,
-    refetchOnWindowFocus: true,
+    queryKey: ["activity", "feed", limit],
+    queryFn: () => api.get<PlatformActivityEntry[]>(`/api/activity/feed?limit=${limit}`),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
   });
 }

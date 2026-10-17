@@ -1,30 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useAccount } from "wagmi";
-import { getStoredAuth, type StoredAuth } from "./api";
+import { getStoredAuthSnapshot, subscribeStoredAuth } from "./api";
 
 /**
- * Merges the live wagmi wallet connection with a stored super-login session, so a
- * read-only impersonation session (no wallet actually connected in-browser) can
- * drive read-only dashboard/network data fetching exactly like a normal signed-in
- * wallet. Write actions (claiming, signing) must keep using wagmi's `useAccount()`
- * directly — they still require a real connected wallet.
+ * "Who is the app showing?" for read-only data and navigation.
+ *
+ * - Normal member: the connected wallet.
+ * - Super-login (operator viewing a member): the member's wallet from the stored session, and it always
+ *   wins over a wallet that happens to be connected in the same browser. The session token is only valid
+ *   for that member, so asking for the connected wallet's data with it is rejected by the backend.
+ *
+ * Write actions (claiming, depositing, signing) must keep using wagmi's `useAccount()` directly: they need
+ * a real connected wallet, and a super-login session is read-only anyway.
  */
 export function useEffectiveAccount() {
   const wagmi = useAccount();
-  const [stored, setStored] = useState<StoredAuth | null>(null);
-
-  useEffect(() => {
-    const sync = () => setStored(getStoredAuth());
-    sync();
-    window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
-  }, []);
+  // Server snapshot is null so the first client render matches the server HTML; it updates right after hydration.
+  const stored = useSyncExternalStore(subscribeStoredAuth, getStoredAuthSnapshot, () => null);
 
   const isImpersonation = !!stored?.isImpersonation;
-  const address = wagmi.address ?? (isImpersonation ? (stored!.walletAddress as `0x${string}`) : undefined);
-  const isConnected = wagmi.isConnected || isImpersonation;
+  const address = isImpersonation ? (stored!.walletAddress as `0x${string}`) : wagmi.address;
+  const isConnected = isImpersonation || wagmi.isConnected;
 
-  return { ...wagmi, address, isConnected, isImpersonation };
+  return { ...wagmi, address, isConnected, isImpersonation, viewingUsername: isImpersonation ? stored!.username : undefined };
 }

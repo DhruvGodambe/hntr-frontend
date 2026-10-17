@@ -1,31 +1,33 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { createPortal } from "react-dom";
+import { useRouter } from "nextjs-toploader/app";
+import { useState, useEffect, useCallback } from "react";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { Avatar } from "connectkit";
 import SignupOverlays from "./SignupOverlays";
 import NotificationSystem from "./NotificationSystem";
 import DepositModal from "./DepositModal";
+import OnboardingTour from "./onboarding/OnboardingTour";
 import { clearStoredAuth } from "../../lib/api";
-import { handleAppError } from "../../lib/errors";
-import { useDashboardData, useClaimCommissions, usePointsSummary } from "../../lib/rewards";
+import { useEffectiveAccount } from "../../lib/session";
+import { isCorrectAppChain } from "../../lib/contracts";
+import { useDashboardData } from "../../lib/rewards";
+import { LISTINGS_LIVE } from "../../lib/launch";
 import { useEnsIdentity } from "../../lib/useEnsIdentity";
 import type { StandardToastData } from "../../lib/notification-data";
 import type { MainLayoutProps } from "./layout/types";
-import { MOBILE_MQ } from "./layout/constants";
-import { resolveCurrentPage } from "./layout/utils";
-import { useActivityFeed } from "./layout/hooks/useActivityFeed";
-import { useMobileHomeSlots } from "./layout/hooks/useMobileHomeSlots";
-import { useMobileNavNotch } from "./layout/hooks/useMobileNavNotch";
-import RightRail from "./layout/rail/RightRail";
-import MobileHomeRailCard from "./layout/rail/MobileHomeRailCard";
-import PlatformActivity from "./layout/rail/PlatformActivity";
-import TopNavBar from "./layout/shell/TopNavBar";
+import { SHELL_MOBILE_MQ } from "./layout/constants";
+import { resolveCurrentPage, shortenAddress } from "./layout/utils";
+import { useReveal } from "./layout/hooks/useReveal";
+import { useContrastFix } from "./layout/hooks/useContrastFix";
+import Sidebar, { type SidebarProfile } from "./layout/shell/Sidebar";
+import TopNavBar, { ThemeToggleButton } from "./layout/shell/TopNavBar";
+// Language selector is switched off for now.
+// import LanguageSwitcher from "./layout/shell/LanguageSwitcher";
+import SearchPanel from "./layout/shell/SearchPanel";
 import WalletPanel from "./layout/shell/WalletPanel";
-import BottomNav from "./layout/shell/BottomNav";
-import LayoutFooter from "./layout/shell/LayoutFooter";
+import { PlaceholderTip } from "./home/NftPlaceholders";
 
 declare global {
   interface Window {
@@ -33,106 +35,55 @@ declare global {
     openDepositModal?: (assetName?: string, floorEth?: string) => void;
     closeDepositModal?: () => void;
     reconnectWallet?: () => void;
+    setHntrTheme?: (theme: "dark" | "light") => void;
   }
 }
 
-export default function MainLayout({
-  children,
-  sbTransY = 0,
-  sbOpacity = 1,
-  railTransX = 0,
-  railOpacity = 1,
-}: MainLayoutProps) {
+export default function MainLayout({ children, panelClassName }: MainLayoutProps) {
   const pathname = usePathname();
-  const { address, isConnected: walletConnected } = useAccount();
+  const router = useRouter();
+  // `walletConnected` / `address` also cover a super-login session (read-only view of a member), so the
+  // sidebar locks, search gating and profile card treat that member as signed in. `chainId` stays the real wallet's.
+  const { address, isConnected: walletConnected, isImpersonation } = useEffectiveAccount();
+  const { chainId } = useAccount();
   const { disconnect } = useDisconnect();
   const { data: balanceData } = useBalance({ address, query: { enabled: !!address } });
   const { label: walletAddressLabel, ensName } = useEnsIdentity(address);
-  const navAvatar =
-    walletConnected && address ? (
-      <Avatar address={address} name={ensName ?? undefined} size={18} radius={5} />
-    ) : null;
-  const panelAvatar =
-    walletConnected && address ? (
-      <Avatar address={address} name={ensName ?? undefined} size={28} radius={7} />
-    ) : null;
-  const { summary, refetchSummary } = useDashboardData();
-  const { data: pointsSummary } = usePointsSummary();
-  const claimCommissions = useClaimCommissions();
+  const { summary } = useDashboardData();
 
-  const [claimBusySymbol, setClaimBusySymbol] = useState<"USDT" | "USDC" | null>(null);
-  const claimBusy = claimBusySymbol !== null;
   const [isDark, setIsDark] = useState(true);
   const [walletPanelOpen, setWalletPanelOpen] = useState(false);
   const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositAssetName, setDepositAssetName] = useState("Pool Asset");
   const [depositFloorEth, setDepositFloorEth] = useState("0.00");
-  const [balancesHidden, setBalancesHidden] = useState(false);
-  const [railOpen, setRailOpen] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
-  const [portalMounted, setPortalMounted] = useState(false);
-
-  const bottomNavRef = useRef<HTMLDivElement | null>(null);
-  const navBarPathRef = useRef<SVGPathElement | null>(null);
 
   const currentPage = resolveCurrentPage(pathname);
-  const hideRightRail =
-    currentPage === "network" || currentPage === "webinar" || currentPage === "gift-codes";
-  const showMobileHomeRail = currentPage === "home" && walletConnected && !hideRightRail && isMobileView;
-  const showMobileHomeActivity = currentPage === "home" && !hideRightRail && isMobileView;
-  const hideMobileRailToggle = isMobileView;
+  const hasSummary = !!summary;
+  const hasMembership = !!summary?.tier && summary.tier !== "None";
+  const wrongNetwork = !isImpersonation && walletConnected && chainId != null && !isCorrectAppChain(chainId);
 
-  const { activeTab, setActiveTab, filteredActivity } = useActivityFeed();
-  const { profileAnchor, activityAnchor } = useMobileHomeSlots(showMobileHomeRail, showMobileHomeActivity);
-
-  useMobileNavNotch(bottomNavRef, navBarPathRef, pathname, currentPage);
-
-  const maskBalance = useCallback((value: string) => (balancesHidden ? "••••••" : value), [balancesHidden]);
-  const closeRail = useCallback(() => setRailOpen(false), []);
-
-  const triggerNavHaptic = useCallback(() => {
-    try {
-      if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
-        navigator.vibrate(12);
-      }
-    } catch {
-      // Haptics unavailable or blocked in this environment.
-    }
-  }, []);
-
-  const onBottomNavClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if ((event.target as HTMLElement).closest(".si")) {
-        triggerNavHaptic();
-      }
-    },
-    [triggerNavHaptic],
-  );
-
-  const toggleRail = useCallback(() => {
-    setWalletPanelOpen(false);
-    setNotifPanelOpen(false);
-    setRailOpen((open) => !open);
-  }, []);
+  useReveal(pathname);
+  useContrastFix(isDark);
 
   useEffect(() => {
     try {
       const savedTheme = localStorage.getItem("hntrTheme");
       if (savedTheme === "light") setIsDark(false);
       else if (savedTheme === "dark") setIsDark(true);
-      if (localStorage.getItem("hntrBalHidden") === "1") setBalancesHidden(true);
     } catch (e) {
       console.error("Failed to load theme:", e);
     }
   }, []);
 
   useEffect(() => {
-    setPortalMounted(true);
-    const mq = window.matchMedia(MOBILE_MQ);
+    const mq = window.matchMedia(SHELL_MOBILE_MQ);
     const onChange = () => {
       setIsMobileView(mq.matches);
-      if (!mq.matches) setRailOpen(false);
+      if (!mq.matches) setDrawerOpen(false);
     };
     onChange();
     mq.addEventListener("change", onChange);
@@ -140,25 +91,28 @@ export default function MainLayout({
   }, []);
 
   useEffect(() => {
-    setRailOpen(false);
+    setDrawerOpen(false);
+    setSearchOpen(false);
   }, [pathname]);
 
   useEffect(() => {
-    if (!railOpen) return;
+    if (!drawerOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setRailOpen(false);
+      if (e.key === "Escape") setDrawerOpen(false);
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [railOpen]);
+  }, [drawerOpen]);
 
   useEffect(() => {
     document.body.dataset.page = currentPage;
     document.body.classList.toggle("wallet-connected", walletConnected);
-    document.body.classList.toggle("balances-hidden", balancesHidden);
-    document.body.classList.toggle("rail-drawer-open", railOpen);
+    document.body.classList.toggle("mdr-open", drawerOpen);
     document.body.classList.toggle("dark", isDark);
-  }, [isDark, currentPage, walletConnected, balancesHidden, railOpen]);
+    document.body.classList.toggle("hntr-prelaunch", !LISTINGS_LIVE);
+    document.body.classList.toggle("su-pending", walletConnected && hasSummary && !hasMembership);
+    document.body.classList.toggle("su-member", walletConnected && hasMembership);
+  }, [isDark, currentPage, walletConnected, drawerOpen, hasSummary, hasMembership]);
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
@@ -197,7 +151,7 @@ export default function MainLayout({
     setDepositOpen(true);
     setWalletPanelOpen(false);
     setNotifPanelOpen(false);
-    setRailOpen(false);
+    setDrawerOpen(false);
   }, []);
 
   useEffect(() => {
@@ -215,17 +169,24 @@ export default function MainLayout({
     if (!walletConnected) {
       setWalletPanelOpen(false);
       setNotifPanelOpen(false);
-      setRailOpen(false);
       openSignup();
       return;
     }
     setNotifPanelOpen(false);
-    setRailOpen(false);
+    setSearchOpen(false);
     setWalletPanelOpen((open) => !open);
   };
 
   const disconnectWallet = () => {
     setWalletPanelOpen(false);
+    setDrawerOpen(false);
+    // Logging out of a super-login view just ends it; there is no wallet to disconnect.
+    if (isImpersonation) {
+      clearStoredAuth();
+      window.showToast?.({ title: "Exited super-login", sub: "The read-only member view was closed.", link: "" });
+      router.push("/super-login");
+      return;
+    }
     const disconnectedLabel = walletAddressLabel;
     clearStoredAuth();
     disconnect();
@@ -238,182 +199,138 @@ export default function MainLayout({
 
   const toggleNotifPanel = () => {
     setWalletPanelOpen(false);
-    setRailOpen(false);
+    setSearchOpen(false);
     setNotifPanelOpen((open) => !open);
   };
 
-  const togglePrivacy = () => {
-    setBalancesHidden((hidden) => {
-      const next = !hidden;
-      try {
-        localStorage.setItem("hntrBalHidden", next ? "1" : "0");
-      } catch (e) {
-        console.error("Failed to save privacy preference:", e);
-      }
-      return next;
-    });
+  const toggleSearch = () => {
+    setWalletPanelOpen(false);
+    setNotifPanelOpen(false);
+    setSearchOpen((open) => !open);
   };
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
 
-  const toggleTheme = () => {
-    const newIsDark = !isDark;
+  const applyTheme = useCallback((newIsDark: boolean) => {
     setIsDark(newIsDark);
     try {
       localStorage.setItem("hntrTheme", newIsDark ? "dark" : "light");
     } catch (e) {
       console.error("Failed to save theme:", e);
     }
-  };
+  }, []);
 
-  const handleClaimCommissions = async (symbol: "USDT" | "USDC") => {
-    if (claimBusy) return;
-    const token = (summary?.tokens || []).find((t) => t.symbol === symbol && t.claimable > 0);
-    if (!token) {
-      window.showToast?.({
-        title: "Nothing to claim",
-        sub: `No claimable ${symbol} commissions right now.`,
-        link: "",
-      });
-      return;
-    }
-    setClaimBusySymbol(symbol);
-    try {
-      await claimCommissions([token]);
-      await refetchSummary();
-      window.showToast?.({
-        title: `${symbol} claimed`,
-        sub: `$${token.claimable.toFixed(2)} ${symbol} sent to your wallet.`,
-        link: "",
-      });
-    } catch (error) {
-      handleAppError(error, `${symbol} claim failed`);
-    } finally {
-      setClaimBusySymbol(null);
-    }
-  };
+  const toggleTheme = () => applyTheme(!isDark);
 
-  const hntrPoints = pointsSummary?.hntrPoints ?? 0;
+  useEffect(() => {
+    window.setHntrTheme = (theme) => applyTheme(theme === "dark");
+    return () => {
+      delete window.setHntrTheme;
+    };
+  }, [applyTheme]);
 
-  const railProps = {
-    walletConnected,
-    railOpen,
-    isMobileView,
-    railTransX,
-    railOpacity,
-    summary,
-    hntrPoints,
-    claimBusy,
-    claimBusySymbol,
-    balancesHidden,
-    activeTab,
-    filteredActivity,
-    maskBalance,
-    onTogglePrivacy: togglePrivacy,
-    onClaimCommissions: handleClaimCommissions,
-    onTabChange: setActiveTab,
-  };
+  const [siteOrigin, setSiteOrigin] = useState("");
+  useEffect(() => {
+    setSiteOrigin(window.location.origin);
+  }, []);
+  const referralLink = siteOrigin && summary?.username ? `${siteOrigin}/?ref=${summary.username}` : "";
+
+  const profile: SidebarProfile | null =
+    walletConnected && address
+      ? {
+          name: summary?.username || ensName || shortenAddress(address),
+          sub: referralLink,
+          tier: summary?.tier && summary.tier !== "None" ? summary.tier : null,
+          avatar: (
+            <span
+              style={{
+                display: "block",
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                overflow: "hidden",
+                border: `2px solid ${isDark ? "rgba(255,255,255,.9)" : "#e4e4e7"}`,
+              }}
+            >
+              <Avatar address={address} name={ensName ?? undefined} size={42} radius={21} />
+            </span>
+          ),
+        }
+      : null;
 
   return (
-    <div className="app-shell-root">
-      <TopNavBar
-        isDark={isDark}
-        walletConnected={walletConnected}
-        walletAddressLabel={walletAddressLabel}
-        walletAvatar={navAvatar}
-        railOpen={railOpen}
-        hideRightRail={hideRightRail}
-        hideMobileRailToggle={hideMobileRailToggle}
-        onToggleTheme={toggleTheme}
-        onToggleRail={toggleRail}
-        onToggleNotifPanel={toggleNotifPanel}
-        onToggleWalletPanel={toggleWalletPanel}
-      />
-
-      <WalletPanel
-        open={walletPanelOpen}
-        walletAddressLabel={walletAddressLabel}
-        walletAvatar={panelAvatar}
-        ensName={ensName}
-        balanceValue={balanceData?.value}
-        balanceSymbol={balanceData?.symbol}
-        onDisconnect={disconnectWallet}
-      />
-
-      <NotificationSystem panelOpen={notifPanelOpen} onClosePanel={() => setNotifPanelOpen(false)} />
-
-      {!hideRightRail && !isMobileView && (
-        <div className={`rail-backdrop${railOpen ? " open" : ""}`} onClick={closeRail} aria-hidden={!railOpen} />
-      )}
-
+    <>
       <div className="shell">
-        <BottomNav
+        <Sidebar
           currentPage={currentPage}
-          sbTransY={sbTransY}
-          sbOpacity={sbOpacity}
-          bottomNavRef={bottomNavRef}
-          navBarPathRef={navBarPathRef}
-          onBottomNavClick={onBottomNavClick}
+          walletConnected={walletConnected}
+          profile={profile}
+          brandAccessory={
+            isMobileView ? (
+              <>
+                {/* Language selector is switched off for now. */}
+                {/* <LanguageSwitcher /> */}
+                <ThemeToggleButton isDark={isDark} onToggle={toggleTheme} />
+              </>
+            ) : null
+          }
+          onNavigate={() => setDrawerOpen(false)}
+          onOpenSignup={openSignup}
+          onEditProfile={() =>
+            isImpersonation
+              ? window.showToast?.({ title: "Read-only view", sub: "Profiles can't be edited in a super-login session.", link: "" })
+              : window.openEditProfile?.()
+          }
         />
-
-        <div className="content">
-          <div className="page-panel active" id={`panel-${currentPage}`}>
-            {children}
-            {!hideRightRail && !isMobileView && <RightRail {...railProps} />}
+        <div className="main-col">
+          <TopNavBar
+            isDark={isDark}
+            isMobile={isMobileView}
+            walletConnected={walletConnected}
+            walletAddressLabel={walletAddressLabel}
+            wrongNetwork={wrongNetwork}
+            onOpenDrawer={() => setDrawerOpen(true)}
+            onOpenSearch={toggleSearch}
+            onToggleTheme={toggleTheme}
+            onToggleNotifPanel={toggleNotifPanel}
+            onToggleWalletPanel={toggleWalletPanel}
+          />
+          <div className="content">
+            <div className={`page-panel${panelClassName ? ` ${panelClassName}` : ""} active`} id={`panel-${currentPage}`}>
+              {children}
+            </div>
           </div>
         </div>
       </div>
 
-      {profileAnchor &&
-        showMobileHomeRail &&
-        createPortal(
-          <MobileHomeRailCard
-            summary={summary}
-            hntrPoints={hntrPoints}
-            claimBusy={claimBusy}
-            claimBusySymbol={claimBusySymbol}
-            balancesHidden={balancesHidden}
-            maskBalance={maskBalance}
-            onTogglePrivacy={togglePrivacy}
-            onClaimCommissions={handleClaimCommissions}
-          />,
-          profileAnchor,
-        )}
+      <div id="mScrim" onClick={() => setDrawerOpen(false)} aria-hidden={!drawerOpen} />
 
-      {activityAnchor &&
-        showMobileHomeActivity &&
-        createPortal(
-          <div className="mobile-home-activity">
-            <PlatformActivity
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              entries={filteredActivity}
-              inline
-            />
-          </div>,
-          activityAnchor,
-        )}
+      <SearchPanel
+        open={searchOpen}
+        onClose={closeSearch}
+        walletConnected={walletConnected}
+        onOpenSignup={openSignup}
+      />
+
+      <PlaceholderTip active={!LISTINGS_LIVE} />
+
+      <WalletPanel
+        open={walletPanelOpen}
+        walletAddressLabel={walletAddressLabel}
+        ensName={ensName}
+        chainId={chainId}
+        balanceValue={balanceData?.value}
+        balanceSymbol={balanceData?.symbol}
+        onDisconnect={disconnectWallet}
+        disconnectLabel={isImpersonation ? "EXIT VIEW" : undefined}
+      />
+
+      <NotificationSystem panelOpen={notifPanelOpen} onClosePanel={() => setNotifPanelOpen(false)} />
 
       <SignupOverlays />
 
-      {portalMounted &&
-        isMobileView &&
-        !hideRightRail &&
-        currentPage !== "home" &&
-        createPortal(
-          <>
-            <div className={`rail-backdrop${railOpen ? " open" : ""}`} onClick={closeRail} aria-hidden={!railOpen} />
-            <RightRail {...railProps} />
-          </>,
-          document.body,
-        )}
+      <OnboardingTour />
 
-      <DepositModal
-        open={depositOpen}
-        assetName={depositAssetName}
-        floorEth={depositFloorEth}
-        onClose={closeDepositModal}
-      />
-
-      <LayoutFooter />
-    </div>
+      <DepositModal open={depositOpen} assetName={depositAssetName} floorEth={depositFloorEth} onClose={closeDepositModal} />
+    </>
   );
 }

@@ -2,6 +2,7 @@
 
 import MainLayout from "../components/MainLayout";
 import GiftCodesPanel from "../components/gift-codes/GiftCodesPanel";
+import HntrFooter from "../components/layout/shell/HntrFooter";
 import { useVoucherAccess } from "../../lib/vouchers";
 
 export default function GiftCodesPage() {
@@ -9,7 +10,7 @@ export default function GiftCodesPage() {
 
   return (
     <MainLayout>
-      <div className="feed" id="feed-gift-codes">
+      <div className="feed" id="feed-gifts">
         <div className="page-body">
           {isLoading ? null : access?.enabled ? (
             <GiftCodesPanel access={access} />
@@ -25,6 +26,7 @@ export default function GiftCodesPage() {
             </div>
           )}
         </div>
+        <HntrFooter />
       </div>
     </MainLayout>
   );

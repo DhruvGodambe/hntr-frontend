@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAccount } from "wagmi";
+import { useEffectiveAccount } from "./session";
 import { api } from "./api";
 import { ensureAuth } from "./auth";
 
@@ -20,6 +20,7 @@ export type BackendNotificationType =
   | "PRIORITY_LINE_DEPOSIT"
   | "PRIORITY_LINE_WITHDRAWAL_REQUESTED"
   | "PRIORITY_LINE_WITHDRAWN"
+  | "SUPPORT_REPLY"
   | "GENERAL";
 
 export interface BackendNotification {
@@ -57,6 +58,10 @@ export function notificationActionHref(n: BackendNotification): string | null {
   }
   if (n.type === "VOUCHER_REDEEMED") return "/gift-codes";
   if (n.type.startsWith("PRIORITY_LINE_")) return "/priority-line";
+  if (n.type === "SUPPORT_REPLY") {
+    const ticket = typeof n.meta?.ticketId === "string" ? n.meta.ticketId : "";
+    return ticket ? `/support?ticket=${encodeURIComponent(ticket)}` : "/support";
+  }
   return null;
 }
 
@@ -101,7 +106,7 @@ export function dedupeNotifications(items: BackendNotification[]): BackendNotifi
 }
 
 export function useNotifications(limit = 50) {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useEffectiveAccount();
 
   return useQuery({
     queryKey: ["notifications", address, limit],
@@ -128,11 +133,13 @@ export function useNotifications(limit = 50) {
 }
 
 export function useMarkNotificationsRead() {
-  const { address } = useAccount();
+  const { address, isImpersonation } = useEffectiveAccount();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (ids?: string[]) => {
+      // A super-login view is read-only: never mark the member's notifications as read.
+      if (isImpersonation) return { modified: 0 };
       await ensureAuth();
       return api.post<{ modified: number }>(
         `/api/network/${address}/notifications/read`,

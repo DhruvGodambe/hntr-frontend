@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
 
         <div className="mt-8 pt-6 border-t border-[#222] text-center">
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/home")}
             className="text-gray-500 hover:text-white text-sm transition-colors"
           >
             ← Back to Application

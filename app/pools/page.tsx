@@ -1,492 +1,332 @@
 "use client";
 
-import MainLayout from "../components/MainLayout";
-import PoolsHeroBanner from "../components/PoolsHeroBanner";
-import TableEmptyState from "../components/empty/TableEmptyState";
-import { DEPOSIT_CTA_LABEL } from "../../lib/deposit-modal";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "nextjs-toploader/app";
-import {
-  formatUsd,
-  OPENSEA_POOL_META,
-  poolDisplayName,
-  toPoolRouteId,
-  useOpenSeaListingsForSlugs,
-  useOpenSeaMarketplaceSales,
-  type PoolCollectionSlug,
-} from "@/lib/opensea";
-import { usePools, poolCollectionSlug, poolProgress } from "@/lib/pools";
+import MainLayout from "../components/MainLayout";
+import HntrFooter from "../components/layout/shell/HntrFooter";
+import { DEPOSITS_ENABLED } from "../../lib/deposit-modal";
+import { toPoolRouteId, useOpenSeaListingsForSlugs } from "@/lib/opensea";
+import { usePools, poolCollectionSlug, poolProgress, type PublicPool } from "@/lib/pools";
+import { collectionArt } from "@/lib/collection-art";
+
+const LOGO_ROWS = [
+  ["l1.avif", "l2.avif", "l3.avif", "l4.avif", "l5.avif", "l6.avif", "l7.avif"],
+  ["l8.avif", "l9.webp", "l10.avif", "l11.avif", "l12.avif", "l13.avif", "l14.avif"],
+  ["l15.avif", "l16.avif", "l17.avif", "l18.avif", "l19.avif", "l20.avif", "l21.avif"],
+];
 
 const ACTIVITY_COLUMNS = ["Wallet", "Bid Amount", "Collection", "Completion", "Action"];
 
-type ActivityRow = {
-  id: string;
-  wallet: string;
-  amount: string;
-  date: string;
-  collection: string;
-  color: string;
-  pct: number;
-  isNew?: boolean;
-  openseaUrl?: string;
-};
+/** Client V2: only BAYC is the live strategy until deposits open. */
+const PRELAUNCH_LIVE_SLUG = "boredapeyachtclub";
+
+/** Client V2 upcoming table order. CryptoPunks is listed even when it has no pool record. */
+const UPCOMING_CATALOG: { slug: string; name: string }[] = [
+  { slug: "pudgypenguins", name: "Pudgy Penguins" },
+  { slug: "cryptopunks", name: "CryptoPunks" },
+  { slug: "azuki", name: "Azuki" },
+  { slug: "mutant-ape-yacht-club", name: "Mutant Ape Yacht Club" },
+];
+
+function poolIsLive(pool: PublicPool): boolean {
+  if (pool.status !== "OPEN" || pool.depositsPaused) return false;
+  if (!DEPOSITS_ENABLED) return poolCollectionSlug(pool) === PRELAUNCH_LIVE_SLUG;
+  return true;
+}
+
+const OPENSEA_ICON = (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <circle cx="12" cy="12" r="11" />
+    <path fill="#fff" d="M6 13.2 9.4 8l1.5 4.2-.6 1zM12.4 15h4.4c-.4 1.4-1.4 2.1-2.8 2.1H8.3c-.9 0-1.4-.9-1.4-1.7V15h3.9l.6-.9h1z" />
+  </svg>
+);
 
 function formatEth(value: number): string {
   if (!Number.isFinite(value) || value <= 0) return "0.00";
   return value >= 100 ? value.toFixed(1) : value.toFixed(2);
 }
 
-function timeAgo(timestamp: number): string {
-  if (!timestamp) return "—";
-  const ms = timestamp > 1e12 ? timestamp : timestamp * 1000;
-  const diff = Math.max(0, Date.now() - ms);
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}
-
-function truncateAddr(value: string): string {
-  if (!value || value.length < 10) return value || "—";
-  return `${value.slice(0, 6)}...${value.slice(-4)}`;
-}
-
 export default function PoolsPage() {
   const router = useRouter();
-  const [expandedPool, setExpandedPool] = useState<string | null>(null);
-  const [progWidths, setProgWidths] = useState<Record<string, number>>({});
-  const { data: poolRecords, isLoading: poolsLoading, error: listingsError } = usePools();
-  const openPoolRecords = useMemo(
-    () => (poolRecords ?? []).filter((p) => p.status !== "CLOSED"),
-    [poolRecords],
-  );
-  const collectionSlugs = useMemo(
-    () => Array.from(new Set(openPoolRecords.map((p) => poolCollectionSlug(p)))),
-    [openPoolRecords],
-  );
+  const { data: poolRecords, isLoading: poolsLoading, error: poolsError } = usePools();
+  const openPoolRecords = useMemo(() => (poolRecords ?? []).filter((p) => p.status !== "CLOSED"), [poolRecords]);
+  const collectionSlugs = useMemo(() => {
+    const fromPools = openPoolRecords.map((p) => poolCollectionSlug(p));
+    return Array.from(new Set([...fromPools, ...UPCOMING_CATALOG.map((c) => c.slug)]));
+  }, [openPoolRecords]);
   const { data: liveListings, isLoading: liveLoading } = useOpenSeaListingsForSlugs(collectionSlugs, 1);
-  const listingsLoading = poolsLoading || (collectionSlugs.length > 0 && liveLoading);
-  const { data: sales, isLoading: salesLoading } = useOpenSeaMarketplaceSales(2);
+  const loading = poolsLoading || (collectionSlugs.length > 0 && liveLoading);
 
   const pools = useMemo(() => {
-    return openPoolRecords.map((p) => {
-      const slug = poolCollectionSlug(p);
-      const live = liveListings?.[slug];
-      const tokenId = live?.listing?.tokenId || "0";
-      const targetEth = live?.floorEth ?? 0;
+    const toRow = (
+      slug: string,
+      name: string,
+      imageUrl: string,
+      raisedEth: number,
+      participants: number,
+      live: boolean,
+      routeSlug: string | null,
+    ) => {
+      const market = liveListings?.[slug];
+      const tokenId = market?.listing?.tokenId || "0";
+      const targetEth = market?.floorEth ?? 0;
       return {
-        id: toPoolRouteId(p.slug, tokenId),
-        slug,
-        tokenId,
-        name: p.name,
-        number: tokenId !== "0" ? `#${tokenId}` : "",
-        img: live?.listing?.imageUrl || p.imageUrl || "",
-        tags: (p.tags && p.tags.length ? p.tags : ["STRATEGY POOL"]) as readonly string[],
-        target: targetEth > 0 ? formatEth(targetEth) : "—",
-        raised: formatEth(p.raisedEth),
-        targetUsd: targetEth > 0 ? formatUsd(targetEth) : "$—",
-        raisedUsd: formatUsd(p.raisedEth),
-        progress: poolProgress(p.raisedEth, targetEth),
-        gpProfit: p.gpProfit,
-        ethProfit: p.ethProfit,
-        usdtProfit: p.usdtProfit,
-        users: p.participants,
+        id: routeSlug ? toPoolRouteId(routeSlug, tokenId) : slug,
+        collectionSlug: slug,
+        name,
+        art: collectionArt(slug, imageUrl, name),
+        live,
+        lowest: targetEth > 0 ? `${formatEth(targetEth)} ETH` : "TBA",
+        raised: `${formatEth(raisedEth)} ETH`,
+        progress: poolProgress(raisedEth, targetEth),
+        participants,
+        href: routeSlug ? `/pool/${toPoolRouteId(routeSlug, tokenId)}` : null,
       };
-    });
+    };
+
+    const rows = openPoolRecords.map((p) =>
+      toRow(poolCollectionSlug(p), p.name, p.imageUrl, p.raisedEth, p.participants, poolIsLive(p), p.slug),
+    );
+    const seen = new Set(rows.map((r) => r.collectionSlug));
+    for (const extra of UPCOMING_CATALOG) {
+      if (seen.has(extra.slug)) continue;
+      rows.push(toRow(extra.slug, extra.name, "", 0, 0, false, null));
+    }
+    return rows;
   }, [openPoolRecords, liveListings]);
 
-  const totals = useMemo(() => {
-    const raised = openPoolRecords.reduce((sum, p) => sum + (p.raisedEth || 0), 0);
-    const users = openPoolRecords.reduce((sum, p) => sum + (p.participants || 0), 0);
-    const avgProgress = pools.length
-      ? Math.round(pools.reduce((s, p) => s + p.progress, 0) / pools.length)
-      : 0;
-    return { raised, users, avgProgress };
-  }, [openPoolRecords, pools]);
+  const livePools = pools.filter((p) => p.live);
+  const upcomingPools = useMemo(() => {
+    const order = UPCOMING_CATALOG.map((c) => c.slug);
+    return pools
+      .filter((p) => !p.live)
+      .sort((a, b) => {
+        const ia = order.indexOf(a.collectionSlug);
+        const ib = order.indexOf(b.collectionSlug);
+        return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+      });
+  }, [pools]);
 
-  const activityRows = useMemo<ActivityRow[]>(() => {
-    return (sales || []).slice(0, 8).map((sale) => {
-      const slug = sale.collection as PoolCollectionSlug;
-      const meta = slug in OPENSEA_POOL_META ? OPENSEA_POOL_META[slug] : null;
-      return {
-        id: `${sale.collection}-${sale.tokenId}-${sale.timestamp}`,
-        wallet: truncateAddr(sale.contract),
-        amount: `${formatEth(sale.priceEth)} ETH`,
-        date: timeAgo(sale.timestamp),
-        collection: poolDisplayName(sale.collection),
-        color: meta?.color || "var(--olive)",
-        pct: 100,
-        openseaUrl: sale.openseaUrl,
-      };
-    });
-  }, [sales]);
+  const collectionCell = (p: (typeof pools)[number]) => (
+    <div className="stl-c">
+      <img src={p.art.logo} alt="" />
+      <div>
+        <div className="stl-n">
+          {p.name}
+          <em>ERC 721</em>
+        </div>
+      </div>
+    </div>
+  );
 
-  const goToPool = (poolId: string) => {
-    router.push(`/pool/${poolId}`);
-  };
-
-  const togglePool = (id: string) => {
-    setExpandedPool(expandedPool === id ? null : id);
-  };
-
-  useEffect(() => {
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    activityRows.forEach((row, i) => {
-      timers.push(
-        setTimeout(() => {
-          setProgWidths((prev) => {
-            if (prev[row.id] !== undefined) return prev;
-            return { ...prev, [row.id]: row.pct };
-          });
-        }, 200 + i * 100),
-      );
-    });
-    return () => timers.forEach(clearTimeout);
-  }, [activityRows]);
+  const marketplaceCell = (
+    <span className="stl-m">
+      {OPENSEA_ICON}
+      OpenSea
+    </span>
+  );
 
   return (
     <MainLayout>
-      <div className="feed" id="feed-pools">
+      <div className="feed" id="feed-pools" style={{ padding: "0 0 40px" }}>
         <div className="page-body">
-          <PoolsHeroBanner />
-
-          <div className="stat-strip">
-            <div className="ss">
-              <div className="ss-lbl">Total ETH Raised</div>
-              <div className="ss-val">
-                {formatEth(totals.raised)} <span className="eth-ic"></span>
-              </div>
-              <div className="ss-chg" style={{ color: "var(--t0)" }}>
-                ≈ {formatUsd(totals.raised)}
-              </div>
+          <div className="pools-hero">
+            <div className="ph-rows">
+              {LOGO_ROWS.map((row, i) => {
+                const imgs = [...row, ...row, ...row, ...row, ...row, ...row];
+                return (
+                  <div key={i} className={`ph-row${i % 2 ? " r" : ""}`} style={{ animationDuration: `${50 + i * 8}s` }}>
+                    {imgs.map((src, k) => (
+                      <img key={k} src={`/assets/v2/hntr-dark/logos/${src}`} alt="" loading="lazy" />
+                    ))}
+                  </div>
+                );
+              })}
             </div>
-            <div className="ss">
-              <div className="ss-lbl">NFT Strategy Available</div>
-              <div className="ss-val">
-                {pools.length} <span className="ss-unit">Pools</span>
-              </div>
-              <div className="ss-chg" style={{ color: "var(--t0)" }}>
-                {listingsLoading ? (
-                  <span className="pd-skel" style={{ display: "inline-block", width: 88, height: 10 }} />
-                ) : (
-                  "Live listings"
-                )}
-              </div>
-            </div>
-            <div className="ss">
-              <div className="ss-lbl">Avg. Progress</div>
-              <div className="ss-val">
-                {totals.avgProgress}<span className="ss-unit">%</span>
-              </div>
-              <div className="ss-chg" style={{ color: "var(--t0)" }}>
-                Across live pools
-              </div>
-            </div>
-            <div className="ss">
-              <div className="ss-lbl">Total Users</div>
-              <div className="ss-val">{totals.users.toLocaleString()}</div>
-              <div className="ss-chg" style={{ color: "var(--t0)" }}>
-                Contributors
-              </div>
+            <div className="ph-fade" />
+            <div className="pools-hero-content">
+              <div className="pools-hero-title">NFT STRATEGIES</div>
             </div>
           </div>
 
-          <div className="section-hdr pools-section-hdr">
-            <div className="section-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              CURRENT LIVE STRATEGIES
-              <span
-                className="live-dot"
-                style={{
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "50%",
-                  background: "#34d399",
-                  boxShadow: "0 0 8px rgba(52,211,153,.8)",
-                  flexShrink: 0,
-                }}
-              ></span>
-            </div>
-            {pools.length > 0 && (
-              <div
-                className="manage-link"
-                role="link"
-                tabIndex={0}
-                style={{ cursor: "pointer" }}
-                onClick={() => goToPool(pools[0].id)}
+          <section className="stl" id="stlLive">
+            <div className="stl-h">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="8.5" />
+                <circle cx="12" cy="12" r="4.5" />
+                <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+              </svg>
+              Live NFT Strategy
+              <span className="stl-dot" />
+              {/* Priority Line is the pre-launch way in; keep it reachable from the strategy list. */}
+              <button
+                type="button"
+                className="stl-btn stl-h-pl"
+                onClick={() => router.push("/priority-line")}
               >
-                View All
-              </div>
-            )}
-          </div>
+                Priority Line
+              </button>
+            </div>
+            <div className="stl-box">
+              <table className="stl-t">
+                <colgroup>
+                  <col className="c1" />
+                  <col />
+                  <col />
+                  <col />
+                  <col />
+                  <col />
+                  <col className="c-act" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Collection</th>
+                    <th>Lowest Price</th>
+                    <th>ETH Raised</th>
+                    <th>Percentage</th>
+                    <th>Participants</th>
+                    <th>Marketplace</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading &&
+                    [0, 1].map((i) => (
+                      <tr key={`skel-${i}`}>
+                        <td>
+                          <div className="pd-skel" style={{ width: 180, height: 32 }} />
+                        </td>
+                        {Array.from({ length: 6 }, (_, k) => (
+                          <td key={k}>
+                            <div className="pd-skel" style={{ width: 60, height: 12 }} />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  {!loading && poolsError && (
+                    <tr>
+                      <td colSpan={7} style={{ color: "#ff6b6b" }}>
+                        Could not load strategies. Please try again shortly.
+                      </td>
+                    </tr>
+                  )}
+                  {!loading &&
+                    livePools.map((p) => (
+                      <tr
+                        key={p.id}
+                        onClick={() => p.href && router.push(p.href)}
+                        style={{ cursor: p.href ? "pointer" : "default" }}
+                      >
+                        <td>{collectionCell(p)}</td>
+                        <td>{p.lowest}</td>
+                        <td>{DEPOSITS_ENABLED ? p.raised : "—"}</td>
+                        <td>
+                          <div className={`stl-pb${DEPOSITS_ENABLED ? "" : " au-pre"}`}>
+                            <span className="stl-g">{p.progress}%</span>
+                            <i>
+                              <b style={{ width: `${p.progress}%` }} />
+                            </i>
+                          </div>
+                        </td>
+                        <td>{p.participants.toLocaleString()}</td>
+                        <td>{marketplaceCell}</td>
+                        <td>
+                          <button
+                            type="button"
+                            className="stl-btn"
+                            data-k="live"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (p.href) router.push(p.href);
+                            }}
+                          >
+                            {DEPOSITS_ENABLED ? "Enter strategy" : "Preview strategy"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-          <div className="np-grid">
-            {listingsLoading && pools.length === 0 &&
-              [0, 1, 2, 3].map((i) => (
-                <div key={`pool-skel-${i}`} className="npc npc-skel" aria-hidden="true">
-                  <div className="npc-row">
-                    <div className="npc-art">
-                      <div className="pd-skel" style={{ width: "100%", height: "100%", minHeight: 168, borderRadius: 0 }} />
-                    </div>
-                    <div className="npc-body">
-                      <div className="npc-head">
-                        <div style={{ flex: 1 }}>
-                          <div className="pd-skel" style={{ width: "70%", height: 16, marginBottom: 8 }} />
-                          <div className="pd-skel" style={{ width: 56, height: 10 }} />
-                        </div>
-                        <div className="pd-skel" style={{ width: 88, height: 24, borderRadius: 5 }} />
-                      </div>
-                      <div className="npc-stats">
-                        <div className="pd-skel" style={{ height: 44, borderRadius: 6 }} />
-                        <div className="pd-skel" style={{ height: 44, borderRadius: 6 }} />
-                      </div>
-                      <div className="pd-skel pd-skel-bar" style={{ marginBottom: 14 }} />
-                      <div className="npc-act">
-                        <div className="pd-skel" style={{ flex: 1, height: 32, borderRadius: 6 }} />
-                        <div className="pd-skel" style={{ flex: 1.4, height: 32, borderRadius: 6 }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            {listingsError && pools.length === 0 && (
-              <div className="npc" style={{ padding: "24px", color: "#ff6b6b" }}>
-                OpenSea listings unavailable. Try again shortly.
+          {upcomingPools.length > 0 && (
+            <section className="stl" id="stlUp">
+              <div className="stl-h">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 2" />
+                </svg>
+                Upcoming NFT Strategies
               </div>
-            )}
-            {pools.map((pool) => (
-              <div key={pool.id} className={`npc${expandedPool === pool.id ? " open" : ""}`}>
-                <div className="npc-row">
-                  <div className="npc-art" onClick={() => goToPool(pool.id)} style={{ cursor: "pointer" }}>
-                    {pool.img ? (
-                      <img src={pool.img} alt={pool.name} />
-                    ) : (
-                      <div
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          background: "var(--e3)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "var(--t2)",
-                          fontSize: "12px",
-                        }}
+              <div className="stl-box">
+                <table className="stl-t">
+                  {/* Same 7-column grid as the live table; V2 CSS hides columns 3–5 here. */}
+                  <colgroup>
+                    <col className="c1" />
+                    <col />
+                    <col />
+                    <col />
+                    <col />
+                  <col />
+                  <col className="c-act" />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th>Collection</th>
+                      <th>Lowest Price</th>
+                      <th />
+                      <th />
+                      <th />
+                      <th>Marketplace</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {upcomingPools.map((p) => (
+                      <tr
+                        key={p.id}
+                        onClick={() => p.href && router.push(p.href)}
+                        style={{ cursor: p.href ? "pointer" : "default" }}
                       >
-                        No image
-                      </div>
-                    )}
-                    <div className="npc-pool">POOL {pool.number}</div>
-                  </div>
-                  <div className="npc-body">
-                    <div className="npc-head">
-                      <div>
-                        <div className="npc-name">
-                          {pool.name}
-                          <svg className="npc-verified" width="14" height="14" viewBox="0 0 22 22" fill="none" aria-label="Verified" role="img">
-                            <path d="M11 1.5l2.36 1.36 2.72-.2 1.36 2.36 2.36 1.36-.2 2.72 1.36 2.36-1.36 2.36.2 2.72-2.36 1.36-1.36 2.36-2.72-.2L11 20.5l-2.36-1.36-2.72.2-1.36-2.36L2.2 15.62l.2-2.72L1.04 10.54 2.4 8.18l-.2-2.72 2.36-1.36L5.92 1.74l2.72.2L11 1.5z" fill="#1a9eff"></path>
-                            <path d="M7.2 11.1l2.4 2.4 5.2-5.2" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
-                          </svg>
-                          {pool.number && <>{" "}<span>{pool.number}</span></>}
-                        </div>
-                        <div className="npc-tags">
-                          {pool.tags.map((tag, i) => (
-                            <span key={i} className="npc-tag">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        className="npc-insights"
-                        onClick={() => goToPool(pool.id)}
-                      >
-                        <i></i>VIEW INSIGHTS
-                      </button>
-                    </div>
-                    <div className="npc-stats">
-                      <div>
-                        <div className="npc-sl">Target</div>
-                        <div className="npc-sv">
-                          {pool.target}
-                          <span className="eth-ic"></span>
-                        </div>
-                        <div className="npc-su">{pool.targetUsd}</div>
-                      </div>
-                      <div>
-                        <div className="npc-sl">Raised</div>
-                        <div className="npc-sv raised">
-                          {pool.raised}
-                          <span className="eth-ic"></span>
-                        </div>
-                        <div className="npc-su">{pool.raisedUsd}</div>
-                      </div>
-                    </div>
-                    <div className="npc-prog">
-                      <div className="npc-pr">
-                        <span>Progress</span>
-                        <span className="pct">{pool.progress.toFixed(1)}%</span>
-                      </div>
-                      <div className="npc-pb">
-                        <div className="npc-pf" style={{ width: `${pool.progress}%` }}></div>
-                      </div>
-                    </div>
-                    <div className="npc-act">
-                      <button
-                        className="npc-btn-pl"
-                        type="button"
-                        onClick={() => router.push("/priority-line")}
-                      >
-                        PRIORITY LINE
-                      </button>
-                      <button className="npc-btn-d" onClick={() => togglePool(pool.id)}>
-                        <span className="car">{expandedPool === pool.id ? "▴" : "▾"}</span>
-                        Pool Details
-                      </button>
-                      <button className="npc-btn-p" type="button" disabled>
-                        {DEPOSIT_CTA_LABEL}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div className="npc-detail">
-                  <div className="npc-detail-in">
-                    <div className="npc-db">
-                      <div className="npc-dl">GP Profit</div>
-                      <div className="npc-dv">{pool.gpProfit}</div>
-                    </div>
-                    <div className="npc-db">
-                      <div className="npc-dl">ETH Profit</div>
-                      <div className="npc-dv">{pool.ethProfit}</div>
-                    </div>
-                    <div className="npc-db">
-                      <div className="npc-dl">USDT Profit</div>
-                      <div className="npc-dv">{pool.usdtProfit}</div>
-                    </div>
-                    <div className="npc-db">
-                      <div className="npc-dl">Users</div>
-                      <div className="npc-dv">{pool.users}</div>
-                    </div>
-                  </div>
-                </div>
+                        <td>{collectionCell(p)}</td>
+                        <td>{p.lowest}</td>
+                        <td />
+                        <td />
+                        <td />
+                        <td>{marketplaceCell}</td>
+                        <td>
+                          <span className="stl-soon">Coming soon</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))}
-          </div>
+            </section>
+          )}
 
           <div className="rt-activity">
             <div className="rta-hdr">
-              <div className="rta-title">
-                <span className="rta-title-desktop">Real-Time Activity</span>
-                <span className="rta-title-mobile">Recent Sales</span>
-              </div>
-              <div className="rta-live">
-                <div className="rta-dot"></div>
-                <span className="rta-live-desktop">Real-Time</span>
-                <span className="rta-live-mobile">LIVE</span>
-              </div>
+              <div className="rta-title">Real-Time Activity</div>
+              <div className="rta-live">Starts at launch</div>
             </div>
-
-            <div className="pools-dep-mobile">
-              <TableEmptyState compact columns={ACTIVITY_COLUMNS} />
-              {/* Live mobile sales list — restore when Strategies activity launches
-              <div className="pools-dep-card">
-                {salesLoading && activityRows.length === 0 &&
-                  [0, 1, 2, 3].map((i) => (
-                    <div key={`dep-skel-${i}`} className="pools-dep-row">
-                      <div className="pd-skel" style={{ width: 52, height: 16, borderRadius: 4 }} />
-                      <div className="pools-dep-main">
-                        <div className="pd-skel" style={{ width: 90, height: 10, marginBottom: 6 }} />
-                        <div className="pd-skel" style={{ width: 48, height: 8 }} />
-                      </div>
-                      <div className="pd-skel" style={{ width: 64, height: 12 }} />
-                    </div>
-                  ))}
-                {activityRows.slice(0, 5).map((row) => (
-                  <div key={row.id} className={`pools-dep-row${row.isNew ? " fresh" : ""}`}>
-                    <span className="pools-dep-badge">SALE</span>
-                    <div className="pools-dep-main">
-                      <div className="pools-dep-wallet">{row.wallet}</div>
-                      <div className="pools-dep-date">{row.date}</div>
-                    </div>
-                    <div className="pools-dep-amt">{row.amount}</div>
-                  </div>
-                ))}
-                <div className="pools-dep-footer">
-                  {activityRows.length === 0
-                    ? "No recent OpenSea sales"
-                    : `Showing 1–${Math.min(5, activityRows.length)} of ${activityRows.length} sales`}
-                </div>
-              </div>
-              */}
-            </div>
-
-            <div className="pools-act-desktop table-scroll">
-              <TableEmptyState columns={ACTIVITY_COLUMNS} tableClassName="act-table" />
-              {/* Live activity table — restore when Strategies activity launches
-              <table className="act-table">
+            <div className="nempty">
+              <table className="act-table au-pre">
                 <thead>
                   <tr>
-                    {ACTIVITY_COLUMNS.map((col) => (
-                      <th key={col}>{col}</th>
+                    {ACTIVITY_COLUMNS.map((c) => (
+                      <th key={c}>{c}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody id="actTable">
-                  {salesLoading && activityRows.length === 0 &&
-                    [0, 1, 2, 3].map((i) => (
-                      <tr key={`act-skel-${i}`} className="act-skel">
-                        <td><div className="pd-skel" style={{ width: 88, height: 10 }} /></td>
-                        <td><div className="pd-skel" style={{ width: 72, height: 10 }} /></td>
-                        <td><div className="pd-skel" style={{ width: 140, height: 10 }} /></td>
-                        <td><div className="pd-skel pd-skel-bar" /></td>
-                        <td><div className="pd-skel" style={{ width: 64, height: 10 }} /></td>
-                      </tr>
-                    ))}
-                  {activityRows.map((row) => (
-                    <tr key={row.id} className={row.isNew ? "row-new" : ""}>
-                      <td className="td-wallet">{row.wallet}</td>
-                      <td className="td-amt">{row.amount}</td>
-                      <td>
-                        <div className="td-coll">
-                          <div className="td-coll-dot" style={{ background: row.color }}></div>
-                          <span className="td-coll-name">{row.collection}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="td-prog-wrap">
-                          <div className="td-prog-bar">
-                            <div
-                              className="td-prog-fill"
-                              style={{ width: `${progWidths[row.id] ?? 0}%` }}
-                            ></div>
-                          </div>
-                          <span className="td-prog-pct">{row.pct}%</span>
-                        </div>
-                      </td>
-                      <td>
-                        {row.openseaUrl ? (
-                          <a
-                            className="td-action"
-                            href={row.openseaUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            VIEW TX
-                          </a>
-                        ) : (
-                          <span className="td-action">VIEW TX</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+                <tbody id="actTable" />
               </table>
-              */}
+              <div className="au-note">Activity starts when the strategy goes live.</div>
             </div>
           </div>
         </div>
+        <HntrFooter />
       </div>
     </MainLayout>
   );

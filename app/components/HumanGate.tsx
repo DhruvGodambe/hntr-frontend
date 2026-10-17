@@ -45,6 +45,11 @@ export default function HumanGate({ children }: { children: React.ReactNode }) {
     setPassed(hasValidPass());
   }, []);
 
+  // Lets first-visit UI (e.g. the onboarding tour) wait until the gate is gone.
+  useEffect(() => {
+    document.documentElement.toggleAttribute("data-human-pending", passed !== true);
+  }, [passed]);
+
   const handleVerify = useCallback(async (token: string) => {
     setSubmitting(true);
     setError("");

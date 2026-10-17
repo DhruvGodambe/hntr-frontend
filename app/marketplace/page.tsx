@@ -1,575 +1,289 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { useAccount } from "wagmi";
+import { useEffect, useMemo, useState } from "react";
 import MainLayout from "../components/MainLayout";
-import VaultEmptyState from "../components/empty/VaultEmptyState";
-import TableEmptyState from "../components/empty/TableEmptyState";
-// import { useMemo, useState } from "react";
-// import {
-//   OPENSEA_COLLECTION_SLUGS,
-//   useOpenSeaCollections,
-//   useOpenSeaMarketplaceListings,
-// } from "@/lib/opensea";
+import HntrFooter from "../components/layout/shell/HntrFooter";
+import { PlaceholderBars } from "../components/home/NftPlaceholders";
+import { usePools, poolCollectionSlug } from "@/lib/pools";
+import { collectionArt } from "@/lib/collection-art";
 
-const MARKET_FILTER_TABS = ["All", "CryptoPunks", "BAYC", "Azuki", "Fidenza"] as const;
+// Marketplace is not live yet: the grids render the V2 pre-launch placeholder
+// cards and every activity value reads "—". Restore live OpenSea listings/sales
+// here at launch (see lib/launch.ts).
 
-type MarketFilterTab = (typeof MARKET_FILTER_TABS)[number];
+const GIF = "/assets/v2/hntr-dark/nft-cycle.gif";
+const MARK = "/assets/v2/hntr-dark/8b857621.png";
+const PLACEHOLDER_COUNT = 10;
 
-const NET_ACTIVITY_COLUMNS = ["Asset", "Event", "Price", "Source", "Time"];
+const HERO_NFTS = [
+  "nft-punk2.png",
+  "nft-dog.jpg",
+  "nft-penguin2.png",
+  "nft-ape-crown.jpeg",
+  "nft-bayc.jpg",
+  "nft-ape-captain.jpeg",
+  "nft-pudgy.jpg",
+  "nft-ape-demon.jpeg",
+  "nft-punk.jpg",
+  "nft-bayc3d.jpg",
+  "nft-bayc-soldier.jpg",
+  "nft-penguin2.png",
+  "nft-dog.jpg",
+  "nft-ape-crown.jpeg",
+  "nft-ape-captain.jpeg",
+];
 
-const MARKET_ACTIVITY_ROWS = [
-  {
-    asset: "Pudgy Penguin #6523",
-    event: "PURCHASE",
-    eventClass: "ev-purchase",
-    price: "4.85 ETH",
-    source: "Blur.io",
-    time: "2m ago",
-  },
-  {
-    asset: "Bayc #3295",
-    event: "SALE",
-    eventClass: "ev-sale",
-    price: "2.30 ETH",
-    source: "OpenSea",
-    time: "15m ago",
-  },
-  {
-    asset: "Azuki #3295",
-    event: "SALE",
-    eventClass: "ev-sale",
-    price: "2.30 ETH",
-    source: "OpenSea",
-    time: "15m ago",
-  },
-  {
-    asset: "CryptoPunks #3295",
-    event: "SALE",
-    eventClass: "ev-sale",
-    price: "2.30 ETH",
-    source: "OpenSea",
-    time: "15m ago",
-  },
-  {
-    asset: "Normie #3295",
-    event: "SALE",
-    eventClass: "ev-sale",
-    price: "2.30 ETH",
-    source: "OpenSea",
-    time: "15m ago",
-  },
-] as const;
+const ACTIVITY_COLUMNS = ["Asset", "Event", "Price", "Source", "Time"];
 
-function nftMatchesFilter(name: string, filter: MarketFilterTab) {
-  if (filter === "All") return true;
+type View = "held" | "sold";
 
-  const keywords: Record<Exclude<MarketFilterTab, "All">, string[]> = {
-    CryptoPunks: ["CryptoPunk", "Punk"],
-    BAYC: ["Bored Ape", "BAYC", "Bayc"],
-    Azuki: ["Azuki"],
-    Fidenza: ["Fidenza"],
+function viewBtnStyle(on: boolean): React.CSSProperties {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 7,
+    height: 34,
+    padding: "0 16px",
+    borderRadius: 9,
+    border: 0,
+    background: on ? "#fff" : "transparent",
+    color: on ? "#0a0a0a" : "#a1a1aa",
+    fontFamily: "var(--fn)",
+    fontSize: 13,
+    fontWeight: 700,
+    letterSpacing: ".06em",
+    cursor: "pointer",
   };
-
-  return keywords[filter].some((keyword) => name.includes(keyword));
 }
-
-function getListingUrl(source: string) {
-  return source === "Blur" ? "https://blur.io" : "https://opensea.io";
-}
-
-const HARDCODED_NFTS = [
-  {
-    name: "Pudgy Penguin #6142",
-    img: "/assets/images/image-2.png",
-    boughtPrice: "8.20",
-    sellPrice: "11.40",
-    profit: "+9.2%",
-    source: "Blur",
-    sourceImg: "/assets/images/image-13.png",
-    openseaUrl: "https://opensea.io",
-    fallback: false,
-  },
-  {
-    name: "Azuki #4471",
-    img: "/assets/images/image-11.jpg",
-    boughtPrice: "5.10",
-    sellPrice: "6.85",
-    profit: "+7.4%",
-    source: "OpenSea",
-    sourceImg: "/assets/images/image-1.png",
-    openseaUrl: "https://opensea.io",
-    fallback: false,
-  },
-  {
-    name: "CryptoPunk #7804",
-    img: "/assets/images/image-12.png",
-    boughtPrice: "41.00",
-    sellPrice: "52.50",
-    profit: "+12.1%",
-    source: "OpenSea",
-    sourceImg: "/assets/images/image-1.png",
-    openseaUrl: "https://opensea.io",
-    fallback: false,
-  },
-  {
-    name: "Bored Ape #3362",
-    img: "/assets/images/image-6.jpg",
-    boughtPrice: "12.30",
-    sellPrice: "14.90",
-    profit: "+8.5%",
-    source: "Blur",
-    sourceImg: "/assets/images/image-13.png",
-    openseaUrl: "https://blur.io",
-    fallback: false,
-  },
-  {
-    name: "Doodles #5234",
-    img: "/assets/images/image-9.jpg",
-    boughtPrice: "3.20",
-    sellPrice: "4.10",
-    profit: "+6.8%",
-    source: "OpenSea",
-    sourceImg: "/assets/images/image-1.png",
-    openseaUrl: "https://opensea.io",
-    fallback: false,
-  },
-  {
-    name: "CloneX #9841",
-    img: "/assets/images/image-5.jpg",
-    boughtPrice: "7.50",
-    sellPrice: "9.20",
-    profit: "+10.3%",
-    source: "Blur",
-    sourceImg: "/assets/images/image-13.png",
-    openseaUrl: "https://blur.io",
-    fallback: false,
-  },
-];
-
-const HARDCODED_COLLECTIONS = [
-  { name: "CryptoPunks", count: 24 },
-  { name: "Bored Ape Yacht Club", count: 12 },
-  { name: "Azuki", count: 48 },
-  { name: "Fidenza", count: 8 },
-];
 
 export default function MarketplacePage() {
-  const { isConnected: walletConnected } = useAccount();
-  const [marketFilter, setMarketFilter] = useState<MarketFilterTab>("All");
-  const [collectionsOpen, setCollectionsOpen] = useState(true);
-  const [checkedCollections, setCheckedCollections] = useState<Record<string, boolean>>({
-    CryptoPunks: true,
-    "Bored Ape Yacht Club": true,
-    Azuki: false,
-    Fidenza: false,
-  });
+  const [view, setView] = useState<View>("held");
+  const [collOpen, setCollOpen] = useState(false);
+  const [coll, setColl] = useState("All");
+  const { data: pools } = usePools();
 
-  const collections = HARDCODED_COLLECTIONS.map((c) => ({ ...c, count: 0 }));
+  const collections = useMemo(
+    () =>
+      (pools ?? [])
+        .filter((p) => p.status !== "CLOSED")
+        .map((p) => ({ name: p.name, art: collectionArt(poolCollectionSlug(p), p.imageUrl, p.name) })),
+    [pools],
+  );
 
-  // Marketplace is not live yet — restore the block below when launching.
-  // const {
-  //   data: openSeaCollections,
-  //   isLoading: isLoadingCollections,
-  //   error: collectionsError,
-  // } = useOpenSeaCollections();
-  // const {
-  //   data: openSeaListings,
-  //   isLoading: isLoadingListings,
-  //   error: listingsError,
-  // } = useOpenSeaMarketplaceListings(4);
-  // const collections = useMemo(() => {
-  //   if (!openSeaCollections) return HARDCODED_COLLECTIONS;
-  //   return HARDCODED_COLLECTIONS.map((c) => {
-  //     const slug = OPENSEA_COLLECTION_SLUGS[c.name as keyof typeof OPENSEA_COLLECTION_SLUGS];
-  //     const stats = openSeaCollections[slug]?.stats;
-  //     return { ...c, count: stats?.nftCount || c.count };
-  //   });
-  // }, [openSeaCollections]);
-  // const nfts = useMemo(() => {
-  //   if (isLoadingListings) return [];
-  //   if (!openSeaListings?.length) return HARDCODED_NFTS;
-  //   return openSeaListings.map((listing) => {
-  //     const priceEth = listing.priceEth || 0;
-  //     const boughtEth = priceEth > 0 ? Number((priceEth * 0.8).toFixed(2)) : 0;
-  //     const profitPct = boughtEth > 0 ? ((priceEth - boughtEth) / boughtEth) * 100 : 0;
-  //     return {
-  //       name: listing.name,
-  //       img: listing.imageUrl || "",
-  //       boughtPrice: boughtEth.toFixed(2),
-  //       sellPrice: priceEth.toFixed(2),
-  //       profit: `${profitPct >= 0 ? "+" : ""}${profitPct.toFixed(1)}%`,
-  //       source: "OpenSea",
-  //       sourceImg: "/assets/images/image-1.png",
-  //       openseaUrl: listing.openseaUrl,
-  //       fallback: !listing.imageUrl,
-  //     };
-  //   });
-  // }, [openSeaListings, isLoadingListings]);
-  // const filteredNfts = useMemo(
-  //   () => nfts.filter((nft) => nftMatchesFilter(nft.name, marketFilter)),
-  //   [nfts, marketFilter],
-  // );
-  // const openListing = (nft: (typeof nfts)[number]) => {
-  //   const url = (nft as any).openseaUrl || getListingUrl(nft.source);
-  //   window.open(url, "_blank", "noopener,noreferrer");
-  // };
-  // const isLoading = isLoadingCollections || isLoadingListings;
-
-  const toggleCollection = (name: string) => {
-    setCheckedCollections((prev) => ({ ...prev, [name]: !prev[name] }));
-  };
+  useEffect(() => {
+    if (!collOpen) return;
+    const close = () => setCollOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [collOpen]);
 
   return (
     <MainLayout>
-      <div className="feed" id="feed-marketplace">
+      <div className="feed" id="feed-vault">
         <div className="vault-hero">
           <div className="vh-nftgrid">
-            {[
-              "/assets/images/image-2.png",
-              "/assets/images/image-11.jpg",
-              "/assets/images/image-12.png",
-              "/assets/images/image-6.jpg",
-              "/assets/images/image-9.jpg",
-              "/assets/images/image-5.jpg",
-              "/assets/images/image-7.jpg",
-              "/assets/images/image-3.jpg",
-              "/assets/images/image-4.jpg",
-              "/assets/images/image-8.jpg",
-              "/assets/images/image-10.jpg",
-              "/assets/images/image-12.png",
-              "/assets/images/image-11.jpg",
-              "/assets/images/image-6.jpg",
-              "/assets/images/image-5.jpg",
-            ].map((img, i) => (
-              <div key={i} className="vh-nft">
-                <img src={img} alt="" />
+            {HERO_NFTS.map((img, i) => (
+              <div className="vh-nft" key={i}>
+                <img src={`/assets/v2/nft/${img}`} alt="" />
               </div>
             ))}
           </div>
-          <div className="vault-hero-shade"></div>
+          <div className="vault-hero-shade" />
           <div className="vault-title">HNTR MARKETPLACE</div>
-          <div className="vault-sub">Browse, collect &amp; trade blue-chip NFTs</div>
-          {!walletConnected ? (
-            <div className="vault-join">
-              <Link href="/membership" className="join-btn">
-                Join today
-              </Link>
-            </div>
-          ) : null}
+          <div className="vault-sub">The pool’s assets. Browse every NFT HNTR holds.</div>
+          <div className="vault-join">
+            <button type="button" className="join-btn" onClick={() => window.openSignup?.()}>
+              Join today
+            </button>
+          </div>
         </div>
 
         <div className="proto-stats">
           <div className="ps">
             <div className="ps-lbl">Total Protocol Value</div>
-            <div className="ps-val">
-              $0
-              <span className="ps-unit">M</span>
-            </div>
-            <div className="ps-chg">—</div>
+            <div className="ps-val">$0</div>
           </div>
           <div className="ps">
             <div className="ps-lbl">Total NFTs Owned</div>
             <div className="ps-val">0</div>
-            <div className="ps-chg">—</div>
           </div>
           <div className="ps">
-            <div className="ps-lbl">Avg. Vault Yield</div>
-            <div className="ps-val">
-              0<span className="ps-unit">%</span>
-            </div>
-            <div className="ps-chg" style={{ color: "var(--t0)" }}>
-              APY — 30D avg
-            </div>
-          </div>
-          <div className="ps">
-            <div className="ps-lbl">Total Users</div>
+            <div className="ps-lbl">TOTAL CO-OWNERS</div>
             <div className="ps-val">0</div>
-            <div className="ps-chg" style={{ color: "var(--t0)" }}>
-              active
-            </div>
           </div>
-        </div>
-
-        <div className="mkt-filter-tabs" role="tablist" aria-label="Filter by collection">
-          {MARKET_FILTER_TABS.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              role="tab"
-              aria-selected={marketFilter === tab}
-              className={`mkt-filter-tab${marketFilter === tab ? " active" : ""}`}
-              onClick={() => setMarketFilter(tab)}
-            >
-              {tab}
-            </button>
-          ))}
+          <div className="ps">
+            <div className="ps-lbl">Total NFTs Sold</div>
+            <div className="ps-val">0</div>
+          </div>
         </div>
 
         <div className="vault-body">
-          <div className="vault-left">
-            <div className={`panel panel-collections vault-collections-panel${collectionsOpen ? "" : " collapsed"}`}>
-              <button
-                type="button"
-                className="panel-title panel-title-toggle"
-                onClick={() => setCollectionsOpen((open) => !open)}
-                aria-expanded={collectionsOpen}
+          <div className="vault-right">
+            <div className="grid-toolbar mk-tb">
+              <div
+                id="mkView"
+                style={{
+                  display: "flex",
+                  gap: 4,
+                  padding: 4,
+                  borderRadius: 12,
+                  background: "#161618",
+                  border: "1px solid rgba(255,255,255,.08)",
+                  marginRight: "auto",
+                }}
               >
-                Collections
-                <svg
-                  className={`panel-chevron${collectionsOpen ? " open" : ""}`}
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <polyline
-                    points="2,4 6,8 10,4"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  ></polyline>
-                </svg>
-              </button>
-              <div className="panel-body" hidden={!collectionsOpen}>
-                {collections.map((c) => (
-                  <div
-                    key={c.name}
-                    className="coll-row"
-                    onClick={() => toggleCollection(c.name)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        toggleCollection(c.name);
-                      }
+                <button type="button" data-v="held" onClick={() => setView("held")} style={viewBtnStyle(view === "held")}>
+                  <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true" style={{ flex: "none" }}>
+                    <rect x="2.5" y="2.5" width="6" height="15" rx="1.6" stroke="currentColor" strokeWidth="1.9" />
+                    <rect x="11.5" y="2.5" width="6" height="6" rx="1.6" stroke="currentColor" strokeWidth="1.9" />
+                    <rect x="11.5" y="11.5" width="6" height="6" rx="1.6" stroke="currentColor" strokeWidth="1.9" />
+                  </svg>
+                  NFT LISTED
+                </button>
+                <button type="button" data-v="sold" onClick={() => setView("sold")} style={viewBtnStyle(view === "sold")}>
+                  <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true" style={{ flex: "none" }}>
+                    <path d="M12.6 2.3A8 8 0 1 0 17.9 9.6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M6.4 9.6l3.2 3.2 7.6-8.6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  NFT SOLD
+                </button>
+              </div>
+              {view === "held" && (
+                <div className={`mk-sort${collOpen ? " open" : ""}`} id="mkColl">
+                  <button
+                    type="button"
+                    className="mk-sort-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCollOpen((o) => !o);
                     }}
                   >
-                    <div className={`coll-check${checkedCollections[c.name] ? " checked" : ""}`} />
-                    <span className="coll-name">{c.name}</span>
-                    <span className="coll-count">0</span>
-                    {/* {isLoadingCollections && c.count === 0 ? "..." : c.count} */}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="panel vault-portfolio-panel">
-              <div className="panel-title">Portfolio Distribution</div>
-              <div className="dist-bar">
-                <div className="dist-seg" style={{ width: "35%", background: "var(--olive)" }}></div>
-                <div className="dist-seg" style={{ width: "28%", background: "var(--sage)" }}></div>
-                <div className="dist-seg" style={{ width: "37%", background: "var(--beige)" }}></div>
-              </div>
-              <div className="dist-legend">
-                <div className="dist-item">
-                  <div className="dist-dot" style={{ background: "var(--olive)" }}></div>
-                  PUNKS
-                </div>
-                <div className="dist-item">
-                  <div className="dist-dot" style={{ background: "var(--sage)" }}></div>
-                  BAYC
-                </div>
-                <div className="dist-item">
-                  <div className="dist-dot" style={{ background: "var(--beige)" }}></div>
-                  ART
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="vault-right">
-            <div className="grid-toolbar">
-              <div className="sort-lbl" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span className="filter-empty-count" aria-live="polite">
-                  <span className="filter-empty-count-icon" aria-hidden="true" />
-                  0 ITEMS
-                </span>
-                <span>
-                  Sort: <span className="sort-val">Floor High to Low</span>
-                </span>
-              </div>
-              <div className="grid-icons">
-                <button className="gi active">
-                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                    <rect x="1" y="1" width="4" height="4" rx=".8" fill="currentColor"></rect>
-                    <rect x="7" y="1" width="4" height="4" rx=".8" fill="currentColor"></rect>
-                    <rect x="1" y="7" width="4" height="4" rx=".8" fill="currentColor"></rect>
-                    <rect x="7" y="7" width="4" height="4" rx=".8" fill="currentColor"></rect>
-                  </svg>
-                </button>
-                <button className="gi">
-                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                    <path
-                      d="M1 3h10M1 6h10M1 9h10"
-                      stroke="currentColor"
-                      strokeWidth="1.2"
-                      strokeLinecap="round"
-                    ></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <VaultEmptyState />
-
-            {/* Live listings grid — restore when Marketplace launches
-            {isLoading && (
-              <div className="pd-skel" style={{ marginLeft: "auto", width: 96, height: 10 }} aria-hidden="true" />
-            )}
-            {!isLoading && (collectionsError || listingsError) && (
-              <div className="sort-lbl" style={{ marginLeft: "auto", color: "#ff6b6b" }}>
-                OpenSea unavailable — fallback data
-              </div>
-            )}
-            {!isLoading && !collectionsError && !listingsError && openSeaListings && openSeaListings.length > 0 && (
-              <div className="sort-lbl" style={{ marginLeft: "auto", color: "var(--sage)" }}>
-                Live OpenSea data
-              </div>
-            )}
-            <div className="vault-grid">
-              {isLoadingListings &&
-                [0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-                  <div key={`vc-skel-${i}`} className="vc vc-skel" aria-hidden="true">
-                    <div className="vc-img-wrap">
-                      <div className="pd-skel" style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 0 }} />
-                    </div>
-                    <div className="vc-body">
-                      <div className="pd-skel" style={{ width: "72%", height: 12, marginBottom: 10 }} />
-                      <div className="pd-skel" style={{ width: "100%", height: 8, marginBottom: 6 }} />
-                      <div className="pd-skel" style={{ width: "100%", height: 8, marginBottom: 6 }} />
-                      <div className="pd-skel" style={{ width: "55%", height: 8, marginBottom: 10 }} />
-                      <div className="pd-skel" style={{ width: "100%", height: 28, borderRadius: 6 }} />
-                    </div>
-                  </div>
-                ))}
-              {!isLoadingListings && filteredNfts.map((nft, i) => (
-                <div key={i} className="vc">
-                  <div className="vc-img-wrap">
-                    {nft.img ? (
-                      <img className="vc-img" src={nft.img} alt={nft.name} />
-                    ) : (
+                    <span className="mk-sort-k">Collection:</span>
+                    <span id="mkCollLbl">{coll}</span>
+                    <svg viewBox="0 0 12 12" width="12" height="12" fill="none">
+                      <path d="M3 4.5L6 7.5 9 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                  <div className="mk-sort-menu" id="mkCollMenu">
+                    {["All", ...collections.map((c) => c.name)].map((name) => (
                       <div
-                        className="vc-img"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          background: "linear-gradient(135deg, var(--t1) 0%, var(--t2) 100%)",
-                          color: "var(--bg)",
-                          fontSize: "12px",
-                          textAlign: "center",
-                          padding: "12px",
+                        key={name}
+                        className={`mk-opt${coll === name ? " on" : ""}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setColl(name);
+                          setCollOpen(false);
                         }}
                       >
-                        {nft.fallback ? "OpenSea image unavailable" : "No image"}
+                        {name}
                       </div>
-                    )}
-                    <span className="src-logo" title={nft.source}>
-                      <img src={nft.sourceImg} alt={nft.source} />
-                    </span>
-                    <button
-                      type="button"
-                      className="vc-overlay"
-                      aria-label={`View ${nft.name} listing on ${nft.source}`}
-                      onClick={() => openListing(nft)}
-                    >
-                      <span className="vc-badge">VIEW</span>
-                    </button>
-                  </div>
-                  <div className="vc-body">
-                    <div className="vc-name">{nft.name}</div>
-                    <div className="vc-row">
-                      <span className="vc-k">Bought Price</span>
-                      <span className="vc-v">
-                        {nft.boughtPrice} <span className="eth-ic"></span>
-                      </span>
-                    </div>
-                    <div className="vc-row">
-                      <span className="vc-k">Sell Price</span>
-                      <span className="vc-v">
-                        {nft.sellPrice} <span className="eth-ic"></span>
-                      </span>
-                    </div>
-                    <div className="vc-row">
-                      <span className="vc-k">Gross Profit</span>
-                      <span className="vc-g">{nft.profit}</span>
-                    </div>
-                    <button className="lcbtn" onClick={() => openListing(nft)}>
-                      View Listing
-                    </button>
+                    ))}
                   </div>
                 </div>
-              ))}
+              )}
             </div>
-            <div className="show-more-wrap">
-              <button className="show-more-btn">SHOW MORE</button>
-            </div>
-            */}
+
+            {view === "sold" ? (
+              <div
+                id="mkSoldGrid"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(5,minmax(0,1fr))",
+                  gridAutoRows: "max-content",
+                  gap: 16,
+                  fontFamily: "var(--fn)",
+                }}
+              >
+                {Array.from({ length: PLACEHOLDER_COUNT }, (_, i) => (
+                  <div
+                    className="sdc gf"
+                    data-locked="1"
+                    key={i}
+                    style={{
+                      background: "#161618",
+                      border: "1px solid rgba(255,255,255,.07)",
+                      borderRadius: 14,
+                      overflow: "hidden",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <div className="nvw" style={{ position: "relative", aspectRatio: "1 / 1", flexShrink: 0, background: "rgb(10, 10, 12)" }}>
+                      <img src={GIF} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                      <img className="lc-gif" src={GIF} alt="" />
+                      <div className="lc-lock">
+                        <img src={MARK} alt="" />
+                      </div>
+                      <i className="sc-bdg" />
+                    </div>
+                    <div style={{ padding: "14px 16px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+                      <PlaceholderBars />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="vault-grid">
+                {Array.from({ length: PLACEHOLDER_COUNT }, (_, i) => (
+                  <div className="vc gf" data-locked="1" key={i}>
+                    <div className="vc-img-wrap">
+                      <img className="lc-gif" src={GIF} alt="" />
+                      <img className="vc-img" src={GIF} alt="" />
+                      <div className="lc-lock">
+                        <img src={MARK} alt="" />
+                      </div>
+                    </div>
+                    <div className="vc-body">
+                      <PlaceholderBars />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="net-act">
               <div className="net-act-hdr">
                 <div className="net-act-title">Network Activity</div>
-                <div className="net-act-link">View All Activity →</div>
               </div>
-
-              <div className="mkt-act-mobile">
-                <TableEmptyState compact columns={NET_ACTIVITY_COLUMNS} />
-                {/*
-                {MARKET_ACTIVITY_ROWS.map((row) => (
-                  <div key={row.asset} className="mkt-act-row">
-                    <div className="mkt-act-main">
-                      <div className="mkt-act-asset">{row.asset}</div>
-                      <div className="mkt-act-meta">
-                        <span className={`mkt-act-event ${row.eventClass}`}>{row.event}</span>
-                        <span className="mkt-act-source">
-                          {row.source} · {row.time}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mkt-act-price">{row.price}</div>
-                  </div>
-                ))}
-                */}
-              </div>
-
-              <div className="net-act-desktop net-table-scroll table-scroll">
-                <TableEmptyState columns={NET_ACTIVITY_COLUMNS} tableClassName="net-table" />
-                {/* Live activity rows — restore when Marketplace launches
+              <div className="nempty">
                 <table className="net-table">
                   <thead>
                     <tr>
-                      {NET_ACTIVITY_COLUMNS.map((col) => (
-                        <th key={col}>{col}</th>
+                      {ACTIVITY_COLUMNS.map((c) => (
+                        <th key={c}>{c}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody id="netTable">
-                    {MARKET_ACTIVITY_ROWS.map((row) => (
-                      <tr key={row.asset}>
-                        <td className="td-asset">{row.asset}</td>
+                    {collections.map((c) => (
+                      <tr key={c.name}>
                         <td>
-                          <span className={`td-event ${row.eventClass}`}>{row.event}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <img src={c.art.logo} alt="" style={{ width: 26, height: 26, borderRadius: 4, objectFit: "cover" }} />
+                            <span className="td-wallet">{c.name}</span>
+                          </div>
                         </td>
-                        <td className="td-price">
-                          {row.price.replace(" ETH", "")}{" "}
-                          <span style={{ fontSize: "11px", color: "var(--t2)" }}>ETH</span>
+                        <td>
+                          <span className="td-wallet" />
                         </td>
-                        <td className="td-source">{row.source}</td>
-                        <td className="td-time">{row.time}</td>
+                        <td>
+                          <span className="td-amt" />
+                        </td>
+                        <td>
+                          <span className="td-wallet" />
+                        </td>
+                        <td>
+                          <span className="td-time" />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                */}
               </div>
             </div>
           </div>
         </div>
+        <HntrFooter />
       </div>
     </MainLayout>
   );

@@ -1,0 +1,169 @@
+/*
+ * Landing page styles — the <style> block of "HNTR Landing.dc.html", every rule scoped under
+ * html[data-landing] (set by LandingPage while mounted) so nothing leaks into the app.
+ */
+
+@font-face{font-family:'Poppins';font-weight:400;font-display:swap;src:url("/assets/v2/hntr-dark/98a9e8b4.woff2") format('woff2')}
+@font-face{font-family:'Poppins';font-weight:500;font-display:swap;src:url("/assets/v2/hntr-dark/e012305a.woff2") format('woff2')}
+@font-face{font-family:'Poppins';font-weight:600;font-display:swap;src:url("/assets/v2/hntr-dark/8b5e0ef5.woff2") format('woff2')}
+@font-face{font-family:'Poppins';font-weight:700;font-display:swap;src:url("/assets/v2/hntr-dark/fb79775f.woff2") format('woff2')}
+@font-face{font-family:'Space Grotesk';font-weight:400 700;font-display:swap;src:url("/assets/v2/hntr-dark/124c461c.woff2") format('woff2')}
+@font-face{font-family:'Space Mono';font-weight:400;font-display:swap;src:url("/assets/v2/hntr-dark/7dff2a7d.woff2") format('woff2')}
+@font-face{font-family:'Space Mono';font-weight:700;font-display:swap;src:url("/assets/v2/hntr-dark/d55ca9bf.woff2") format('woff2')}
+@keyframes hBob{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(6px);opacity:1}}
+@keyframes auMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes auMarqueeR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+@keyframes hFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes hRise{from{opacity:0;transform:translateY(26px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes hStep{0%,17%{transform:rotate(0)}25%,42%{transform:rotate(90deg)}50%,67%{transform:rotate(180deg)}75%,92%{transform:rotate(270deg)}100%{transform:rotate(360deg)}}
+@keyframes hStation{0%,20%{color:var(--fg);text-shadow:0 0 18px rgba(var(--fg-rgb),.35);transform:scale(1.06)}27%,95%{color:rgba(var(--fg-rgb),.38);text-shadow:none;transform:scale(1)}100%{color:var(--fg);text-shadow:0 0 18px rgba(var(--fg-rgb),.35);transform:scale(1.06)}}
+@keyframes hStationBody{0%,20%{color:var(--fg)}27%,95%{color:rgba(var(--fg-rgb),.32)}100%{color:var(--fg)}}
+@keyframes hRingSpin{to{transform:rotate(360deg)}}
+@keyframes hNode{0%{background:var(--accent);box-shadow:0 0 0 0 rgba(var(--accent-rgb),.7),0 0 18px rgba(var(--accent-rgb),.9);transform:scale(1.5)}10%{background:var(--accent);box-shadow:0 0 0 14px rgba(var(--accent-rgb),0),0 0 10px rgba(var(--accent-rgb),.5);transform:scale(1.15)}22%{background:var(--node);box-shadow:none;transform:scale(1)}100%{background:var(--node);box-shadow:none;transform:scale(1)}}
+@keyframes hCore{0%{transform:scale(1.07);box-shadow:0 0 90px rgba(61,209,255,.45),inset 0 0 40px rgba(var(--accent-rgb),.18)}35%,100%{transform:scale(1);box-shadow:0 0 50px rgba(61,209,255,.18),inset 0 0 30px rgba(var(--accent-rgb),.06)}}
+@keyframes hHolo{0%,100%{opacity:.92}47%{opacity:.92}48%{opacity:.55}49%{opacity:.95}72%{opacity:.85}73%{opacity:.6}74%{opacity:.92}}
+@keyframes hScan{from{background-position:0 0}to{background-position:0 40px}}
+@keyframes hSweep{0%{top:-10%}100%{top:110%}}
+@media (max-width:760px){
+html[data-landing] #mech-grid{grid-template-columns:1fr 1fr!important;gap:22px 14px!important;align-items:start!important}
+html[data-landing] #mech-grid>div{max-width:none!important;text-align:center!important;justify-self:center!important}
+html[data-landing] #mech-grid>div:empty{display:none!important}
+html[data-landing] #mech-ring{grid-column:1/-1;order:-1;margin-bottom:12px}
+}
+@media (max-width:720px){
+html[data-landing] #steps-grid{grid-template-columns:1fr!important}
+}
+@media (max-width:600px){
+html[data-landing] #hero-cta{display:none!important}
+}
+@media (max-width:760px){
+html[data-landing] header{height:58px!important;padding:0 16px!important}
+html[data-landing] header nav{gap:6px!important}
+html[data-landing] header nav a{height:36px!important;padding:0 14px!important;font-size:11px!important;border-radius:8px!important}
+html[data-landing] #top{grid-template-columns:1fr!important;grid-template-rows:auto auto!important;min-height:auto!important;padding-top:58px!important;padding-bottom:64px!important}
+html[data-landing] #top>div:first-child{padding:36px 20px 24px!important;gap:20px!important}
+html[data-landing] #top h1{font-size:clamp(34px,10vw,50px)!important;line-height:1.18!important}
+html[data-landing] #top h1>span{white-space:normal!important}
+html[data-landing] #top>div:nth-child(2){margin:0 16px!important;border-radius:16px!important;min-height:58vh!important}
+html[data-landing] #together{min-height:auto!important;gap:32px!important;padding-top:96px!important}
+html[data-landing] #together>.sc-host-x,html[data-landing] #together>div:has(>#together-flip){position:relative!important;inset:auto!important;order:2;height:460px!important;width:100%!important;flex:none}
+html[data-landing] #together-flip{height:100%!important;width:100%!important}
+html[data-landing] #together-shade{display:none!important}
+html[data-landing] #together-copy{max-width:none!important;order:1}
+html[data-landing] #together #steps-grid{order:3}
+html[data-landing] #together h2,html[data-landing] #network h2{font-size:clamp(32px,9vw,44px)!important}
+html[data-landing] #hntr,html[data-landing] #network{min-height:auto!important}
+html[data-landing] [data-bcrow]{gap:10px!important}
+html[data-landing] [data-bc]{flex:0 0 calc(50% - 5px)!important;max-width:calc(50% - 5px)!important}
+html[data-landing] [data-bc] [data-step]{padding:14px 12px 16px!important;gap:14px!important;border-radius:12px!important}
+html[data-landing] [data-bc] [data-step]>div:nth-child(3){height:96px!important;gap:4px!important}
+html[data-landing] [data-bc] [data-step]>div:nth-child(3) img{width:28px!important;height:28px!important;border-radius:6px!important}
+html[data-landing] [data-bc] h3{font-size:14px!important}
+html[data-landing] [data-bc] [data-z]>div:last-child{font-size:26px!important}
+html[data-landing] [data-bc] [data-step]>div:last-child>div:first-child{gap:6px!important}
+html[data-landing] [data-bc] [data-step]>div:last-child>div:first-child>div>div:first-child,html[data-landing] [data-bc] [data-z]>div:first-child{font-size:9px!important;letter-spacing:.1em!important}
+html[data-landing] [data-bc] [data-step]>div:last-child>div:first-child>div>div:last-child{font-size:12px!important;white-space:nowrap}
+html[data-landing] #hntr>div:first-child,html[data-landing] #together>div:first-child,html[data-landing] #bluechip>div:first-child,html[data-landing] #network>div:first-child,html[data-landing] #what [data-rv]>div:first-child{font-size:12px!important;letter-spacing:.22em!important}
+html[data-landing] #hntr>div:first-child span,html[data-landing] #together>div:first-child span,html[data-landing] #bluechip>div:first-child span,html[data-landing] #network>div:first-child span,html[data-landing] #what [data-rv]>div:first-child span{width:24px!important}
+}
+html[data-landing]{scroll-behavior:smooth}
+@keyframes rvFallback{to{opacity:1;transform:none}}
+html[data-landing]:not(.rv-ok) [data-rv]{animation:rvFallback .8s cubic-bezier(.22,1,.36,1) 2.5s forwards}
+html[data-landing] [data-holo]{opacity:1!important;transform:none!important}
+html[data-landing]{--bg:#101010;--bg-rgb:16,16,16;--fg:#fff;--fg-rgb:255,255,255;--panel-rgb:10,12,20;--accent:#8affe4;--accent-rgb:138,255,228;--node:#1b2a33;--core1:#13202a;--core2:#0a0f16}
+html[data-landing][data-theme="light"]{--bg:#fafaf8;--bg-rgb:250,250,248;--fg:#0b0c0f;--fg-rgb:11,12,15;--panel-rgb:255,255,255;--accent:#0b8a74;--accent-rgb:11,138,116;--node:#e4eeee;--core1:#ffffff;--core2:#eef3f3}
+html[data-landing][data-theme="light"] hntr-wave,html[data-landing][data-theme="light"] hntr-gears,html[data-landing][data-theme="light"] hntr-everydays,html[data-landing][data-theme="light"] hntr-globe,html[data-landing][data-theme="light"] [data-holo]{filter:invert(1) hue-rotate(180deg)}
+html[data-landing][data-theme="light"] img[src*="8b857621"]{filter:invert(1)}
+html[data-landing] body{margin:0;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;transition:background .3s}
+html[data-landing] *{box-sizing:border-box}
+html[data-landing] a{color:#F25623;text-decoration:none}
+html[data-landing] a:hover{color:#ff7a45}
+html[data-landing] ::selection{background:#F25623;color:#000}
+
+/* style-hover */
+html[data-landing] .lp-h1:hover{opacity:1 !important;}
+html[data-landing] .lp-h2:hover{background:#e9e9ec !important;color:#0a0a0a !important;transform:translateY(-2px) scale(1.03) !important;box-shadow:0 8px 20px rgba(0,0,0,.25) !important;}
+html[data-landing] .lp-h3:hover{background:#e9e9ec !important;color:#0a0a0a !important;transform:translateY(-3px) scale(1.03) !important;box-shadow:0 12px 26px rgba(0,0,0,.28) !important;}
+html[data-landing] .lp-h4:hover{background:#e6e6e6 !important;color:#000 !important;transform:translateY(-2px) !important;}
+html[data-landing] .lp-h5:hover{background:#F25623 !important;color:#000 !important;}
+html[data-landing] .lp-h6:hover{background:#F25623 !important;color:#000 !important;}
+
+/* ── Undo the app shell's global resets on this page ─────────────────────────────
+   The root layout and v2.css lock html/body to a non-scrolling 100% flex column with
+   12px type and zeroed margins; the landing page is a normal document that scrolls. */
+html[data-landing],
+html[data-landing] body {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  overflow-x: visible !important;
+  max-width: none !important;
+}
+html[data-landing] body {
+  display: block !important;
+  font-family: initial;
+  font-size: 16px;
+  line-height: normal;
+}
+html[data-landing] .lp-root :is(h1, h2, h3, p) {
+  margin: revert;
+  padding: revert;
+  font-size: revert;
+  font-weight: revert;
+}
+html[data-landing] .lp-root :is(img, svg) {
+  display: revert;
+  max-width: revert;
+  height: revert;
+  vertical-align: revert;
+}
+html[data-landing] .lp-root button {
+  font: revert;
+  line-height: revert;
+  text-transform: revert;
+}
+/* v2.css forces Inter on every element with !important; restore the design's families. */
+html[data-landing] body .lp-root *:not(svg):not(svg *) {
+  font-family: inherit !important;
+}
+html[data-landing] body .lp-root .lp-ff-poppins { font-family: 'Poppins', sans-serif !important; }
+html[data-landing] body .lp-root .lp-ff-grotesk { font-family: 'Space Grotesk', sans-serif !important; }
+html[data-landing] body .lp-root .lp-ff-mono { font-family: 'Space Mono', monospace !important; }
+/* Tailwind preflight paints borders #e5e7eb; the design relies on the default currentColor. */
+html[data-landing] .lp-root *,
+html[data-landing] .lp-root ::before,
+html[data-landing] .lp-root ::after {
+  border-color: currentColor;
+}
+
+/* ── Tablet & in-between widths ───────────────────────────────────────────────────
+   The design defines a desktop layout and a ≤760px phone layout. Between them the
+   desktop grid gets squeezed: the hero headline shrinks to ~24px and the hologram card
+   (which centres itself in containers ≤900px) lands on top of the "We buy assets
+   together" copy. These rules carry the phone layout's structure up to tablet sizes. */
+@media (min-width:761px) and (max-width:900px),(min-width:761px) and (max-width:1100px) and (orientation:portrait){
+html[data-landing] #top{grid-template-columns:1fr!important;grid-template-rows:auto auto!important;min-height:auto!important;padding-bottom:72px!important}
+html[data-landing] #top>div:first-child{padding:56px clamp(24px,6vw,56px) 32px!important;gap:24px!important}
+html[data-landing] #top h1{font-size:clamp(44px,6.4vw,58px)!important;line-height:1.15!important}
+html[data-landing] #top>div:nth-child(2){margin:0 clamp(24px,6vw,56px)!important;border-radius:16px!important;min-height:min(62vh,620px)!important}
+}
+@media (min-width:761px) and (max-width:1100px){
+html[data-landing] #together{min-height:auto!important;gap:40px!important}
+html[data-landing] #together>.sc-host-x{position:relative!important;inset:auto!important;order:2;height:480px!important;width:100%!important;max-width:720px;align-self:center;flex:none}
+html[data-landing] #together-shade{display:none!important}
+html[data-landing] #together-copy{max-width:640px!important;order:1}
+html[data-landing] #together #steps-grid{order:3}
+}
+@media (min-width:721px) and (max-width:860px){
+html[data-landing] #steps-grid{grid-template-columns:1fr!important}
+}
+/* Small laptops / tall viewports: the card grows with viewport height, so keep the copy
+   column clear of it. */
+@media (min-width:1101px) and (max-width:1366px){
+html[data-landing] #together-copy{max-width:min(620px,42vw)!important}
+}
+/* Phones 721–760px wide: keep the card host ≤720px so the widget stays in its centred
+   phone mode. */
+@media (max-width:760px){
+html[data-landing] #together>.sc-host-x{max-width:720px;align-self:center}
+}

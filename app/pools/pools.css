@@ -1,0 +1,171 @@
+/* Live strategy table: fit the panel and keep Preview Strategy fully visible. */
+
+#feed-pools .stl,
+#feed-pools .stl-box {
+  min-width: 0;
+  max-width: 100%;
+}
+
+#feed-pools #stlLive .stl-h {
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+
+#feed-pools #stlLive .stl-h .stl-h-pl {
+  margin-left: auto;
+  width: auto;
+  flex: 0 0 auto;
+  padding: 0 16px !important;
+}
+
+#feed-pools #stlLive .stl-box {
+  overflow-x: auto;
+  container-type: inline-size;
+}
+
+#feed-pools #stlLive .stl-n {
+  min-width: 0;
+}
+
+#feed-pools #stlLive .stl-t {
+  width: 100% !important;
+  min-width: 0 !important;
+  table-layout: auto !important;
+}
+
+#feed-pools #stlLive .stl-t col.c-act {
+  width: 1%;
+}
+
+#feed-pools #stlLive .stl-t th:last-child,
+#feed-pools #stlLive .stl-t td:last-child {
+  width: 1%;
+  white-space: nowrap;
+  vertical-align: middle;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+#feed-pools #stlLive .stl-t .stl-btn[data-k="live"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  min-width: max-content;
+  max-width: none;
+  height: 38px;
+  padding: 0 14px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+/* Content width — sidebar already eats ~250px of the viewport. */
+@container (max-width: 1100px) {
+  #feed-pools #stlLive .stl-t th,
+  #feed-pools #stlLive .stl-t td {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  #feed-pools #stlLive .stl-pb i {
+    width: 48px;
+  }
+}
+
+@container (max-width: 900px) {
+  #feed-pools #stlLive .stl-t tr > :nth-child(3),
+  #feed-pools #stlLive .stl-t tr > :nth-child(4),
+  #feed-pools #stlLive .stl-t tr > :nth-child(5),
+  #feed-pools #stlLive .stl-t col:nth-child(3),
+  #feed-pools #stlLive .stl-t col:nth-child(4),
+  #feed-pools #stlLive .stl-t col:nth-child(5) {
+    display: none !important;
+  }
+
+  #feed-pools #stlLive .stl-n em {
+    display: none;
+  }
+
+  #feed-pools #stlLive .stl-t .stl-btn[data-k="live"] {
+    height: 36px;
+    padding: 0 12px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.06em;
+  }
+}
+
+@media (max-width: 900px) {
+  #feed-pools #stlLive .stl-h .stl-h-pl {
+    height: 36px;
+    padding: 0 12px !important;
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  #feed-pools #stlLive .stl-h .stl-h-pl {
+    margin-left: 0;
+  }
+}
+
+@container (max-width: 560px) {
+  #feed-pools #stlLive .stl-t {
+    display: block !important;
+    min-width: 0 !important;
+  }
+
+  #feed-pools #stlLive .stl-t colgroup,
+  #feed-pools #stlLive .stl-t thead {
+    display: none !important;
+  }
+
+  #feed-pools #stlLive .stl-t tbody,
+  #feed-pools #stlLive .stl-t tbody tr {
+    display: block;
+    width: 100%;
+  }
+
+  #feed-pools #stlLive .stl-t tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "col btn"
+      "meta btn";
+    gap: 8px 12px;
+    align-items: center;
+    padding: 12px 14px;
+    box-sizing: border-box;
+  }
+
+  #feed-pools #stlLive .stl-t td {
+    display: block;
+    width: auto !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  #feed-pools #stlLive .stl-t td:nth-child(1) {
+    grid-area: col;
+  }
+
+  #feed-pools #stlLive .stl-t td:nth-child(2) {
+    grid-area: meta;
+    font-size: 13px;
+    opacity: 0.85;
+  }
+
+  #feed-pools #stlLive .stl-t td:nth-child(6) {
+    display: none !important;
+  }
+
+  #feed-pools #stlLive .stl-t td:last-child {
+    grid-area: btn;
+  }
+
+  #feed-pools #stlLive .stl-t .stl-btn[data-k="live"] {
+    min-width: 0 !important;
+    width: auto;
+    height: 36px;
+  }
+}

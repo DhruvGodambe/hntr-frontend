@@ -7,7 +7,8 @@ import { useVoucherAccess, redeemVoucher, useVoucherInvalidate } from "../../lib
 import { resolveAppError } from "../../lib/errors";
 import GiftCodeDialog, { type GiftDialogState } from "./gift-codes/GiftCodeDialog";
 
-const CODE_RE = /^HNTR-[A-Z0-9]{4}-[A-Z0-9]{4}(-[A-Z0-9]{4})?$/;
+const CODE_FORMAT = "HNTR-XXXX-XXXX-XXXX";
+const CODE_RE = /^HNTR-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
 
 /**
  * "Redeem a membership code" panel on the membership page.
@@ -43,11 +44,19 @@ export default function MembershipRedeemPanel() {
 
   async function redeem() {
     const value = code.trim().toUpperCase();
+    if (!value) {
+      setDialog({
+        kind: "error",
+        title: "Code required",
+        message: "Please enter a code.",
+      });
+      return;
+    }
     if (!CODE_RE.test(value)) {
       setDialog({
         kind: "error",
         title: "Invalid code",
-        message: "Enter a valid code in the format HNTR-XXXX-XXXX-XXXX.",
+        message: `Enter a valid code in the format ${CODE_FORMAT}.`,
       });
       return;
     }
@@ -71,41 +80,36 @@ export default function MembershipRedeemPanel() {
   }
 
   return (
-    <div className="comparison mr-panel" ref={panelRef} id="membership-redeem">
-      <div className="mr-head">
-        <div className="cmp-title">Redeem a membership code</div>
-        <div className="mr-eyebrow">Gift &amp; Promo Codes</div>
+    <div className="gf-card" style={{ margin: "22px 0 24px" }} ref={panelRef} id="membership-redeem">
+      <div className="gf-card-hd">
+        <div className="gf-card-t">Redeem a membership code</div>
+        <div className="gf-card-n">Gift &amp; promo codes</div>
       </div>
-
-      <div className="mr-row">
+      <div className="mr-redeem">
         <input
-          className="mr-input"
+          className="gf-input code"
+          id="mrCodeIn"
           value={code}
           onChange={(e) => setCode(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !busy && redeem()}
-          placeholder="HNTR-XXXX-XXXX-XXXX"
+          placeholder={CODE_FORMAT}
           maxLength={19}
           autoComplete="off"
           spellCheck={false}
           disabled={busy}
         />
-        <button type="button" className="mr-redeem-btn" onClick={redeem} disabled={busy}>
+        <button type="button" className="gf-btn" onClick={redeem} disabled={busy}>
           {busy ? "Redeeming…" : "Redeem"}
         </button>
         {access?.enabled && (
-          <button
-            type="button"
-            className="mr-giftcodes-btn"
-            onClick={() => router.push("/gift-codes")}
-          >
+          <button type="button" className="gf-btn ghost" onClick={() => router.push("/gift-codes")}>
             Gift Codes
           </button>
         )}
       </div>
-
-      <div className="mr-hint">
-        Codes are single-use and expire 7 days after issue. Redeeming is free — no payment and no
-        gas; the tier credit applies to your membership immediately.
+      <div className="gf-hint">
+        Codes are single-use, issued to one username, and expire 7 days after issue. Redeeming applies the tier credit to your
+        membership immediately.
       </div>
       <GiftCodeDialog state={dialog} onClose={() => setDialog(null)} />
     </div>

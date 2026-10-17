@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "nextjs-toploader/app";
-import { useAccount } from "wagmi";
+import { useEffectiveAccount } from "../../lib/session";
 import {
   SALE_TOAST_DURATION_MS,
   STANDARD_TOAST_DURATION_MS,
@@ -83,7 +83,7 @@ type NotificationSystemProps = {
 
 export default function NotificationSystem({ panelOpen, onClosePanel }: NotificationSystemProps) {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, isImpersonation } = useEffectiveAccount();
   const { data, isLoading } = useNotifications(50);
   const markRead = useMarkNotificationsRead();
 
@@ -317,7 +317,8 @@ export default function NotificationSystem({ panelOpen, onClosePanel }: Notifica
             className="notif-clear-btn"
             type="button"
             onClick={clearNotifications}
-            disabled={!isConnected || unreadCount === 0 || markRead.isPending}
+            disabled={!isConnected || isImpersonation || unreadCount === 0 || markRead.isPending}
+            title={isImpersonation ? "Read-only super-login view" : undefined}
           >
             Mark all read
           </button>

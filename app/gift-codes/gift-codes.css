@@ -1,13 +1,13 @@
 /* ──────────────────────────────────────────────────────────────
    GIFT CODES — ported from gift-code-sample/index.html
    Scoped under .gc-scope so sample class names don't leak.
-   Tokens come from /assets/css/styles.css (+ body.dark).
+   Tokens come from /assets/css/v2.css (+ body.dark).
    ────────────────────────────────────────────────────────────── */
 
 #panel-gift-codes > .rail { display: none; }
 #panel-gift-codes > .feed { flex: 1; }
-#feed-gift-codes { padding: 0; }
-#feed-gift-codes .page-body { padding: 18px 0 40px; }
+#feed-gifts { padding: 0; }
+#feed-gifts .page-body { padding: 18px 0 40px; }
 
 .gc-scope { color: var(--t3); font-family: var(--fn, "Inter", sans-serif); font-size: 12px; line-height: 1.5; }
 .gc-scope .gc-wrap { max-width: none; width: 100%; margin: 0; padding: 0; }
@@ -144,7 +144,7 @@ body.dark .gc-scope .gf-tab.on { background: #f4f4f5; border-color: #f4f4f5; col
 body.dark .gc-scope .gf-tab.on b { color: #0a0a0b; }
 
 @media (max-width: 760px) {
-  #feed-gift-codes .page-body { padding: 0 0 8px; }
+  #feed-gifts .page-body { padding: 0 0 8px; }
   .gc-scope .gf-stats { grid-template-columns: 1fr 1fr; }
   .gc-scope .gf-top { grid-template-columns: minmax(0, 1fr); }
   .gc-scope .gf-panel { overflow-x: auto; }
