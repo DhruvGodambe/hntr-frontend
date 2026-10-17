@@ -69,19 +69,6 @@ const MAIN_ITEMS: NavItem[] = [
     ),
   },
   {
-    page: "membership",
-    href: "/membership",
-    label: "Membership",
-    icon: (
-      <svg viewBox="0 0 16 16" fill="none" preserveAspectRatio="xMidYMid meet">
-        <rect x="1.5" y="4" width="13" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-        <path d="M1.5 7.5h13" stroke="currentColor" strokeWidth="1.4" />
-        <path d="M4.5 10.5h3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-        <circle cx="11.5" cy="10.5" r="1" fill="currentColor" />
-      </svg>
-    ),
-  },
-  {
     page: "network",
     href: "/network",
     label: "Network",
@@ -89,6 +76,19 @@ const MAIN_ITEMS: NavItem[] = [
       <svg viewBox="0 0 16 16" fill="none" preserveAspectRatio="xMidYMid meet">
         <circle cx="8" cy="5.5" r="3" stroke="currentColor" strokeWidth="1.4" />
         <path d="M2.5 14c0-2.485 2.462-4.5 5.5-4.5s5.5 2.015 5.5 4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+];
+
+const PROMO_ITEMS: NavItem[] = [
+  {
+    page: "membership",
+    href: "/membership",
+    label: "Membership",
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" preserveAspectRatio="xMidYMid meet">
+        <path d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
       </svg>
     ),
   },
@@ -214,6 +214,8 @@ export default function Sidebar({
       </div>
       <div className="sb-sec">Main</div>
       {MAIN_ITEMS.map(renderItem)}
+      <div className="sb-sec">Promo</div>
+      {PROMO_ITEMS.map(renderItem)}
       <div className="si-bot">
         <div className="sb-sec">General</div>
         {GENERAL_ITEMS.map(renderItem)}

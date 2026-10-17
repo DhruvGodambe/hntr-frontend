@@ -9623,3 +9623,29 @@ html body .pd-cta button.au-soon,html body button.au-soon{opacity:.55!important;
 html body .act-table.au-pre tbody{display:none!important}
 html body .au-note{padding:22px 16px;text-align:center;font-size:14px;color:inherit;opacity:.8}
 html body .stl-pb.au-pre{visibility:hidden}
+
+/* Footer: HNTR Docs + Terms & Conditions */
+html body .feed .hf .hf-doc{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:999px;border:1px solid rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:600;letter-spacing:.04em;cursor:pointer;text-decoration:none;flex:0 0 auto;transition:background .2s,border-color .2s}
+html body .feed .hf .hf-doc:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.35)}
+html body:not(.dark) .feed .hf .hf-doc{color:#0b0c0f;border-color:rgba(0,0,0,.16)}
+html body:not(.dark) .feed .hf .hf-doc:hover{background:rgba(0,0,0,.05)}
+.hf-sep{margin:0 8px;opacity:.5}
+.hf-tc{color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.hf-tc:hover{color:#fff}
+body:not(.dark) .hf-tc:hover{color:#0b0c0f}
+@media (max-width:600px){
+  html body .feed .hf.hf{grid-template-areas:"brand doc" "soc copy"!important}
+  html body .feed .hf .hf-doc{grid-area:doc;justify-self:end}
+  html body .feed .hf .hf-copy{max-width:100%}
+}
+
+#feed-terms .tc-wrap{max-width:860px;margin:0 auto;background:var(--e1);border-radius:var(--r);box-shadow:var(--sh1);padding:40px 48px 48px;color:var(--t3);font-size:14px;line-height:1.7}
+#feed-terms .tc-wrap h1{font-family:var(--fd);font-size:30px;line-height:1.15;font-weight:700;letter-spacing:-.01em;color:var(--t4);margin:0 0 8px}
+#feed-terms .tc-date{font-family:var(--fm);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--t1);margin-bottom:26px}
+#feed-terms .tc-wrap h2{font-family:var(--fd);font-size:18px;font-weight:700;color:var(--t4);margin:34px 0 10px;padding-top:22px;border-top:1px solid rgba(127,127,127,.18)}
+#feed-terms .tc-wrap p{margin:0 0 12px;text-wrap:pretty}
+#feed-terms .tc-wrap strong{color:var(--t4);font-weight:700}
+#feed-terms .tc-wrap ul{margin:0 0 14px;padding-left:20px;display:grid;gap:8px}
+#feed-terms .tc-wrap li{text-wrap:pretty}
+#feed-terms .rv{opacity:1!important;transform:none!important}
+@media (max-width:700px){#feed-terms .tc-wrap{padding:26px 20px 32px}}

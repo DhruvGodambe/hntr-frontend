@@ -21,6 +21,7 @@ import { useDashboardData } from "../../lib/rewards";
 import { TIERS, TIERS_WITH_OTC } from "../../lib/contracts";
 import { api, ApiError } from "../../lib/api";
 import MembershipRedeemPanel from "../components/MembershipRedeemPanel";
+import MembershipPromoPopup from "../components/promo/MembershipPromoPopup";
 import HntrFooter from "../components/layout/shell/HntrFooter";
 import PaymentTokenToggle from "../components/PaymentTokenToggle";
 import MembershipPaySummary from "../components/MembershipPaySummary";
@@ -317,6 +318,7 @@ export default function MembershipPage() {
         </div>
         <HntrFooter />
       </div>
+      <MembershipPromoPopup />
     </MainLayout>
   );
 }

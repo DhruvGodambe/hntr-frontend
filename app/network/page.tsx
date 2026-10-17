@@ -28,10 +28,10 @@ import {
   type NetworkTreeDepth,
   type TransactionEntry,
 } from "../../lib/rewards";
-import { formatClaimableByToken, formatTokenLabel } from "../../lib/tokens";
+import { formatClaimableByToken, resolveTokenSymbol } from "../../lib/tokens";
 import { hasActiveMembership } from "../../lib/membership";
 import { useEffectiveAccount } from "../../lib/session";
-import { explorerTxUrl, TIERS } from "../../lib/contracts";
+import { explorerTxUrl, RANKS, TIERS } from "../../lib/contracts";
 import { useConnectWallet } from "../../lib/useConnectWallet";
 import type { StandardToastData } from "../../lib/notification-data";
 
@@ -99,6 +99,47 @@ function getTxSource(tx: TransactionEntry) {
   if (tx.tier) return `${tx.tier} tier`;
   if (tx.level) return `Level ${tx.level}`;
   return "—";
+}
+
+/** Stable filter keys. The menu is this fixed list, not values scraped from the current rows. */
+const TX_SOURCE_GROUPS = [
+  {
+    label: "Referral levels",
+    options: Array.from({ length: 12 }, (_, index) => ({
+      value: `level:${index + 1}`,
+      label: `Level ${index + 1}`,
+    })),
+  },
+  {
+    label: "Rank bonuses",
+    options: RANKS.map((rank) => ({
+      value: `rank:${rank.name}`,
+      label: `${rank.name} rank`,
+    })),
+  },
+  {
+    label: "Leadership",
+    options: [{ value: "leadership", label: "Global Sales Bonus" }],
+  },
+  {
+    label: "Membership tiers",
+    options: TIERS.map((tier) => ({
+      value: `tier:${tier.name}`,
+      label: `${tier.name} tier`,
+    })),
+  },
+] as const;
+
+const TX_SOURCE_OPTIONS = TX_SOURCE_GROUPS.flatMap((group) => [...group.options]);
+
+function txSourceKey(tx: TransactionEntry): string | null {
+  if (tx.type === "LEADERSHIP_PAYOUT") return "leadership";
+  if (tx.type === "ACHIEVEMENT_BONUS") {
+    return RANKS.some((rank) => rank.name === tx.tier) ? `rank:${tx.tier}` : null;
+  }
+  if (TIERS.some((tier) => tier.name === tx.tier)) return `tier:${tx.tier}`;
+  if (tx.level && tx.level >= 1 && tx.level <= 12) return `level:${tx.level}`;
+  return null;
 }
 
 function formatSourceUser(tx: TransactionEntry) {
@@ -218,6 +259,7 @@ export default function NetworkPage() {
   const [txTypeFilter, setTxTypeFilter] = useState<(typeof TX_TYPE_FILTER_OPTIONS)[number]["value"]>("all");
   const [txSourceFilter, setTxSourceFilter] = useState("all");
   const [txFilterOpen, setTxFilterOpen] = useState(false);
+  const [txSourceMenuOpen, setTxSourceMenuOpen] = useState(false);
   const [txPage, setTxPage] = useState(1);
   const transactions = txData?.transactions || [];
 
@@ -257,11 +299,7 @@ export default function NetworkPage() {
     [queryClient, summary?.username, isConnected],
   );
 
-  const txSourceOptions = useMemo(() => {
-    const sources = new Set<string>();
-    transactions.forEach((tx) => sources.add(getTxSource(tx)));
-    return ["all", ...Array.from(sources).sort((a, b) => a.localeCompare(b))];
-  }, [transactions]);
+  const txSourceLabel = TX_SOURCE_OPTIONS.find((option) => option.value === txSourceFilter)?.label ?? "All Sources";
 
   const filteredTransactions = useMemo(() => {
     const query = txSearch.trim().toLowerCase();
@@ -272,7 +310,7 @@ export default function NetworkPage() {
       const typeCategory = getTxTypeCategory(tx.type);
 
       if (txTypeFilter !== "all" && typeCategory !== txTypeFilter) return false;
-      if (txSourceFilter !== "all" && source !== txSourceFilter) return false;
+      if (txSourceFilter !== "all" && txSourceKey(tx) !== txSourceFilter) return false;
 
       if (!query) return true;
 
@@ -313,7 +351,10 @@ export default function NetworkPage() {
 
     const handlePointerDown = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.closest(".txh-filter-wrap")) setTxFilterOpen(false);
+      if (!target.closest(".txh-filter-wrap")) {
+        setTxFilterOpen(false);
+        setTxSourceMenuOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handlePointerDown);
@@ -1084,7 +1125,12 @@ export default function NetworkPage() {
                   <button
                     type="button"
                     className={`txh-filter-btn${txFilterOpen || txTypeFilter !== "all" || txSourceFilter !== "all" ? " active" : ""}`}
-                    onClick={() => setTxFilterOpen((open) => !open)}
+                    onClick={() =>
+                      setTxFilterOpen((open) => {
+                        if (open) setTxSourceMenuOpen(false);
+                        return !open;
+                      })
+                    }
                   >
                     <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
                       <path d="M1 3h10M3 6h6M5 9h2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
@@ -1107,16 +1153,56 @@ export default function NetworkPage() {
                           ))}
                         </select>
                       </label>
-                      <label className="txh-filter-field">
+                      <div className="txh-filter-field">
                         <span>Source</span>
-                        <select className="txh-filter-select" value={txSourceFilter} onChange={(e) => setTxSourceFilter(e.target.value)}>
-                          {txSourceOptions.map((source) => (
-                            <option key={source} value={source}>
-                              {source === "all" ? "All Sources" : source}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                        <div className="txh-source-menu">
+                          <button
+                            type="button"
+                            className="txh-filter-select txh-source-toggle"
+                            aria-haspopup="listbox"
+                            aria-expanded={txSourceMenuOpen}
+                            onClick={() => setTxSourceMenuOpen((open) => !open)}
+                          >
+                            {txSourceLabel}
+                          </button>
+                          {txSourceMenuOpen && (
+                            <div className="txh-source-list" role="listbox" aria-label="Source">
+                              <button
+                                type="button"
+                                role="option"
+                                aria-selected={txSourceFilter === "all"}
+                                className={`txh-source-opt${txSourceFilter === "all" ? " on" : ""}`}
+                                onClick={() => {
+                                  setTxSourceFilter("all");
+                                  setTxSourceMenuOpen(false);
+                                }}
+                              >
+                                All Sources
+                              </button>
+                              {TX_SOURCE_GROUPS.map((group) => (
+                                <div key={group.label}>
+                                  <div className="txh-source-group">{group.label}</div>
+                                  {group.options.map((option) => (
+                                    <button
+                                      key={option.value}
+                                      type="button"
+                                      role="option"
+                                      aria-selected={txSourceFilter === option.value}
+                                      className={`txh-source-opt${txSourceFilter === option.value ? " on" : ""}`}
+                                      onClick={() => {
+                                        setTxSourceFilter(option.value);
+                                        setTxSourceMenuOpen(false);
+                                      }}
+                                    >
+                                      {option.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                       <button
                         type="button"
                         className="txh-filter-clear"
@@ -1163,6 +1249,7 @@ export default function NetworkPage() {
                   const hasLocked = isCommissionEarned && !!tx.lockedAmount && Number(tx.lockedAmount) > 0;
                   const statusLabel = tx.status === "PENDING" ? "Pending" : tx.status === "FAILED" ? "Failed" : "Confirmed";
                   const sourceUser = formatSourceUser(tx);
+                  const tokenLabel = resolveTokenSymbol(tx.token);
                   const check = (
                     <div
                       className="txh-check"
@@ -1184,9 +1271,13 @@ export default function NetworkPage() {
                       </td>
                       <td className="txh-amount" style={isOutgoing ? { color: "var(--t2)" } : undefined}>
                         {isOutgoing ? "-" : "+"}
-                        {formatTokenAmount(tx.amount)} {formatTokenLabel(tx.token)}
+                        {formatTokenAmount(tx.amount)}
+                        {tokenLabel ? ` ${tokenLabel}` : ""}
                         {hasLocked && (
-                          <div style={{ fontSize: 11, opacity: 0.7, fontWeight: 400 }}>+ {formatTokenAmount(tx.lockedAmount)} locked (20%)</div>
+                          <div className="txh-amount-locked">
+                            + {formatTokenAmount(tx.lockedAmount)}
+                            {tokenLabel ? ` ${tokenLabel}` : ""} locked (20%)
+                          </div>
                         )}
                       </td>
                       <td className="txh-status">

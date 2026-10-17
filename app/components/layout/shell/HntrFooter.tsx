@@ -25,7 +25,19 @@ export default function HntrFooter() {
           </svg>
         </a>
       </div>
-      <div className="hf-copy">© {new Date().getFullYear()} HNTR.art All rights reserved</div>
+      <Link className="hf-doc" href="/learn">
+        HNTR Docs
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M3.5 8.5l5-5M4.5 3.5h4v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Link>
+      <div className="hf-copy">
+        © {new Date().getFullYear()} HNTR.art All rights reserved
+        <span className="hf-sep">·</span>
+        <Link className="hf-tc" href="/terms">
+          Terms & Conditions
+        </Link>
+      </div>
     </footer>
   );
 }

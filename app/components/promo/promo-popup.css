@@ -1,0 +1,76 @@
+/* Promo popup ("Pre-launch pricing: 50% off"), ported from the V2 design's promo-popups.js (membership variant). */
+.ppo{position:fixed;inset:0;z-index:10070;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;background:rgba(0,0,0,.72)}
+.ppo .pp{position:relative;width:100%;max-width:520px;margin:auto;background:#121214;border:1px solid rgba(255,255,255,.09);border-radius:26px;color:#fff;font-family:var(--fn,Inter,sans-serif);padding:36px 34px 24px;animation:ppIn .45s cubic-bezier(.22,1,.36,1)}
+@keyframes ppIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.pp-x{position:absolute;top:16px;right:16px;z-index:3;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:transparent;color:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pp-x:hover{background:rgba(255,255,255,.06)}
+.pp-k{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm,monospace);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#f25623}
+.pp-k i{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 0 4px rgba(242,86,35,.18)}
+.pp h2{margin:12px 40px 10px 0;font-size:30px;font-weight:700;letter-spacing:-.01em;line-height:1.12;text-wrap:balance}
+.pp-p{margin:0;font-size:15px;line-height:1.55;color:#a1a1aa;text-wrap:pretty}
+.pp-tiers{display:flex;flex-direction:column;margin:20px 0 16px;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden}
+.pp-tr{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:12px 16px;background:#18181b}
+.pp-tr+.pp-tr{border-top:1px solid rgba(255,255,255,.07)}
+.pp-tn{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.pp-tn i{width:10px;height:10px;border-radius:50%}
+.pp-tp{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+.pp-tp b{font-size:17px;font-weight:700}
+.pp-tp s{font-size:12px;color:#8e8e96}
+.pp-lock{margin:0;font-size:14px;font-weight:600;color:#e4e4e7}
+.pp-btn{width:100%;margin-top:22px;min-height:52px;border-radius:14px;font:700 13px var(--fn,Inter,sans-serif);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;background:#f25623;color:#fff;border:0;box-shadow:0 8px 24px rgba(242,86,35,.3)}
+.pp-btn:hover{background:#ff7a45}
+.pp-blue .pp-k{color:#0a84ff}
+.pp-blue .pp-k i{background:#30d158;box-shadow:0 0 0 4px rgba(48,209,88,.18)}
+.pp-blue .pp-btn{background:#0a84ff;box-shadow:0 8px 24px rgba(10,132,255,.3)}
+.pp-blue .pp-btn:hover{background:#3d9dff}
+.pp-blue .pp-hide input:checked+span{background:#0a84ff;border-color:#0a84ff}
+.pp-blue .pp-hide input:focus-visible+span{box-shadow:0 0 0 3px rgba(10,132,255,.45)}
+.pp-list{display:grid;gap:8px;margin:20px 0}
+.pp-li{display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:#18181b;border:1px solid rgba(255,255,255,.07);font-size:14px;line-height:1.45;color:#e4e4e7}
+.pp-ic{width:36px;height:36px;border-radius:10px;background:rgba(10,132,255,.12);border:1px solid rgba(10,132,255,.28);color:#0a84ff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pp-ic svg{display:block}
+.pp-hide{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:14px;font-size:13px;color:#a1a1aa;cursor:pointer;user-select:none;position:relative}
+.pp-hide input{position:absolute;opacity:0;pointer-events:none}
+.pp-hide span{width:18px;height:18px;border-radius:5px;border:1.5px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;color:transparent}
+.pp-hide input:checked+span{background:#f25623;border-color:#f25623;color:#fff}
+.pp-hide input:focus-visible+span{box-shadow:0 0 0 3px rgba(242,86,35,.45)}
+.pp-fine{margin:14px 0 0;font-size:11px;line-height:1.5;color:#8e8e96;text-align:center}
+.pp-btn:focus-visible,.pp-x:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.ppo .pp:focus{outline:none}
+
+/* wide variant: animated membership card on the left */
+.ppo .pp.pp-wide{max-width:920px;padding:0;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1fr);overflow:hidden}
+.pp-wide .pp-body{padding:36px 34px 24px;min-width:0}
+.pp-vis{position:relative;margin:10px;border-radius:18px;overflow:hidden;background:radial-gradient(120% 90% at 50% 40%,#2a1408 0%,#0b0b0d 62%);display:flex;align-items:center;justify-content:center;padding:40px 28px;min-height:320px;perspective:900px}
+.pp-vis::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:28px 28px;-webkit-mask-image:radial-gradient(circle at 50% 50%,#000 20%,transparent 75%);mask-image:radial-gradient(circle at 50% 50%,#000 20%,transparent 75%)}
+.pp-glow{position:absolute;width:70%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(242,86,35,.45),transparent 65%);filter:blur(20px)}
+.pp-card{position:relative;width:min(100%,330px);aspect-ratio:1.586;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#1c1c20,#0c0c0e 55%,#1a1a1e);border:1px solid rgba(255,255,255,.18);box-shadow:0 30px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.15);transform:rotateX(10deg) rotateY(-14deg);animation:ppFloat 6s ease-in-out infinite;transform-style:preserve-3d}
+@keyframes ppFloat{0%,100%{transform:rotateX(10deg) rotateY(-14deg) translateY(0)}50%{transform:rotateX(4deg) rotateY(10deg) translateY(-8px)}}
+.pp-holo{position:absolute;inset:-40%;background:conic-gradient(from 0deg,rgba(255,0,128,0),rgba(255,120,60,.35),rgba(255,230,90,.3),rgba(80,255,180,.3),rgba(60,160,255,.35),rgba(190,90,255,.3),rgba(255,0,128,0));mix-blend-mode:color-dodge;opacity:.55;animation:ppSpin 9s linear infinite}
+@keyframes ppSpin{to{transform:rotate(360deg)}}
+.pp-shine{position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.35) 45%,transparent 60%);background-size:250% 100%;animation:ppShine 4.5s ease-in-out infinite}
+@keyframes ppShine{0%{background-position:120% 0}60%,100%{background-position:-60% 0}}
+.pp-card img{position:absolute;left:50%;top:50%;width:30%;transform:translate(-50%,-50%);filter:drop-shadow(0 0 14px rgba(255,255,255,.35))}
+.pp-cl{position:absolute;left:18px;bottom:14px;font-family:var(--fm,monospace);font-size:9px;letter-spacing:.2em;color:rgba(255,255,255,.75)}
+.pp-cr{position:absolute;right:18px;bottom:14px;font-family:var(--fm,monospace);font-size:9px;letter-spacing:.2em;color:#f25623;font-weight:700}
+.pp-chip{position:absolute;left:18px;top:18px;width:34px;height:26px;border-radius:5px;background:linear-gradient(135deg,#e8c56a,#a07a2c);box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+
+/* light theme */
+body:not(.dark) .ppo .pp{background:#fff;border-color:rgba(0,0,0,.08);color:#0a0a0a}
+body:not(.dark) .pp-p,body:not(.dark) .pp-hide{color:#5b5b63}
+body:not(.dark) .pp-tr,body:not(.dark) .pp-li{background:#f5f5f7;color:#3a3a40}
+body:not(.dark) .pp-li{border-color:rgba(0,0,0,.06)}
+body:not(.dark) .pp-tiers{border-color:rgba(0,0,0,.08)}
+body:not(.dark) .pp-tr+.pp-tr{border-color:rgba(0,0,0,.07)}
+body:not(.dark) .pp-lock{color:#26262b}
+body:not(.dark) .pp-x{border-color:rgba(0,0,0,.14)}
+body:not(.dark) .pp-x:hover{background:rgba(0,0,0,.05)}
+body:not(.dark) .pp-hide span{border-color:rgba(0,0,0,.3)}
+body:not(.dark) .pp-fine,body:not(.dark) .pp-tp s{color:#6b6b73}
+body:not(.dark) .pp-btn:focus-visible,body:not(.dark) .pp-x:focus-visible{outline-color:#0a0a0a}
+
+/* single column: the close button overlaps the dark card stage in both themes, so keep it light-on-dark there */
+@media(max-width:760px){.ppo .pp-wide .pp-x{background:rgba(0,0,0,.5);color:#fff;border-color:rgba(255,255,255,.28)}}
+@media(max-width:760px){.ppo .pp.pp-wide{grid-template-columns:minmax(0,1fr)}.pp-vis{min-height:200px;padding:26px}.pp-card{width:min(100%,260px)}.pp-wide .pp-body{padding:22px 18px 20px}}
+@media(prefers-reduced-motion:reduce){.ppo .pp,.pp-card,.pp-holo,.pp-shine{animation:none}}
+@media(max-width:560px){.ppo{padding:12px}.ppo .pp{padding:28px 18px 20px;border-radius:22px}.ppo .pp.pp-wide{padding:0}.pp h2{font-size:25px}.pp-tr{padding:11px 12px}}
