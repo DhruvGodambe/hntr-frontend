@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { Avatar } from "connectkit";
@@ -9,6 +10,7 @@ import NotificationSystem from "./NotificationSystem";
 import DepositModal from "./DepositModal";
 import OnboardingTour from "./onboarding/OnboardingTour";
 import { clearStoredAuth } from "../../lib/api";
+import { useEffectiveAccount } from "../../lib/session";
 import { isCorrectAppChain } from "../../lib/contracts";
 import { useDashboardData } from "../../lib/rewards";
 import { LISTINGS_LIVE } from "../../lib/launch";
@@ -39,7 +41,11 @@ declare global {
 
 export default function MainLayout({ children, panelClassName }: MainLayoutProps) {
   const pathname = usePathname();
-  const { address, isConnected: walletConnected, chainId } = useAccount();
+  const router = useRouter();
+  // `walletConnected` / `address` also cover a super-login session (read-only view of a member), so the
+  // sidebar locks, search gating and profile card treat that member as signed in. `chainId` stays the real wallet's.
+  const { address, isConnected: walletConnected, isImpersonation } = useEffectiveAccount();
+  const { chainId } = useAccount();
   const { disconnect } = useDisconnect();
   const { data: balanceData } = useBalance({ address, query: { enabled: !!address } });
   const { label: walletAddressLabel, ensName } = useEnsIdentity(address);
@@ -58,7 +64,7 @@ export default function MainLayout({ children, panelClassName }: MainLayoutProps
   const currentPage = resolveCurrentPage(pathname);
   const hasSummary = !!summary;
   const hasMembership = !!summary?.tier && summary.tier !== "None";
-  const wrongNetwork = walletConnected && chainId != null && !isCorrectAppChain(chainId);
+  const wrongNetwork = !isImpersonation && walletConnected && chainId != null && !isCorrectAppChain(chainId);
 
   useReveal(pathname);
   useContrastFix(isDark);
@@ -174,6 +180,13 @@ export default function MainLayout({ children, panelClassName }: MainLayoutProps
   const disconnectWallet = () => {
     setWalletPanelOpen(false);
     setDrawerOpen(false);
+    // Logging out of a super-login view just ends it; there is no wallet to disconnect.
+    if (isImpersonation) {
+      clearStoredAuth();
+      window.showToast?.({ title: "Exited super-login", sub: "The read-only member view was closed.", link: "" });
+      router.push("/super-login");
+      return;
+    }
     const disconnectedLabel = walletAddressLabel;
     clearStoredAuth();
     disconnect();
@@ -257,7 +270,11 @@ export default function MainLayout({ children, panelClassName }: MainLayoutProps
           onNavigate={() => setDrawerOpen(false)}
           onOpenSignup={openSignup}
           onLogout={disconnectWallet}
-          onEditProfile={() => window.openEditProfile?.()}
+          onEditProfile={() =>
+            isImpersonation
+              ? window.showToast?.({ title: "Read-only view", sub: "Profiles can't be edited in a super-login session.", link: "" })
+              : window.openEditProfile?.()
+          }
         />
         <div className="main-col">
           <TopNavBar
@@ -299,6 +316,7 @@ export default function MainLayout({ children, panelClassName }: MainLayoutProps
         balanceValue={balanceData?.value}
         balanceSymbol={balanceData?.symbol}
         onDisconnect={disconnectWallet}
+        disconnectLabel={isImpersonation ? "EXIT VIEW" : undefined}
       />
 
       <NotificationSystem panelOpen={notifPanelOpen} onClosePanel={() => setNotifPanelOpen(false)} />

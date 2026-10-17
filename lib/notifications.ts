@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAccount } from "wagmi";
+import { useEffectiveAccount } from "./session";
 import { api } from "./api";
 import { ensureAuth } from "./auth";
 
@@ -106,7 +106,7 @@ export function dedupeNotifications(items: BackendNotification[]): BackendNotifi
 }
 
 export function useNotifications(limit = 50) {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useEffectiveAccount();
 
   return useQuery({
     queryKey: ["notifications", address, limit],
@@ -133,11 +133,13 @@ export function useNotifications(limit = 50) {
 }
 
 export function useMarkNotificationsRead() {
-  const { address } = useAccount();
+  const { address, isImpersonation } = useEffectiveAccount();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (ids?: string[]) => {
+      // A super-login view is read-only: never mark the member's notifications as read.
+      if (isImpersonation) return { modified: 0 };
       await ensureAuth();
       return api.post<{ modified: number }>(
         `/api/network/${address}/notifications/read`,

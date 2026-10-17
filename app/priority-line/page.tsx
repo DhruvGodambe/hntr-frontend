@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "nextjs-toploader/app";
-import { useAccount } from "wagmi";
+import { useEffectiveAccount } from "../../lib/session";
 import MainLayout from "../components/MainLayout";
 import PriorityLineBanner from "../components/PriorityLineBanner";
 import HntrFooter from "../components/layout/shell/HntrFooter";
@@ -84,7 +84,8 @@ function buildActivity(deposits: PriorityLineDeposit[]): ActivityRow[] {
 
 export default function PriorityLinePage() {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
+  // Super-login (operator viewing a member) shows that member's line, read-only: no deposits, recovery or withdrawals.
+  const { address, isConnected, isImpersonation } = useEffectiveAccount();
   const { connectWallet } = useConnectWallet();
   const { data, isLoading } = usePriorityLine();
   const invalidate = usePriorityLineInvalidate();
@@ -118,7 +119,7 @@ export default function PriorityLinePage() {
   // Record any transfer that was sent but never confirmed (closed tab, dropped connection).
   const recoveredFor = useRef<string | null>(null);
   useEffect(() => {
-    if (!address || !data || recoveredFor.current === address) return;
+    if (isImpersonation || !address || !data || recoveredFor.current === address) return;
     recoveredFor.current = address;
     recoverPendingPriorityLine(address).then((n) => {
       if (n > 0) {
@@ -127,7 +128,7 @@ export default function PriorityLinePage() {
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, data]);
+  }, [address, data, isImpersonation]);
 
   useEffect(() => {
     if (!wdOpen) return;
@@ -185,7 +186,9 @@ export default function PriorityLinePage() {
   };
 
   let primary: { label: string; onClick: () => void; disabled: boolean };
-  if (!isConnected) {
+  if (isImpersonation) {
+    primary = { label: "Read-only view", onClick: () => undefined, disabled: true };
+  } else if (!isConnected) {
     primary = { label: "Connect wallet", onClick: () => void connectWallet().catch(() => undefined), disabled: false };
   } else if (loaded && !hasMembership) {
     primary = { label: "Get a membership", onClick: () => router.push("/membership"), disabled: false };
@@ -280,7 +283,7 @@ export default function PriorityLinePage() {
                 <button type="button" className="gf-btn" disabled={primary.disabled} onClick={primary.onClick}>
                   {primary.label}
                 </button>
-                <button type="button" className="gf-btn ghost" disabled={!activeDeposits.length || busy} onClick={openWithdraw}>
+                <button type="button" className="gf-btn ghost" disabled={isImpersonation || !activeDeposits.length || busy} onClick={openWithdraw}>
                   Withdraw
                 </button>
               </div>

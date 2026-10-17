@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAccount } from "wagmi";
+import { useEffectiveAccount } from "./session";
 import { api } from "./api";
 import { ensureAuth } from "./auth";
 
@@ -73,7 +73,7 @@ export const voucherKeys = {
 };
 
 export function useVoucherAccess() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useEffectiveAccount();
   return useQuery({
     queryKey: [...voucherKeys.access, address],
     queryFn: async (): Promise<VoucherAccess> => {
@@ -86,7 +86,7 @@ export function useVoucherAccess() {
 }
 
 export function useMyVouchers(status = "all", page = 1, limit = 20) {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useEffectiveAccount();
   return useQuery({
     queryKey: [...voucherKeys.list(status, page), address, limit],
     queryFn: async () => {
@@ -169,7 +169,7 @@ export async function redeemVoucher(code: string): Promise<RedeemResult> {
 /** Invalidate voucher + downstream membership caches after a mutation. */
 export function useVoucherInvalidate() {
   const qc = useQueryClient();
-  const { address } = useAccount();
+  const { address } = useEffectiveAccount();
   return async (opts: { membership?: boolean } = {}) => {
     await qc.invalidateQueries({ queryKey: voucherKeys.access });
     await qc.invalidateQueries({ queryKey: ["vouchers"] });

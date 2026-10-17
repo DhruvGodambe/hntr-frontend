@@ -12,6 +12,8 @@ type WalletPanelProps = {
   balanceValue?: bigint;
   balanceSymbol?: string;
   onDisconnect: () => void;
+  /** Button text; "EXIT VIEW" while viewing a member through super-login. */
+  disconnectLabel?: string;
 };
 
 function formatUsdEquivalent(ethAmount: number, ethUsd: number | undefined): string {
@@ -31,6 +33,7 @@ export default function WalletPanel({
   balanceValue,
   balanceSymbol,
   onDisconnect,
+  disconnectLabel = "DISCONNECT",
 }: WalletPanelProps) {
   const { data: ethUsd } = useEthUsdPrice();
   const ethAmount = balanceValue !== undefined ? Number(formatEther(balanceValue)) : 0;
@@ -61,7 +64,7 @@ export default function WalletPanel({
       </div>
       <div className="wallet-panel-footer">
         <button className="wallet-disconnect-btn" type="button" onClick={onDisconnect}>
-          DISCONNECT
+          {disconnectLabel}
         </button>
       </div>
     </div>

@@ -1,24 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { getStoredAuth, clearStoredAuth } from "@/lib/api";
+import { clearStoredAuth, getStoredAuthSnapshot, subscribeStoredAuth } from "@/lib/api";
 
+const shortAddress = (a: string) => (a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a);
+
+/**
+ * Shown above the app while an operator views a member through super-login. It sits in the page flow
+ * (not floating over it), so it never covers the top bar, and the app shrinks to make room.
+ */
 export default function ImpersonationBanner() {
   const router = useRouter();
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const stored = useSyncExternalStore(subscribeStoredAuth, getStoredAuthSnapshot, () => null);
 
-  useEffect(() => {
-    const check = () => {
-      const stored = getStoredAuth();
-      setWalletAddress(stored?.isImpersonation ? stored.walletAddress : null);
-    };
-    check();
-    window.addEventListener("storage", check);
-    return () => window.removeEventListener("storage", check);
-  }, []);
+  if (!stored?.isImpersonation) return null;
 
-  if (!walletAddress) return null;
+  const who = stored.username ? `${stored.username} (${shortAddress(stored.walletAddress)})` : shortAddress(stored.walletAddress);
 
   const handleExit = () => {
     clearStoredAuth();
@@ -27,27 +25,28 @@ export default function ImpersonationBanner() {
 
   return (
     <div
+      role="status"
       style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
+        flex: "0 0 auto",
         background: "#f50",
         color: "#fff",
         fontSize: 13,
         fontWeight: 600,
+        lineHeight: 1.35,
         padding: "8px 16px",
         display: "flex",
+        flexWrap: "wrap",
         alignItems: "center",
         justifyContent: "center",
-        gap: 12,
+        gap: "4px 12px",
+        textAlign: "center",
       }}
     >
       <span>
-        Viewing <strong>{walletAddress}</strong> — read-only super-login session
+        Viewing <strong>{who}</strong> — read-only super-login session
       </span>
       <button
+        type="button"
         onClick={handleExit}
         style={{
           background: "rgba(0,0,0,0.25)",

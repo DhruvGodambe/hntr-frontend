@@ -30,6 +30,7 @@ import {
 } from "../../lib/rewards";
 import { formatClaimableByToken, formatTokenLabel } from "../../lib/tokens";
 import { hasActiveMembership } from "../../lib/membership";
+import { useEffectiveAccount } from "../../lib/session";
 import { explorerTxUrl, TIERS } from "../../lib/contracts";
 import { useConnectWallet } from "../../lib/useConnectWallet";
 import type { StandardToastData } from "../../lib/notification-data";
@@ -190,6 +191,7 @@ export default function NetworkPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { chainId } = useAccount();
+  const { isImpersonation } = useEffectiveAccount();
   const [profileFlipped, setProfileFlipped] = useState(false);
   const { summary, refetchSummary, isFetching, isConnected } = useDashboardData();
   const {
@@ -474,6 +476,11 @@ export default function NetworkPage() {
 
   const handleClaimCommissions = async (symbol: "USDT" | "USDC") => {
     if (claimBusy) return;
+    // Claiming sends an on-chain transaction from the member's own wallet, which a super-login view doesn't have.
+    if (isImpersonation) {
+      window.showToast?.({ title: "Read-only view", sub: "Commissions can't be claimed in a super-login session.", link: "" });
+      return;
+    }
     const token = (summary?.tokens || []).find((t) => t.symbol === symbol && t.claimable > 0);
     if (!token) {
       window.showToast?.({

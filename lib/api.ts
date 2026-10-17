@@ -9,7 +9,12 @@ export interface StoredAuth {
   expiresAt: number; // epoch ms
   /** True for read-only sessions minted via the operator super-login route. */
   isImpersonation?: boolean;
+  /** Username of the member being viewed (super-login sessions only). */
+  username?: string;
 }
+
+/** Fired in this tab whenever the stored session is set or cleared (the native `storage` event only reaches other tabs). */
+const AUTH_CHANGE_EVENT = "hntr-auth-change";
 
 export class ApiError extends Error {
   code?: string;
@@ -40,11 +45,41 @@ export function getStoredAuth(): StoredAuth | null {
 export function setStoredAuth(auth: StoredAuth) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(auth));
+  window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
 }
 
 export function clearStoredAuth() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+  window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+}
+
+/** For `useSyncExternalStore`: re-render when the session changes, in this tab or another. */
+export function subscribeStoredAuth(onChange: () => void) {
+  window.addEventListener(AUTH_CHANGE_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(AUTH_CHANGE_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+let snapshotRaw: string | null | undefined;
+let snapshotValue: StoredAuth | null = null;
+
+/** Stable-identity snapshot of the stored session (re-parsed only when the stored text changes). */
+export function getStoredAuthSnapshot(): StoredAuth | null {
+  if (typeof window === "undefined") return null;
+  let raw: string | null;
+  try {
+    raw = window.localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+  if (raw === snapshotRaw) return snapshotValue;
+  snapshotRaw = raw;
+  snapshotValue = getStoredAuth();
+  return snapshotValue;
 }
 
 async function request<T = any>(
@@ -99,7 +134,7 @@ export const api = {
 
 /** Trades the shared super-login password + a target username for a read-only session. */
 export async function superLogin(username: string, password: string): Promise<StoredAuth> {
-  const result = await request<{ token: string; walletAddress: string }>("/api/admin/super-login", {
+  const result = await request<{ token: string; walletAddress: string; username?: string }>("/api/admin/super-login", {
     method: "POST",
     body: { username, password },
   });
@@ -108,6 +143,7 @@ export async function superLogin(username: string, password: string): Promise<St
     walletAddress: result.walletAddress,
     expiresAt: decodeJwtExpiryMs(result.token),
     isImpersonation: true,
+    username: result.username,
   };
   setStoredAuth(auth);
   return auth;
