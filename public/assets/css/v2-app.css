@@ -141,3 +141,43 @@ html body #homeActivity .net-act .nempty{overflow-x:auto!important}
 #panel-network .net-stat-pts b{margin-left:4px;color:#fff;font-weight:700;letter-spacing:0}
 body:not(.dark) #panel-network .net-stat-pts{color:#55555c}
 body:not(.dark) #panel-network .net-stat-pts b{color:#0a0a0a}
+
+/* ── Network: Topology "Node View" (list + search). Row/bar/search styles come from the V2 tn-* rules in v2.css;
+      the scroll container uses a class here instead of the prototype's #topoNodes id. ── */
+.tn-canvas[hidden]{display:none!important}
+.tn-canvas{overflow:hidden}
+.tn-wrap{position:absolute;inset:0;z-index:1;padding:14px 16px 18px;font-family:var(--fn);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;overscroll-behavior:contain;transition:opacity .2s}
+.tn-msg{padding:26px 8px;text-align:center;font-size:13px;line-height:1.5;color:#8e8e93}
+.tn-res div.is-active{background:rgba(255,255,255,.07)}
+body:not(.dark) .tn-res div:hover,body:not(.dark) .tn-res div.is-active{background:rgba(0,0,0,.05)}
+.tn-row:focus-visible,.tn-bar button:focus-visible{outline:2px solid #0a84ff;outline-offset:-2px}
+.tn-search input:focus-visible{outline:none}
+/* the header can now hold 2D Plane + Node View + the levels picker: let them wrap on narrow cards */
+html body #panel-network .topo-view-btns{flex-wrap:wrap!important}
+.tn-name span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* The card is only ~240px wide on tablets (it sits beside Share & Earn), so lay the rows out from the list's own width */
+.tn-wrap{container-type:inline-size;container-name:tnwrap}
+@container tnwrap (max-width:440px){
+  .tn-row{grid-template-columns:16px 28px minmax(0,1fr) auto;gap:8px;padding:0 6px}
+  .tn-tier{display:none}
+  .tn-kids{margin-left:12px;padding-left:8px}
+}
+@container tnwrap (max-width:270px){
+  .tn-row{grid-template-columns:16px 28px minmax(0,1fr)}
+  .tn-cnt{display:none}
+  /* search on its own line so it isn't squeezed next to "Collapse all" */
+  .tn-bar{flex-wrap:wrap;justify-content:flex-end}
+  .tn-search{flex:1 1 100%;max-width:none}
+}
+@media (max-width:600px){
+  .tn-wrap{padding:12px 10px 14px}
+  /* a V2 phone rule forces every .topo-canvas to height:auto / min-height:0 (!important); out-rank it so the list has room */
+  html body #panel-network .topo-canvas.tn-canvas.tn-canvas{min-height:420px!important;height:420px!important}
+}
+/* Node View, light theme: the ported tn-* rules only set dark-theme greys, and the runtime contrast patch
+   misses rows expanded after load, so set the light colours explicitly (README: light secondary #55555c). */
+body:not(.dark) .tn-tier{background:rgba(0,0,0,.06);color:#3a3a40}
+body:not(.dark) .tn-cnt,body:not(.dark) .tn-name span,body:not(.dark) .tn-chev,body:not(.dark) .tn-search svg,body:not(.dark) .tn-res div span,body:not(.dark) .tn-res .tn-none,body:not(.dark) .tn-msg{color:#55555c}
+body:not(.dark) .tn-search input{background:rgba(0,0,0,.03)}
+body:not(.dark) .tn-search input::placeholder{color:#6b6b73}
+body:not(.dark) .tn-row.hit{box-shadow:inset 0 0 0 1.5px #0a84ff;background:rgba(10,132,255,.08)}

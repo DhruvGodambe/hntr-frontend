@@ -1,7 +1,8 @@
 "use client";
 
 import MainLayout from "../components/MainLayout";
-import NetworkTopologyTree from "../components/NetworkTopologyTree";
+import NetworkTopologyTree, { canvasHeightForDepth } from "../components/NetworkTopologyTree";
+import NetworkNodeView from "../components/NetworkNodeView";
 import PageHeroBanner from "../components/PageHeroBanner";
 import HntrFooter from "../components/layout/shell/HntrFooter";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -197,6 +198,7 @@ export default function NetworkPage() {
     isFetching: txFetching,
   } = useTransactionHistory(100);
   const [treeDepth, setTreeDepth] = useState<NetworkTreeDepth>(3);
+  const [topoView, setTopoView] = useState<"plane" | "node">("plane");
   const {
     data: treeData,
     isLoading: treeLoading,
@@ -964,9 +966,25 @@ export default function NetworkPage() {
             <div className="topo-card">
               <div className="topo-hdr">
                 <div className="topo-hdr-title">Topology Matrix Mapping</div>
-                <div className="topo-view-btns">
+                <div className="topo-view-btns" role="group" aria-label="Topology view">
+                  <button
+                    type="button"
+                    className={`topo-vbtn${topoView === "plane" ? " active" : ""}`}
+                    aria-pressed={topoView === "plane"}
+                    onClick={() => setTopoView("plane")}
+                  >
+                    2D Plane
+                  </button>
+                  <button
+                    type="button"
+                    className={`topo-vbtn${topoView === "node" ? " active" : ""}`}
+                    aria-pressed={topoView === "node"}
+                    onClick={() => setTopoView("node")}
+                  >
+                    Node View
+                  </button>
                   <select
-                    className="topo-vbtn active"
+                    className="topo-vbtn"
                     value={treeDepth}
                     onChange={handleTreeDepthChange}
                     aria-label="Network tree depth"
@@ -978,16 +996,22 @@ export default function NetworkPage() {
                       </option>
                     ))}
                   </select>
-                  <button type="button" className="topo-vbtn" aria-current="true">
-                    Node View
-                  </button>
                 </div>
               </div>
-              <NetworkTopologyTree
+              {topoView === "plane" && (
+                <NetworkTopologyTree
+                  treeData={treeData ?? null}
+                  isLoading={Boolean(summary?.username) && (treeLoading || treeFetching)}
+                  rootRank={summary?.rank || "Unranked"}
+                  maxDepth={treeDepth}
+                />
+              )}
+              <NetworkNodeView
                 treeData={treeData ?? null}
                 isLoading={Boolean(summary?.username) && (treeLoading || treeFetching)}
-                rootRank={summary?.rank || "Unranked"}
                 maxDepth={treeDepth}
+                minHeight={canvasHeightForDepth(treeDepth)}
+                hidden={topoView !== "node"}
               />
             </div>
 

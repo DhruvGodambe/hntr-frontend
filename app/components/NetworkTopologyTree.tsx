@@ -128,7 +128,8 @@ function estimateTreeContentSize(datum: RawNodeDatum, layout: TreeLayout, maxDep
   return { width, height, leaves };
 }
 
-function canvasHeightForDepth(maxDepth: number) {
+/** Canvas height for a tree depth; the node view uses the same so switching views doesn't resize the card. */
+export function canvasHeightForDepth(maxDepth: number) {
   if (maxDepth >= 12) return 560;
   if (maxDepth >= 9) return 480;
   if (maxDepth >= 6) return 400;
