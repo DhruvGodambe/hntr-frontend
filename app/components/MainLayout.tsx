@@ -228,11 +228,17 @@ export default function MainLayout({ children, panelClassName }: MainLayoutProps
     };
   }, [applyTheme]);
 
+  const [siteOrigin, setSiteOrigin] = useState("");
+  useEffect(() => {
+    setSiteOrigin(window.location.origin);
+  }, []);
+  const referralLink = siteOrigin && summary?.username ? `${siteOrigin}/?ref=${summary.username}` : "";
+
   const profile: SidebarProfile | null =
     walletConnected && address
       ? {
           name: summary?.username || ensName || shortenAddress(address),
-          sub: ensName && summary?.username ? ensName : shortenAddress(address),
+          sub: referralLink,
           tier: summary?.tier && summary.tier !== "None" ? summary.tier : null,
           avatar: (
             <span
@@ -269,7 +275,6 @@ export default function MainLayout({ children, panelClassName }: MainLayoutProps
           }
           onNavigate={() => setDrawerOpen(false)}
           onOpenSignup={openSignup}
-          onLogout={disconnectWallet}
           onEditProfile={() =>
             isImpersonation
               ? window.showToast?.({ title: "Read-only view", sub: "Profiles can't be edited in a super-login session.", link: "" })

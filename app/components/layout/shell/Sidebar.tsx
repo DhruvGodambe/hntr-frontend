@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { MouseEvent, ReactNode } from "react";
+import { useEffect, useRef, useState, type MouseEvent, ReactNode } from "react";
 import SidebarHolo from "./SidebarHolo";
 
 /** Routes that need a connected wallet; clicking them while disconnected opens signup instead. */
@@ -165,7 +165,6 @@ type SidebarProps = {
   brandAccessory?: ReactNode;
   onNavigate: () => void;
   onOpenSignup: () => void;
-  onLogout: () => void;
   onEditProfile: () => void;
 };
 
@@ -176,9 +175,48 @@ export default function Sidebar({
   brandAccessory,
   onNavigate,
   onOpenSignup,
-  onLogout,
   onEditProfile,
 }: SidebarProps) {
+  const [copied, setCopied] = useState(false);
+  const copiedTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimer.current) window.clearTimeout(copiedTimer.current);
+    };
+  }, []);
+
+  const copyReferralLink = async () => {
+    const link = profile?.sub ?? "";
+    if (!link) return;
+    let copiedOk = false;
+    try {
+      await navigator.clipboard.writeText(link);
+      copiedOk = true;
+    } catch {
+      try {
+        const field = document.createElement("textarea");
+        field.value = link;
+        field.setAttribute("readonly", "");
+        field.style.position = "fixed";
+        field.style.left = "-9999px";
+        document.body.appendChild(field);
+        field.select();
+        copiedOk = document.execCommand("copy");
+        field.remove();
+      } catch {
+        copiedOk = false;
+      }
+    }
+    if (!copiedOk) {
+      window.showToast?.({ title: "Could not copy", sub: "Select the link and copy it manually.", link: "", variant: "error" });
+      return;
+    }
+    setCopied(true);
+    window.showToast?.({ title: "Copied!", sub: link, link: "", variant: "success" });
+    if (copiedTimer.current) window.clearTimeout(copiedTimer.current);
+    copiedTimer.current = window.setTimeout(() => setCopied(false), 1600);
+  };
   const renderItem = (item: NavItem) => {
     const locked = !walletConnected && LOCKED_WHEN_DISCONNECTED.has(item.page);
     const onClick = (e: MouseEvent) => {
@@ -257,16 +295,24 @@ export default function Sidebar({
               </Link>
             )}
           </div>
-          <button className="sb-prof-out" type="button" onClick={onLogout} aria-label="Log out" title="Log out">
-            <svg viewBox="0 0 20 20" fill="none">
-              <path
-                d="M8 4H5a1.5 1.5 0 00-1.5 1.5v9A1.5 1.5 0 005 16h3M13 13.5L16.5 10 13 6.5M16.5 10H8"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+          <button
+            className={`sb-prof-out${copied ? " is-copied" : ""}`}
+            type="button"
+            onClick={() => void copyReferralLink()}
+            disabled={!profile.sub}
+            aria-label={copied ? "Copied" : "Copy referral link"}
+            title={copied ? "Copied!" : "Copy referral link"}
+          >
+            {copied ? (
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <rect x="7" y="7" width="9" height="9" rx="1.6" stroke="currentColor" strokeWidth="1.6" />
+                <path d="M13 7V5.2A1.2 1.2 0 0 0 11.8 4H5.2A1.2 1.2 0 0 0 4 5.2v6.6A1.2 1.2 0 0 0 5.2 13H7" stroke="currentColor" strokeWidth="1.6" />
+              </svg>
+            )}
           </button>
         </div>
       ) : (

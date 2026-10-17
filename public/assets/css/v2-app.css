@@ -194,6 +194,9 @@ html body #panel-network .txh-source-group{padding:8px 8px 3px;font-family:var(-
 html body #panel-network .txh-source-opt{display:block;width:100%;text-align:left;border:0;background:transparent;border-radius:4px;padding:6px 8px;font-family:var(--fn);font-size:13px;line-height:1.3;color:var(--t3);cursor:pointer;text-transform:none;letter-spacing:0}
 html body #panel-network .txh-source-opt:hover,html body #panel-network .txh-source-opt.on{background:var(--e3);color:var(--t4)}
 
+html body .sb-prof-out.is-copied{color:#16a34a}
+html body .sb-prof-out:disabled{opacity:.45;cursor:default}
+
 /* Topology depth menu: the OS list was a white popup inheriting light-gray page text. */
 html body.dark #panel-network select.topo-vbtn{color-scheme:dark}
 html body.dark #panel-network select.topo-vbtn option{background-color:#1c1c1c;color:#f4f4f5}

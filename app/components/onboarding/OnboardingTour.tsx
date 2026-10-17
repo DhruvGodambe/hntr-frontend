@@ -571,17 +571,18 @@ function TourDialog({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="ob-nav" id="obNav" style={{ display: step === STEPS - 1 ? "none" : "flex" }}>
+            {step > 0 && (
             <button
               className="ob-btn ob-sec ob-back"
               type="button"
               onClick={() => go(-1)}
               aria-label="Back"
-              style={{ visibility: step ? "visible" : "hidden" }}
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
+            )}
             <button ref={nextRef} className="ob-btn ob-pri" type="button" onClick={() => go(1)}>
               Next
               <Arrow />
