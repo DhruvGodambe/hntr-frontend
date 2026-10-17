@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "nextjs-toploader/app";
+import { useEffect, useRef } from "react";
 import MainLayout from "../components/MainLayout";
 
 function platformTheme(): "dark" | "light" {
@@ -9,9 +8,7 @@ function platformTheme(): "dark" | "light" {
 }
 
 export default function LearnPage() {
-  const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [docsNavOpen, setDocsNavOpen] = useState(false);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -24,10 +21,6 @@ export default function LearnPage() {
     };
 
     const onMessage = (event: MessageEvent) => {
-      if (event.data?.type === "learn-sidebar") {
-        setDocsNavOpen(Boolean(event.data.open));
-        return;
-      }
       if (event.data?.type !== "hntr-docs-theme") return;
       const theme = event.data.theme === "dark" ? "dark" : "light";
       if (theme === platformTheme()) return;
@@ -59,22 +52,6 @@ export default function LearnPage() {
           title="HNTR Learn"
           src="/learn-content/index.html"
         />
-        <button
-          className={`learn-back${docsNavOpen ? " is-hidden" : ""}`}
-          type="button"
-          onClick={() => router.push("/home")}
-        >
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-            <path
-              d="M10 3.5 5.5 8l4.5 4.5"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          BACK TO PLATFORM
-        </button>
       </div>
     </MainLayout>
   );

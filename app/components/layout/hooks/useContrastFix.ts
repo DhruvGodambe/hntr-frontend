@@ -48,6 +48,8 @@ export function useContrastFix(isDark: boolean) {
           delete e.dataset.cfx;
         }
         if (!e.offsetWidth || e.closest(".pd-soon,.se-holo,button,.nfx,.lc,.sc,.vc,.sdc,.nc")) return;
+        /* Native <option> text is drawn in the OS menu, not on the page background. */
+        if (e.tagName === "OPTION" || e.tagName === "OPTGROUP") return;
         if (!Array.from(e.childNodes).some((x) => x.nodeType === 3 && (x.textContent ?? "").trim().length > 1)) return;
         const c = rgb(getComputedStyle(e).color);
         const b = bgOf(e);

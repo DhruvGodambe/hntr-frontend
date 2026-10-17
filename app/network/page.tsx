@@ -28,7 +28,7 @@ import {
   type NetworkTreeDepth,
   type TransactionEntry,
 } from "../../lib/rewards";
-import { formatClaimableByToken, resolveTokenSymbol } from "../../lib/tokens";
+import { resolveTokenSymbol } from "../../lib/tokens";
 import { hasActiveMembership } from "../../lib/membership";
 import { useEffectiveAccount } from "../../lib/session";
 import { explorerTxUrl, RANKS, TIERS } from "../../lib/contracts";
@@ -373,11 +373,6 @@ export default function NetworkPage() {
   const leadershipShares = leadershipStatus?.shares ?? 0;
   const totalLeadershipReceived = leadershipStatus?.lifetimePaidUSD ?? 0;
   const estimatedLeadershipPayout = leadershipStatus?.estimatedPayoutUSD ?? 0;
-  const leadershipAmountLabel = hasLeadershipShares
-    ? totalLeadershipReceived > 0
-      ? `$${totalLeadershipReceived.toFixed(2)}`
-      : `~$${estimatedLeadershipPayout.toFixed(2)}`
-    : "$0.00";
   const leadershipNote = !leadershipStatus
     ? "…"
     : hasLeadershipShares
@@ -395,15 +390,8 @@ export default function NetworkPage() {
         : `Est. next payout $${estimatedLeadershipPayout.toFixed(2)} from the current $${leadershipStatus.poolBalanceUSD.toFixed(2)} pool.`)
     : "Monthly leadership pool (5%) distributed to Hunter rank and above based on shares — Hunter=1, Elite Hunter=3, Master Hunter=7, Legend Hunter=15.";
 
-  const achievementLifetimePaid = achievementStatus?.lifetimePaidUSD ?? 0;
-  const achievementPending = achievementStatus?.pendingUSD ?? 0;
   const hasAchievementPending = !!achievementStatus?.hasPending;
   const hasAchievementPaid = !!achievementStatus?.hasPaid;
-  const achievementAmountLabel = !achievementStatus
-    ? "$0.00"
-    : hasAchievementPending
-    ? `$${achievementPending.toFixed(2)}`
-    : `$${achievementLifetimePaid.toFixed(2)}`;
   const achievementNote = !achievementStatus
     ? "…"
     : hasAchievementPending
@@ -420,8 +408,6 @@ export default function NetworkPage() {
   const achievementDesc =
     achievementStatus?.message ||
     "One-time rank achievement bonuses from Scout ($25) through Legend Hunter ($500,000), paid same-day after qualification (manual distribution).";
-  const claimableByTokenLabel = formatClaimableByToken(summary?.tokens);
-
   const [siteOrigin, setSiteOrigin] = useState("");
 
   useEffect(() => {
@@ -548,7 +534,6 @@ export default function NetworkPage() {
   };
 
   const progressPct = summary?.progress.percent ?? 0;
-  const tierInfo = TIERS.find((t) => t.name === summary?.tier);
   const fmtUsd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const legs = [
     { leg: summary?.legs.competitive[0], tag: "Competitive", weak: false },
@@ -813,13 +798,8 @@ export default function NetworkPage() {
               spark: "M2 22 C14 26 20 10 32 16 S50 18 56 10 S66 4 70 3",
               tag: "REAL-TIME",
               name: "Referral Commissions",
-              amount: fmtUsd(summary?.claimableNow ?? 0),
-              title: [
-                `80% claimable now (${fmtUsd(summary?.claimableNow ?? 0)}) + 20% locked in pool (${fmtUsd(summary?.lockedRemaining ?? 0)}).`,
-                claimableByTokenLabel,
-              ]
-                .filter(Boolean)
-                .join(" "),
+              amount: "$0.00",
+              title: "80% claimable now ($0.00) + 20% locked in pool ($0.00).",
               action:
                 claimableTokens.length > 1 ? (
                   <div className="net-claim-btns" style={{ display: "flex", gap: 6 }}>
@@ -868,7 +848,7 @@ export default function NetworkPage() {
               spark: "M2 18 C10 22 18 24 28 19 S42 12 50 18 S62 10 70 4",
               tag: hasLeadershipShares ? (totalLeadershipReceived > 0 ? "MONTHLY" : "ELIGIBLE") : "NO SHARES",
               name: "Leadership Bonus",
-              amount: leadershipAmountLabel,
+              amount: "$0.00",
               title: [leadershipDesc, leadershipPoolLabel].filter(Boolean).join(" · "),
               action: (
                 <button type="button" className="net-claim-btn" disabled title="Paid automatically each month">
@@ -890,7 +870,7 @@ export default function NetworkPage() {
               spark: "M2 24 C10 20 16 12 26 16 S40 22 50 12 S62 6 70 5",
               tag: achievementTag,
               name: "Rank Bonus",
-              amount: achievementAmountLabel,
+              amount: "$0.00",
               title: [achievementDesc, achievementPoolLabel].filter(Boolean).join(" · "),
               action: (
                 <button type="button" className="net-claim-btn" disabled title="Paid same-day after qualification">
@@ -993,7 +973,7 @@ export default function NetworkPage() {
                       <path d="M7 10h6M10 7v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                     <span>
-                      <b>{tierInfo ? tierInfo.maxDeposit : "$0"}</b> Max Deposit/Pool
+                      <b>$0</b> Max Deposit/Pool
                     </span>
                   </div>
                 </div>
